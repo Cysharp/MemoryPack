@@ -14,7 +14,7 @@ internal static class SequentialBufferWriterPool
         {
             return writer;
         }
-        return new SequentialBufferWriter();
+        return new SequentialBufferWriter(useFirstBuffer: false); // does not cache firstBuffer
     }
 
     public static void Return(SequentialBufferWriter writer)
@@ -28,6 +28,7 @@ internal static class SequentialBufferWriterPool
 internal sealed class SequentialBufferWriter : IBufferWriter<byte>
 {
     const int InitialBufferSize = 65536; // 64K
+    static readonly byte[] noUseFirstBufferSentinel = new byte[0];
 
     List<BufferSegment> buffers;
 
@@ -41,11 +42,12 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
 
     public int TotalWritten => totalWritten;
 
-    public SequentialBufferWriter()
+    bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
+
+    public SequentialBufferWriter(bool useFirstBuffer)
     {
         this.buffers = new List<BufferSegment>();
-
-        this.firstBuffer = new byte[InitialBufferSize];
+        this.firstBuffer = useFirstBuffer ? new byte[InitialBufferSize] : noUseFirstBufferSentinel;
         this.firstBufferWritten = 0;
         this.current = null;
         this.nextBufferSize = InitialBufferSize;
@@ -63,7 +65,8 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         if (current == null)
         {
             // use firstBuffer
-            if (firstBuffer.Length - firstBufferWritten < sizeHint)
+            var free = firstBuffer.Length - firstBufferWritten;
+            if (free != 0 && sizeHint <= free)
             {
                 return firstBuffer.AsSpan(firstBufferWritten);
             }
@@ -78,7 +81,7 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         }
 
         BufferSegment next;
-        if (nextBufferSize < sizeHint)
+        if (sizeHint <= nextBufferSize)
         {
             next = new BufferSegment(nextBufferSize);
             nextBufferSize *= 2;
@@ -113,14 +116,20 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         var result = new byte[totalWritten];
         var dest = result.AsSpan();
 
-        firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
-        dest = dest.Slice(firstBufferWritten);
-
-        foreach (var item in CollectionsMarshal.AsSpan(buffers))
+        if (UseFirstBuffer)
         {
-            item.WrittenBuffer.CopyTo(dest);
-            dest = dest.Slice(item.WrittenCount);
-            item.Clear(); // reset buffer-segment in this loop to avoid iterate twice for Reset
+            firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
+            dest = dest.Slice(firstBufferWritten);
+        }
+
+        if (buffers.Count > 0)
+        {
+            foreach (var item in CollectionsMarshal.AsSpan(buffers))
+            {
+                item.WrittenBuffer.CopyTo(dest);
+                dest = dest.Slice(item.WrittenCount);
+                item.Clear(); // reset buffer-segment in this loop to avoid iterate twice for Reset
+            }
         }
 
         ResetCore();
@@ -132,18 +141,22 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return;
 
+        if (UseFirstBuffer)
         {
             ref var spanRef = ref context.GetSpanReference(firstBufferWritten);
             firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(MemoryMarshal.CreateSpan(ref spanRef, firstBufferWritten));
             context.Advance(firstBufferWritten);
         }
 
-        foreach (var item in CollectionsMarshal.AsSpan(buffers))
+        if (buffers.Count > 0)
         {
-            ref var spanRef = ref context.GetSpanReference(item.WrittenCount);
-            item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
-            context.Advance(item.WrittenCount);
-            item.Clear(); // reset
+            foreach (var item in CollectionsMarshal.AsSpan(buffers))
+            {
+                ref var spanRef = ref context.GetSpanReference(item.WrittenCount);
+                item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
+                context.Advance(item.WrittenCount);
+                item.Clear(); // reset
+            }
         }
 
         ResetCore();

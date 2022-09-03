@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 namespace MemoryPack.Formatters;
 
 // T is not unmanaged
-public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyCollection<T>>
+public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyCollection<T?>>
 {
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref IReadOnlyCollection<T>? value)
+    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref IReadOnlyCollection<T?>? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
@@ -17,13 +17,19 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         }
 
         context.WriteLength(value.Count);
-        foreach (var item in value)
+        if (value.Count != 0)
         {
-            // TODO: write item
+            // TODO:direct write?
+            var formatter = context.GetRequiredFormatter<T>();
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref context, ref v);
+            }
         }
     }
 
-    public void Deserialize(ref DeserializationContext context, ref IReadOnlyCollection<T>? value)
+    public void Deserialize(ref DeserializationContext context, ref IReadOnlyCollection<T?>? value)
     {
         if (!context.TryReadLength(out var length))
         {
@@ -31,12 +37,19 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
             return;
         }
 
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
         // TODO: security check
-        var collection = new T[length];
+        var formatter = context.GetRequiredFormatter<T>();// TODO:direct?
+        var collection = new T?[length];
         for (int i = 0; i < length; i++)
         {
             // TODO: read item
-            // collection[i] = 
+            formatter.Deserialize(ref context, ref collection[i]);
         }
 
         value = collection;
@@ -67,7 +80,7 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
             var tempWriter = SequentialBufferWriterPool.Rent();
             try
             {
-                var tempContext = new SerializationContext<SequentialBufferWriter>(tempWriter);
+                var tempContext = new SerializationContext<SequentialBufferWriter>(tempWriter, context.FormatterProvider);
 
                 foreach (var item in value)
                 {

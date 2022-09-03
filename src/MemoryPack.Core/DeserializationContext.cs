@@ -6,24 +6,27 @@ namespace MemoryPack;
 
 public ref struct DeserializationContext
 {
-    public const int NullLength = -1;
-    public const byte NullObject = 0;
-
+    readonly IMemoryPackFormatterProvider formatterProvider;
     ReadOnlySequence<byte> bufferSource; // TODO:ref?
     ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
     int bufferLength;
     byte[]? rentBuffer;
 
-    public DeserializationContext(ReadOnlySequence<byte> sequence)
+    public IMemoryPackFormatterProvider FormatterProvider => formatterProvider;
+    public IMemoryPackFormatter<T> GetRequiredFormatter<T>() => formatterProvider.GetRequiredFormatter<T>();
+
+    public DeserializationContext(ReadOnlySequence<byte> sequence, IMemoryPackFormatterProvider formatterProvider)
     {
+        this.formatterProvider = formatterProvider;
         this.bufferSource = sequence.IsSingleSegment ? default : sequence;
         this.buffer = sequence.FirstSpan;
         this.bufferLength = buffer.Length;
         this.rentBuffer = null;
     }
 
-    public DeserializationContext(ReadOnlySpan<byte> buffer)
+    public DeserializationContext(ReadOnlySpan<byte> buffer, IMemoryPackFormatterProvider formatterProvider)
     {
+        this.formatterProvider = formatterProvider;
         this.bufferSource = default;
         this.buffer = buffer;
         this.bufferLength = buffer.Length;
@@ -83,7 +86,7 @@ public ref struct DeserializationContext
 
     public bool ReadIsNull()
     {
-        var isNull = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1)) == NullObject;
+        var isNull = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1)) == MemoryPackCode.NullObject;
         Advance(1);
         return isNull;
     }
@@ -92,7 +95,7 @@ public ref struct DeserializationContext
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
-        return length != NullLength;
+        return length != MemoryPackCode.NullLength;
     }
 
     public string? ReadString()
