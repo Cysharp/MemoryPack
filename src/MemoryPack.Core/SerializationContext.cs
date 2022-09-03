@@ -72,23 +72,30 @@ public ref struct SerializationContext<TBufferWriter>
     // helpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteNullLength()
-    {
-        Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullLength);
-        Advance(4);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteNullObject()
+    public void WriteNullObjectHeader()
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(1), MemoryPackCode.NullObject);
         Advance(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteLength(int length)
+    public void WriteObjectHeader()
+    {
+        Unsafe.WriteUnaligned(ref GetSpanReference(1), MemoryPackCode.Object);
+        Advance(1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteLengthHeader(int length)
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(4), length);
+        Advance(4);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteNullLengthHeader()
+    {
+        Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullLength);
         Advance(4);
     }
 
@@ -96,7 +103,7 @@ public ref struct SerializationContext<TBufferWriter>
     {
         if (value == null)
         {
-            WriteNullLength();
+            WriteNullLengthHeader();
             return;
         }
 

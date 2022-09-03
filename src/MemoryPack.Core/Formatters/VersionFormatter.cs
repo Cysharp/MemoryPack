@@ -13,7 +13,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
     {
         if (value == null)
         {
-            context.WriteNullLength();
+            context.WriteNullLengthHeader();
             return;
         }
         

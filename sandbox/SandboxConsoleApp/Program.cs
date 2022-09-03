@@ -13,16 +13,19 @@ public class StandardRunner : ConsoleAppBase
 
         MemoryPackSerializer.DefaultProvider = CompositeMemoryPackProvider.Default;
 
+        int? v = 88;
+        //v = null;
+        var bytes = MemoryPackSerializer.Serialize(v);
 
-        var bytes = MemoryPackSerializer.Serialize(new Version(10, 20, 30, 40));
+        //var bytes = MemoryPackSerializer.Serialize(new Version(10, 20, 30, 40));
 
         foreach (var item in bytes)
         {
             Console.WriteLine(item);
         }
 
-        var version = MemoryPackSerializer.Deserialize<Version>(bytes);
+        //var version = MemoryPackSerializer.Deserialize<Version>(bytes);
 
-        Console.WriteLine(version!.ToString());
+        //Console.WriteLine(version!.ToString());
     }
 }

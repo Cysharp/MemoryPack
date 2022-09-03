@@ -1,5 +1,6 @@
 ﻿using MemoryPack.Internal;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -31,9 +32,7 @@ public static partial class MemoryPackSerializer
         try
         {
             var context = new SerializationContext<SequentialBufferWriter>(writer, formatterProvider ?? DefaultProvider);
-            var formatter = context.GetRequiredFormatter<T>(); // TODO: get from context or static abstract member?
-            formatter.Serialize(ref context, ref Unsafe.AsRef(value));
-            context.Flush();
+            Serialize(ref context, value);
             return writer.ToArrayAndReset();
         }
         finally
@@ -53,10 +52,17 @@ public static partial class MemoryPackSerializer
         using (var streamWriter = new SyncStreamBufferWriter(stream))
         {
             var context = new SerializationContext<SyncStreamBufferWriter>(streamWriter, formatterProvider ?? DefaultProvider);
-            var formatter = context.GetRequiredFormatter<T>();
-            formatter.Serialize(ref context, ref Unsafe.AsRef(value));
-            context.Flush();
+            Serialize(ref context, value);
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Serialize<T, TBufferWriter>(ref SerializationContext<TBufferWriter> context, in T? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        var formatter = context.GetRequiredFormatter<T>(); // TODO: get from context or static abstract member?
+        formatter.Serialize(ref context, ref Unsafe.AsRef(value));
+        context.Flush();
     }
 
     public static T? Deserialize<T>(ReadOnlySpan<byte> buffer, IMemoryPackFormatterProvider? formatterProvider = default)

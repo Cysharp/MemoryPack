@@ -12,11 +12,11 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
     {
         if (value == null)
         {
-            context.WriteNullLength();
+            context.WriteNullLengthHeader();
             return;
         }
 
-        context.WriteLength(value.Count);
+        context.WriteLengthHeader(value.Count);
         if (value.Count != 0)
         {
             // TODO:direct write?
@@ -63,13 +63,13 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
     {
         if (value == null)
         {
-            context.WriteNullLength();
+            context.WriteNullLengthHeader();
             return;
         }
 
         if (TryGetNonEnumeratedCount(value, out var count))
         {
-            context.WriteLength(count);
+            context.WriteLengthHeader(count);
             foreach (var item in value)
             {
                 // TODO: write item
@@ -89,7 +89,7 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
 
                 tempContext.Flush();
 
-                context.WriteLength(tempWriter.TotalWritten);
+                context.WriteLengthHeader(tempWriter.TotalWritten);
                 tempWriter.WriteToAndReset(ref context);
             }
             finally
