@@ -5,7 +5,7 @@ namespace MemoryPack;
 // used only default CompositeProvider
 public interface IRegistableMemoryPackFormatterProvider : IMemoryPackFormatterProvider
 {
-    void Register(IMemoryPackFormatter[] formatters, IMemoryPackFormatterProvider[] providers);
+    void Register(IEnumerable<IMemoryPackFormatter> formatters, IEnumerable<IMemoryPackFormatterProvider> providers);
 }
 
 public static class RegistableMemoryPackFormatterProviderExtensions
@@ -33,9 +33,10 @@ public sealed class CompositeMemoryPackProvider : IMemoryPackFormatterProvider
         return Create(Array.Empty<IMemoryPackFormatter>(), providers);
     }
 
-    public static IMemoryPackFormatterProvider Create(IMemoryPackFormatter[] formatters, IMemoryPackFormatterProvider[] providers)
+    public static IMemoryPackFormatterProvider Create(IEnumerable<IMemoryPackFormatter> formatters, IEnumerable<IMemoryPackFormatterProvider> providers)
     {
-        return new CompositeMemoryPackProvider(formatters, providers);
+        // use ToArray, don't allow modify elements externally.
+        return new CompositeMemoryPackProvider(formatters.ToArray(), providers.ToArray());
     }
 
     readonly (IMemoryPackFormatter[] formatters, IMemoryPackFormatterProvider[] providers) factoryArgs;
@@ -87,17 +88,22 @@ public sealed class CompositeMemoryPackProvider : IMemoryPackFormatterProvider
     {
         static IMemoryPackFormatter[] formatters = Array.Empty<IMemoryPackFormatter>();
         static IMemoryPackFormatterProvider[] providers = Array.Empty<IMemoryPackFormatterProvider>();
-        static int registered;
+        static bool freezed;
 
-        public void Register(IMemoryPackFormatter[] formatters, IMemoryPackFormatterProvider[] providers)
+        public void Register(IEnumerable<IMemoryPackFormatter> formatters, IEnumerable<IMemoryPackFormatterProvider> providers)
         {
-            if (Interlocked.Increment(ref registered) != 1)
+            if (freezed)
             {
+                // To be precise, the Freeze decision is delayed until GetFormatter is called first.
+                // This is to avoid exceptions in hot reload environments such as Unity, where Startup is temporarily called multiple times.
                 throw new InvalidOperationException("Already registered, CompositeMemoryPackProvider.Default can only register once.");
             }
 
-            StaticCompositeMemoryPackProvider.formatters = formatters;
-            StaticCompositeMemoryPackProvider.providers = providers;
+            ArgumentNullException.ThrowIfNull(formatters);
+            ArgumentNullException.ThrowIfNull(providers);
+
+            StaticCompositeMemoryPackProvider.formatters = formatters.ToArray();
+            StaticCompositeMemoryPackProvider.providers = providers.ToArray();
         }
 
         public IMemoryPackFormatter<T>? GetFormatter<T>()
@@ -111,6 +117,7 @@ public sealed class CompositeMemoryPackProvider : IMemoryPackFormatterProvider
 
             static Cache()
             {
+                freezed = true;
                 foreach (var item in formatters)
                 {
                     if (item is IMemoryPackFormatter<T> f)
