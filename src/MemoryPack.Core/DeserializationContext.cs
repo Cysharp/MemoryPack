@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -7,6 +8,7 @@ namespace MemoryPack;
 public ref struct DeserializationContext
 {
     readonly IMemoryPackFormatterProvider formatterProvider;
+    readonly long totalLength;
     ReadOnlySequence<byte> bufferSource; // TODO:ref?
     ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
     int bufferLength;
@@ -22,6 +24,7 @@ public ref struct DeserializationContext
         this.buffer = sequence.FirstSpan;
         this.bufferLength = buffer.Length;
         this.rentBuffer = null;
+        this.totalLength = sequence.Length;
     }
 
     public DeserializationContext(ReadOnlySpan<byte> buffer, IMemoryPackFormatterProvider formatterProvider)
@@ -31,6 +34,7 @@ public ref struct DeserializationContext
         this.buffer = buffer;
         this.bufferLength = buffer.Length;
         this.rentBuffer = null;
+        this.totalLength = buffer.Length;
     }
 
     public ref byte GetSpanReference(int sizeHint)
@@ -95,6 +99,13 @@ public ref struct DeserializationContext
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
+
+        // If collection-length is larger than buffer-length, it is invalid data.
+        if (totalLength < length)
+        {
+            ThrowInsufficientBufferUnless();
+        }
+
         return length != MemoryPackCode.NullLength;
     }
 
@@ -108,5 +119,11 @@ public ref struct DeserializationContext
         Advance(length);
 
         return str;
+    }
+
+    [DoesNotReturn]
+    void ThrowInsufficientBufferUnless()
+    {
+        throw new EndOfStreamException();
     }
 }
