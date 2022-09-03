@@ -1,0 +1,34 @@
+﻿root = true
+
+[*]
+indent_style = space
+insert_final_newline = true
+indent_style = space
+trim_trailing_whitespace = true
+
+[*.{sh,yaml,yml,rules}]
+charset = utf-8
+indent_size = 2
+end_of_line = lf
+
+[*{_AssemblyInfo.cs,.notsupported.cs}]
+generated_code = true
+
+# C# files
+[*.cs]
+charset = utf-8-bom
+indent_size = 4
+
+csharp_style_namespace_declarations = file_scoped
+dotnet_style_require_accessibility_modifiers = never
+
+# VSTHRD101: Avoid async void
+# VSTHRD101: Avoid unsupported async delegates
+dotnet_diagnostic.VSTHRD100.severity = none
+dotnet_diagnostic.VSTHRD101.severity = none
+
+# VSTHRD003: Avoid awaiting foreign Tasks
+dotnet_diagnostic.VSTHRD003.severity = none
+
+# VSTHRD111: Use ConfigureAwait(bool)
+dotnet_diagnostic.VSTHRD111.severity = error
