@@ -10,47 +10,61 @@ public ref struct SerializationContext<TBufferWriter>
     const int NullLength = -1;
     const byte NullObject = 0;
 
-    readonly TBufferWriter writer; // TODO:ref field
-    Span<byte> buffer;
+    readonly TBufferWriter bufferWriter; // TODO: ref field?
+    Span<byte> buffer; // TODO: ref byte bufferReference
+    int bufferLength;
 
     public int TotalWritten { get; private set; }
 
     public SerializationContext(TBufferWriter writer)
     {
-        this.writer = writer;
-        buffer = default;
-        TotalWritten = 0;
+        this.bufferWriter = writer;
+        this.buffer = default;
+        this.bufferLength = 0;
+        this.TotalWritten = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<byte> GetSpan(int sizeHint)
+    public ref byte GetSpanReference(int sizeHint)
     {
-        if (buffer.Length < sizeHint)
+        if (bufferLength < sizeHint)
         {
-            ProvideNewBuffer(sizeHint);
+            RequestNewBuffer(sizeHint);
         }
-        return buffer;
+
+        // TODO: return ref bufferReference;
+        return ref MemoryMarshal.GetReference(buffer);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    void ProvideNewBuffer(int size)
+    void RequestNewBuffer(int size)
     {
-        buffer = writer.GetSpan(size - buffer.Length);
+        buffer = bufferWriter.GetSpan(size - buffer.Length);
+        bufferLength = buffer.Length;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Advance(int count)
+    {
+        bufferWriter.Advance(count);
+        buffer = buffer.Slice(count); // TODO: ref Unsafe.Add(ref bufferReference, count)
+        bufferLength = buffer.Length;
+        TotalWritten += count;
+    }
+
+    // helpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullLength()
     {
-        var span = GetSpan(4);
-        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), NullLength);
+        Unsafe.WriteUnaligned(ref GetSpanReference(4), NullLength);
         Advance(4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullObject()
     {
-        var span = GetSpan(1);
-        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), NullObject);
+        Unsafe.WriteUnaligned(ref GetSpanReference(1), NullObject);
         Advance(1);
     }
 
@@ -63,19 +77,11 @@ public ref struct SerializationContext<TBufferWriter>
         }
 
         var src = MemoryMarshal.AsBytes(value.AsSpan());
-        var span = GetSpan(src.Length + 4);
+        ref var spanRef = ref GetSpanReference(src.Length + 4);
 
-        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), src.Length);
-        src.CopyTo(span.Slice(4));
+        Unsafe.WriteUnaligned(ref spanRef, src.Length);
+        src.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), src.Length));
 
         Advance(src.Length + 4);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Advance(int count)
-    {
-        writer.Advance(count);
-        buffer = buffer.Slice(count);
-        TotalWritten += count;
     }
 }

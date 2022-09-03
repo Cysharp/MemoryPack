@@ -12,21 +12,19 @@ namespace MemoryPack.Formatters;
 public class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
     where T : unmanaged
 {
-    static readonly int size = Unsafe.SizeOf<T>();
+    static readonly int size = Unsafe.SizeOf<T>(); // TODO:which faster? load from field or Unsafe.SizeOf<T> directly
 
     public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        var span = context.GetSpan(size);
-        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), value);
-
+        Unsafe.WriteUnaligned(ref context.GetSpanReference(size), value);
         context.Advance(size);
     }
 
     public void Deserialize(ref DeserializationContext context, ref T value)
     {
-        var span = context.GetSpan(size);
-        value = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(span));
+        value = Unsafe.ReadUnaligned<T>(ref context.GetSpanReference(size));
+        context.Advance(size);
     }
 }
 

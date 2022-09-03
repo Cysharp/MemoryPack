@@ -9,29 +9,33 @@ public ref struct DeserializationContext
     const int NullLength = -1;
     const byte NullObject = 0;
 
-    ReadOnlySequence<byte> sequenceSource;
-    ReadOnlySpan<byte> buffer;
+    ReadOnlySequence<byte> bufferSource; // TODO:ref?
+    ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
+    int bufferLength;
     byte[]? rentBuffer;
 
     public DeserializationContext(ReadOnlySequence<byte> sequence)
     {
-        sequenceSource = sequence.IsSingleSegment ? default : sequence;
-        buffer = sequence.FirstSpan;
-        rentBuffer = null;
+        this.bufferSource = sequence.IsSingleSegment ? default : sequence;
+        this.buffer = sequence.FirstSpan;
+        this.bufferLength = buffer.Length;
+        this.rentBuffer = null;
     }
 
     public DeserializationContext(ReadOnlySpan<byte> buffer)
     {
-        sequenceSource = default;
+        this.bufferSource = default;
         this.buffer = buffer;
-        rentBuffer = null;
+        this.bufferLength = buffer.Length;
+        this.rentBuffer = null;
     }
 
-    public ReadOnlySpan<byte> GetSpan(int sizeHint)
+    public ref byte GetSpanReference(int sizeHint)
     {
-        if (buffer.Length < sizeHint)
+        if (sizeHint <= buffer.Length)
         {
-            return buffer;
+            // TODO: return ref bufferReference
+            return ref MemoryMarshal.GetReference(buffer);
         }
 
         if (rentBuffer != null)
@@ -40,20 +44,22 @@ public ref struct DeserializationContext
             rentBuffer = null;
         }
 
-        sequenceSource = sequenceSource.Slice(buffer.Length);
+        bufferSource = bufferSource.Slice(buffer.Length);
 
-        if (sequenceSource.Length < sizeHint)
+        if (bufferSource.Length < sizeHint)
         {
-            if (sequenceSource.FirstSpan.Length < sizeHint)
+            if (bufferSource.FirstSpan.Length < sizeHint)
             {
-                buffer = sequenceSource.FirstSpan;
-                return buffer;
+                buffer = bufferSource.FirstSpan;
+                bufferLength = buffer.Length;
+                return ref MemoryMarshal.GetReference(buffer);
             }
 
             rentBuffer = ArrayPool<byte>.Shared.Rent(sizeHint);
-            sequenceSource.Slice(0, sizeHint).CopyTo(rentBuffer);
+            bufferSource.Slice(0, sizeHint).CopyTo(rentBuffer);
             buffer = rentBuffer.AsSpan(0, sizeHint);
-            return buffer;
+            bufferLength = buffer.Length;
+            return ref MemoryMarshal.GetReference(buffer);
         }
 
         throw new Exception("TODO:message.");
@@ -61,21 +67,30 @@ public ref struct DeserializationContext
 
     public void Advance(int count)
     {
-        buffer = buffer.Slice(count);
+        buffer = buffer.Slice(count); // TODO: ref Unsafe.Add(ref bufferReference, count)
+        bufferLength = buffer.Length;
     }
+
+    public void Dispose()
+    {
+        if (rentBuffer != null)
+        {
+            ArrayPool<byte>.Shared.Return(rentBuffer);
+        }
+    }
+
+    // helpers
 
     public bool ReadIsNull()
     {
-        var span = GetSpan(1);
-        var isNull = Unsafe.ReadUnaligned<byte>(ref MemoryMarshal.GetReference(span)) == NullObject;
+        var isNull = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1)) == NullObject;
         Advance(1);
         return isNull;
     }
 
     public int ReadLength()
     {
-        var span = GetSpan(4);
-        var length = Unsafe.ReadUnaligned<int>(ref MemoryMarshal.GetReference(span));
+        var length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
         return length;
     }
@@ -85,20 +100,11 @@ public ref struct DeserializationContext
         var length = ReadLength();
         if (length == NullLength) return null;
 
-        var span = GetSpan(length);
-        var charSpan = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetReference(span)), span.Length / 2);
+        var charSpan = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref GetSpanReference(length)), length / 2);
         var str = new string(charSpan);
 
         Advance(length);
 
         return str;
-    }
-
-    public void Dispose()
-    {
-        if (rentBuffer != null)
-        {
-            ArrayPool<byte>.Shared.Return(rentBuffer);
-        }
     }
 }

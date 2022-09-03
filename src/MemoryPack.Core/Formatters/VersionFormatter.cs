@@ -17,8 +17,7 @@ public class VersionFormatter : IMemoryPackFormatter<Version>
             return;
         }
 
-        var span = context.GetSpan(17); // nonnull + int * 4
-        ref var spanRef = ref MemoryMarshal.GetReference(span);
+        ref var spanRef = ref context.GetSpanReference(17); // nonnull + int * 4
 
         Unsafe.WriteUnaligned(ref spanRef, (byte)1);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value.Major);
@@ -37,8 +36,7 @@ public class VersionFormatter : IMemoryPackFormatter<Version>
             return;
         }
 
-        var span = context.GetSpan(16);
-        ref var spanRef = ref MemoryMarshal.GetReference(span);
+        ref var spanRef = ref context.GetSpanReference(16);
 
         var major = Unsafe.ReadUnaligned<int>(ref spanRef);
         var minor = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, 4));

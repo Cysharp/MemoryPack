@@ -6,6 +6,7 @@ namespace MemoryPack;
 
 public static class MemoryPackSerializer
 {
+    [SkipLocalsInit]
     public static unsafe byte[] Serialize<T>(in T value)
         where T : unmanaged
     {
@@ -14,6 +15,7 @@ public static class MemoryPackSerializer
         return buffer.ToArray();
     }
 
+    [SkipLocalsInit]
     public static unsafe int Serialize<TBufferWriter, T>(TBufferWriter bufferWriter, in T value)
         where TBufferWriter : IBufferWriter<byte>
         where T : unmanaged
@@ -29,6 +31,7 @@ public static class MemoryPackSerializer
         return sizeof(T);
     }
 
+    [SkipLocalsInit]
     public static unsafe int Serialize<T>(Stream stream, in T value)
         where T : unmanaged
     {
