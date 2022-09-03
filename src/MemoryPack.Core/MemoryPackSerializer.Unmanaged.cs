@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-public static class MemoryPackSerializer
+public static partial class MemoryPackSerializer
 {
     [SkipLocalsInit]
-    public static unsafe byte[] Serialize<T>(in T value)
-        where T : unmanaged
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static unsafe byte[] SerializeUnmanaged<T>(in T value) // where T : unmanaged
     {
-        Span<byte> buffer = stackalloc byte[sizeof(T)];
+        Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
         return buffer.ToArray();
     }
@@ -32,15 +32,13 @@ public static class MemoryPackSerializer
     }
 
     [SkipLocalsInit]
-    public static unsafe int Serialize<T>(Stream stream, in T value)
-        where T : unmanaged
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static unsafe void SerializeUnmanaged<T>(Stream stream, in T value) // where T : unmanaged
     {
-        Span<byte> buffer = stackalloc byte[sizeof(T)];
+        Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
 
         stream.Write(buffer);
-
-        return sizeof(T);
     }
 
     public static async ValueTask<int> SerializeAsync<T>(Stream stream, T value, CancellationToken cancellationToken = default)

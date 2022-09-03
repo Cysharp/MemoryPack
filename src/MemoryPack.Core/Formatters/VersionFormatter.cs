@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack.Formatters;
 
-public class VersionFormatter : IMemoryPackFormatter<Version>
+public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 {
     // Serialize as [Major, Minor, Build, Revision]
 
@@ -16,10 +16,10 @@ public class VersionFormatter : IMemoryPackFormatter<Version>
             context.WriteNullLength();
             return;
         }
-
+        
         ref var spanRef = ref context.GetSpanReference(17); // nonnull + int * 4
 
-        Unsafe.WriteUnaligned(ref spanRef, (byte)1);
+        Unsafe.WriteUnaligned(ref spanRef, MemoryPackCode.Object);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value.Major);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 5), value.Minor);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 9), value.Build);
@@ -47,4 +47,7 @@ public class VersionFormatter : IMemoryPackFormatter<Version>
 
         context.Advance(16);
     }
+
+
+
 }

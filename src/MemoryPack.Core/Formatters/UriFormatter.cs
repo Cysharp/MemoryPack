@@ -2,7 +2,7 @@
 
 namespace MemoryPack.Formatters;
 
-public class UriFormatter : IMemoryPackFormatter<Uri>
+public sealed class UriFormatter : IMemoryPackFormatter<Uri>
 {
     // treat as a string(OriginalString).
 

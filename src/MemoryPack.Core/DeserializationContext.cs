@@ -6,8 +6,8 @@ namespace MemoryPack;
 
 public ref struct DeserializationContext
 {
-    const int NullLength = -1;
-    const byte NullObject = 0;
+    public const int NullLength = -1;
+    public const byte NullObject = 0;
 
     ReadOnlySequence<byte> bufferSource; // TODO:ref?
     ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
@@ -88,17 +88,16 @@ public ref struct DeserializationContext
         return isNull;
     }
 
-    public int ReadLength()
+    public bool TryReadLength(out int length)
     {
-        var length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
+        length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
-        return length;
+        return length != NullLength;
     }
 
     public string? ReadString()
     {
-        var length = ReadLength();
-        if (length == NullLength) return null;
+        if (!TryReadLength(out var length)) return null;
 
         var charSpan = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref GetSpanReference(length)), length / 2);
         var str = new string(charSpan);

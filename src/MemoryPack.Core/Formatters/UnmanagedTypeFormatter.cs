@@ -9,7 +9,7 @@ namespace MemoryPack.Formatters;
 // * Any enum type
 // * Any pointer type
 // * Any user-defined struct type that contains fields of unmanaged types only
-public class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
+public sealed class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
     where T : unmanaged
 {
     static readonly int size = Unsafe.SizeOf<T>(); // TODO:which faster? load from field or Unsafe.SizeOf<T> directly
@@ -29,7 +29,7 @@ public class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
 }
 
 // TODO:not yet.
-public class NullableUnmanagedTypeFormatter<T> : IMemoryPackFormatter<T?>
+public sealed class NullableUnmanagedTypeFormatter<T> : IMemoryPackFormatter<T?>
     where T : unmanaged
 {
     public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T? value)
