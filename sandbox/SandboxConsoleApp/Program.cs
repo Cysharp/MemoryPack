@@ -59,6 +59,8 @@ public class StandardRunner : ConsoleAppBase
 }
 
 
+
+
 public class Bar : IMemoryPackFormatter<Bar>
 {
     [ModuleInitializer]

@@ -153,6 +153,72 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
     }
 }
 
+public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary<TKey, TValue?>>
+    where TKey : notnull
+{
+    IEqualityComparer<TKey>? equalityComparer;
+
+    public DictionaryFormatter()
+    {
+
+    }
+
+    public DictionaryFormatter(IEqualityComparer<TKey> equalityComparer)
+    {
+        this.equalityComparer = equalityComparer;
+    }
+
+    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Dictionary<TKey, TValue?>? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        if (value == null)
+        {
+            context.WriteNullLengthHeader();
+            return;
+        }
+
+        context.WriteLengthHeader(value.Count);
+
+        var keyFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TKey>();
+        var valueFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TValue?>();
+
+        foreach (var item in value)
+        {
+            var k = item.Key;
+            var v = item.Value;
+            keyFormatter.Serialize(ref context, ref k);
+            valueFormatter.Serialize(ref context, ref v);
+        }
+    }
+
+    public void Deserialize(ref DeserializationContext context, ref Dictionary<TKey, TValue?>? value)
+    {
+        if (!context.TryReadLength(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        var keyFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TKey>();
+        var valueFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TValue>();
+
+        var dict = new Dictionary<TKey, TValue?>(length, equalityComparer);
+
+        for (int i = 0; i < length; i++)
+        {
+            TKey? k = default;
+            keyFormatter.Deserialize(ref context, ref k);
+
+            TValue? v = default;
+            valueFormatter.Deserialize(ref context, ref v);
+
+            dict.Add(k!, v);
+        }
+
+        value = dict;
+    }
+}
+
 public class ArrayFormatter<T> : IMemoryPackFormatter<T[]>
 {
     public void Deserialize(ref DeserializationContext context, ref T[]? value)
