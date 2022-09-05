@@ -48,7 +48,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
             return;
         }
 
-        if (count != 1) throw new Exception(); // TODO:ThrowHelper
+        if (count != 1) ThrowHelpers.InvalidPropertyCount(1, count);
 
         T v = default;
         context.GetRequiredFormatter<T>().Deserialize(ref context, ref v);

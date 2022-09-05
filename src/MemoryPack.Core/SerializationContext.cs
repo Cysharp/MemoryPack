@@ -74,14 +74,14 @@ public ref struct SerializationContext<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullObjectHeader()
     {
-        Unsafe.WriteUnaligned(ref GetSpanReference(1), MemoryPackCode.NullObject);
+        GetSpanReference(1) = MemoryPackCode.NullObject;
         Advance(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObjectHeader(byte propertyCount)
     {
-        Unsafe.WriteUnaligned(ref GetSpanReference(1), propertyCount);
+        GetSpanReference(1) = propertyCount;
         Advance(1);
     }
 

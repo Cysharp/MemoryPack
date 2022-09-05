@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace MemoryPack.Formatters;
 
@@ -13,11 +12,11 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
     {
         if (value == null)
         {
-            context.WriteNullLengthHeader();
+            context.WriteNullObjectHeader();
             return;
         }
 
-        ref var spanRef = ref context.GetSpanReference(17); // nonnull + int * 4
+        ref var spanRef = ref context.GetSpanReference(17); // header + int * 4
 
         Unsafe.WriteUnaligned(ref spanRef, 4);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value.Major);
@@ -36,7 +35,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
             return;
         }
 
-        if (count != 4) throw new Exception(); // TODO:ThrowHelper.
+        if (count != 4) ThrowHelpers.InvalidPropertyCount(4, count);
 
         ref var spanRef = ref context.GetSpanReference(16);
 
@@ -49,7 +48,4 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 
         context.Advance(16);
     }
-
-
-
 }
