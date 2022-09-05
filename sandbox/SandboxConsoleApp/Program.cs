@@ -60,13 +60,22 @@ public class StandardRunner : ConsoleAppBase
     [RootCommand]
     public void Run2()
     {
-        var v = new Uri("http://foo.bar.com");
+        var mc = new MyClass();
 
-        var tako = MemoryPackSerializer.Serialize(v);
+        var bin = MemoryPackSerializer.Serialize(new Version(1, 10, 100, 1000));
+
+        var vf = new VersionFormatter();
+        var ctx = new DeserializationContext(bin);
+
+        var v = mc.MyProperty;
+        vf.Deserialize(ref ctx, ref v);
     }
 }
 
-
+public class MyClass
+{
+    public Version? MyProperty { get; set; }
+}
 
 
 public class Bar : IMemoryPackFormatter<Bar>

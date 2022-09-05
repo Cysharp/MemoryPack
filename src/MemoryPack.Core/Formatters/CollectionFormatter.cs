@@ -184,6 +184,7 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
 
         foreach (var item in value)
         {
+            // TODO: which is best, var k = item.Key, Unsafe.AsRef....
             keyFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Key)!);
             valueFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Value));
         }
