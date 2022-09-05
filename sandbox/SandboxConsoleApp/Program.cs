@@ -25,7 +25,51 @@ public class StandardRunner : ConsoleAppBase
         }
 
         //var version = MemoryPackSerializer.Deserialize<Version>(bytes);
-
+        
         //Console.WriteLine(version!.ToString());
+    }
+}
+
+
+
+
+public class Foo<T> : IMemoryPackable<Foo<T>>
+{
+    public T MyProperty { get; set; } = default!;
+
+    static Foo()
+    {
+        // Register formatter?
+    }
+
+    static void IMemoryPackable<Foo<T>>.Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Foo<T>? value)
+    {
+        // throw new NotImplementedException();
+        // write T...
+    }
+
+    static void IMemoryPackable<Foo<T>>.Deserialize(ref DeserializationContext context, ref Foo<T>? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    IMemoryPackFormatter<Foo<T>> IMemoryPackable<Foo<T>>.GetFormatter()
+    {
+        return Formatter.Instance;
+    }
+
+    sealed class Formatter : IMemoryPackFormatter<Foo<T>>
+    {
+        internal static readonly Formatter Instance = new Formatter();
+
+        public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Foo<T>? value) where TBufferWriter : IBufferWriter<byte>
+        {
+            context.WritePackable(ref value);
+        }
+
+        public void Deserialize(ref DeserializationContext context, ref Foo<T>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

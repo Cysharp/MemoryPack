@@ -115,4 +115,10 @@ public ref struct SerializationContext<TBufferWriter>
 
         Advance(src.Length + 4);
     }
+
+    public void WritePackable<T>(ref T? value)
+        where T : IMemoryPackable<T>
+    {
+        T.Serialize(ref this, ref value);
+    }
 }
