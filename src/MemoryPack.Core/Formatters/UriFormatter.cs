@@ -1,16 +1,19 @@
 ﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
 public sealed class UriFormatter : IMemoryPackFormatter<Uri>
 {
+    [ModuleInitializer]
+    internal static void RegisterFormatter() => MemoryPackFormatterProvider.Register(new UriFormatter());
+
     // treat as a string(OriginalString).
 
     public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Uri? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        var str = value?.OriginalString;
-        context.WriteString(ref str);
+        context.WriteString(ref Unsafe.AsRef(value?.OriginalString));
     }
 
     public void Deserialize(ref DeserializationContext context, ref Uri? value)

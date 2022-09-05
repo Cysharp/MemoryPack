@@ -20,6 +20,15 @@ public ref struct SerializationContext<TBufferWriter>
         this.advancedCount = 0;
     }
 
+    // unsafe ctor, becareful to use.
+    public SerializationContext(TBufferWriter writer, byte[] firstBufferOfWriter)
+    {
+        this.bufferWriter = writer;
+        this.buffer = firstBufferOfWriter;
+        this.bufferLength = firstBufferOfWriter.Length;
+        this.advancedCount = 0;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref byte GetSpanReference(int sizeHint)
     {

@@ -24,7 +24,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var context = new SerializationContext<SequentialBufferWriter>(writer);
+            var context = new SerializationContext<SequentialBufferWriter>(writer, writer.DangerousGetFirstBuffer());
             Serialize(ref context, value);
             return writer.ToArrayAndReset();
         }

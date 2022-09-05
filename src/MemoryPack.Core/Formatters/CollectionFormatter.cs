@@ -184,10 +184,8 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
 
         foreach (var item in value)
         {
-            var k = item.Key;
-            var v = item.Value;
-            keyFormatter.Serialize(ref context, ref k);
-            valueFormatter.Serialize(ref context, ref v);
+            keyFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Key)!);
+            valueFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Value));
         }
     }
 

@@ -7,7 +7,7 @@ ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
 
 public class StandardRunner : ConsoleAppBase
 {
-    [RootCommand]
+    // [RootCommand]
     public void Run()
     {
         //int? v = 88;
@@ -55,6 +55,14 @@ public class StandardRunner : ConsoleAppBase
 
         //var version = MemoryPackSerializer.Deserialize<Version>(bytes);
         //Console.WriteLine(version!.ToString());
+    }
+
+    [RootCommand]
+    public void Run2()
+    {
+        var v = new Uri("http://foo.bar.com");
+
+        var tako = MemoryPackSerializer.Serialize(v);
     }
 }
 

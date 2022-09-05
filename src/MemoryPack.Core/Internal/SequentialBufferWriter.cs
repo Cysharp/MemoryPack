@@ -41,7 +41,6 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
     int totalWritten;
 
     public int TotalWritten => totalWritten;
-
     bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
 
     public SequentialBufferWriter(bool useFirstBuffer)
@@ -53,6 +52,8 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         this.nextBufferSize = InitialBufferSize;
         this.totalWritten = 0;
     }
+
+    public byte[] DangerousGetFirstBuffer() => firstBuffer;
 
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
