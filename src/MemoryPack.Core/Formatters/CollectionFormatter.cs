@@ -20,7 +20,7 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         if (value.Count != 0)
         {
             // TODO:direct write?
-            var formatter = context.GetRequiredFormatter<T>();
+            var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
             foreach (var item in value)
             {
                 var v = item;
@@ -44,7 +44,7 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         }
 
         // TODO: security check
-        var formatter = context.GetRequiredFormatter<T>();// TODO:direct?
+        var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();// TODO:direct?
         var collection = new T?[length];
         for (int i = 0; i < length; i++)
         {
@@ -80,7 +80,7 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
             var tempWriter = SequentialBufferWriterPool.Rent();
             try
             {
-                var tempContext = new SerializationContext<SequentialBufferWriter>(tempWriter, context.FormatterProvider);
+                var tempContext = new SerializationContext<SequentialBufferWriter>(tempWriter);
 
                 foreach (var item in value)
                 {

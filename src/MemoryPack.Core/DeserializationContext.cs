@@ -7,19 +7,14 @@ namespace MemoryPack;
 
 public ref struct DeserializationContext
 {
-    readonly IMemoryPackFormatterProvider formatterProvider;
     readonly long totalLength;
     ReadOnlySequence<byte> bufferSource; // TODO:ref?
     ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
     int bufferLength;
     byte[]? rentBuffer;
 
-    public IMemoryPackFormatterProvider FormatterProvider => formatterProvider;
-    public IMemoryPackFormatter<T> GetRequiredFormatter<T>() => formatterProvider.GetRequiredFormatter<T>();
-
-    public DeserializationContext(ReadOnlySequence<byte> sequence, IMemoryPackFormatterProvider formatterProvider)
+    public DeserializationContext(ReadOnlySequence<byte> sequence)
     {
-        this.formatterProvider = formatterProvider;
         this.bufferSource = sequence.IsSingleSegment ? default : sequence;
         this.buffer = sequence.FirstSpan;
         this.bufferLength = buffer.Length;
@@ -27,9 +22,8 @@ public ref struct DeserializationContext
         this.totalLength = sequence.Length;
     }
 
-    public DeserializationContext(ReadOnlySpan<byte> buffer, IMemoryPackFormatterProvider formatterProvider)
+    public DeserializationContext(ReadOnlySpan<byte> buffer)
     {
-        this.formatterProvider = formatterProvider;
         this.bufferSource = default;
         this.buffer = buffer;
         this.bufferLength = buffer.Length;

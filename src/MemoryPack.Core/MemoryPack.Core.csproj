@@ -7,6 +7,7 @@
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <RootNamespace>MemoryPack</RootNamespace>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
+        <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
     </PropertyGroup>
 
 </Project>

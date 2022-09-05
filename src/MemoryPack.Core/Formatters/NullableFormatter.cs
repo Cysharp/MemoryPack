@@ -30,7 +30,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
         }
 
         var v = value.Value;
-        context.GetRequiredFormatter<T>().Serialize(ref context, ref v);
+        context.WriteObject(ref v);
     }
 
     public void Deserialize(ref DeserializationContext context, ref T? value)
@@ -51,7 +51,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
         if (count != 1) ThrowHelpers.InvalidPropertyCount(1, count);
 
         T v = default;
-        context.GetRequiredFormatter<T>().Deserialize(ref context, ref v);
+        MemoryPackFormatterProvider.GetRequiredFormatter<T>().Deserialize(ref context, ref v);
         value = v;
     }
 }

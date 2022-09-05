@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -9,18 +8,13 @@ public ref struct SerializationContext<TBufferWriter>
     where TBufferWriter : IBufferWriter<byte>
 {
     readonly TBufferWriter bufferWriter; // TODO: ref field?
-    readonly IMemoryPackFormatterProvider formatterProvider;
     Span<byte> buffer; // TODO: ref byte bufferReference
     int bufferLength;
     int advancedCount;
 
-    public IMemoryPackFormatterProvider FormatterProvider => formatterProvider;
-    public IMemoryPackFormatter<T> GetRequiredFormatter<T>() => formatterProvider.GetRequiredFormatter<T>();
-
-    public SerializationContext(TBufferWriter writer, IMemoryPackFormatterProvider formatterProvider)
+    public SerializationContext(TBufferWriter writer)
     {
         this.bufferWriter = writer;
-        this.formatterProvider = formatterProvider;
         this.buffer = default;
         this.bufferLength = 0;
         this.advancedCount = 0;
@@ -120,5 +114,12 @@ public ref struct SerializationContext<TBufferWriter>
         where T : IMemoryPackable<T>
     {
         T.Serialize(ref this, ref value);
+    }
+
+    // non packable, get formatter dynamically.
+    public void WriteObject<T>(ref T? value)
+    {
+        var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
+        formatter.Serialize(ref this, ref value);
     }
 }

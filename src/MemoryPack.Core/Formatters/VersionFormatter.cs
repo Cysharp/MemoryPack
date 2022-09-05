@@ -5,6 +5,9 @@ namespace MemoryPack.Formatters;
 
 public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 {
+    [ModuleInitializer]
+    internal static void RegisterFormatter() => MemoryPackFormatterProvider.Register(new VersionFormatter());
+
     // Serialize as [Major, Minor, Build, Revision]
 
     public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Version? value)
