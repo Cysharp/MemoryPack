@@ -88,11 +88,20 @@ public ref struct DeserializationContext
 
     // helpers
 
-    public bool ReadIsNull()
+    public bool TryReadPropertyCount(out int count)
     {
-        var isNull = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1)) == MemoryPackCode.NullObject;
-        Advance(1);
-        return isNull;
+        // count: 0 is null, 255 is propertyCount = 0
+        count = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1));
+
+        if (count == MemoryPackCode.NullObject)
+        {
+            return false;
+        }
+        else if (count == MemoryPackCode.ZeroObject)
+        {
+            count = 0;
+        }
+        return true;
     }
 
     public bool TryReadLength(out int length)

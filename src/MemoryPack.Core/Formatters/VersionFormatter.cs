@@ -16,10 +16,10 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
             context.WriteNullLengthHeader();
             return;
         }
-        
+
         ref var spanRef = ref context.GetSpanReference(17); // nonnull + int * 4
 
-        Unsafe.WriteUnaligned(ref spanRef, MemoryPackCode.Object);
+        Unsafe.WriteUnaligned(ref spanRef, 4);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value.Major);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 5), value.Minor);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 9), value.Build);
@@ -30,11 +30,13 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 
     public void Deserialize(ref DeserializationContext context, ref Version? value)
     {
-        if (context.ReadIsNull())
+        if (!context.TryReadPropertyCount(out var count))
         {
             value = null;
             return;
         }
+
+        if (count != 4) throw new Exception(); // TODO:ThrowHelper.
 
         ref var spanRef = ref context.GetSpanReference(16);
 

@@ -25,7 +25,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
             return;
         }
 
-        context.WriteObjectHeader();
+        context.WriteObjectHeader(1);
 
         var v = value.Value;
         context.GetRequiredFormatter<T>().Serialize(ref context, ref v);
@@ -40,11 +40,13 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
             return;
         }
 
-        if (context.ReadIsNull())
+        if (!context.TryReadPropertyCount(out var count))
         {
             value = null;
             return;
         }
+
+        if (count != 1) throw new Exception(); // TODO:ThrowHelper
 
         T v = default;
         context.GetRequiredFormatter<T>().Deserialize(ref context, ref v);

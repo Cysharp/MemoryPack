@@ -79,9 +79,9 @@ public ref struct SerializationContext<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteObjectHeader()
+    public void WriteObjectHeader(byte propertyCount)
     {
-        Unsafe.WriteUnaligned(ref GetSpanReference(1), MemoryPackCode.Object);
+        Unsafe.WriteUnaligned(ref GetSpanReference(1), propertyCount);
         Advance(1);
     }
 
