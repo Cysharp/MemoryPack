@@ -90,18 +90,8 @@ public ref struct DeserializationContext
 
     public bool TryReadPropertyCount(out int count)
     {
-        // count: 0 is null, 255 is propertyCount = 0
         count = Unsafe.ReadUnaligned<byte>(ref GetSpanReference(1));
-
-        if (count == MemoryPackCode.NullObject)
-        {
-            return false;
-        }
-        else if (count == MemoryPackCode.ZeroObject)
-        {
-            count = 0;
-        }
-        return true;
+        return count != MemoryPackCode.NullObject;
     }
 
     public bool TryReadLength(out int length)

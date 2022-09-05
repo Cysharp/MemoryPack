@@ -24,8 +24,10 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
             context.WriteNullObjectHeader();
             return;
         }
-
-        context.WriteObjectHeader(1);
+        else
+        {
+            context.WriteObjectHeader(1);
+        }
 
         var v = value.Value;
         context.GetRequiredFormatter<T>().Serialize(ref context, ref v);
