@@ -1,10 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using MemoryPack.Formatters;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace MemoryPack;
 
 public static class MemoryPackFormatterProvider
 {
+    public static bool IsRegistered<T>() => Check<T>.registered;
+
     public static void Register<T>(IMemoryPackFormatter<T> formatter)
     {
         Check<T>.registered = true; // avoid to call Cache() constructor called.
@@ -47,14 +50,35 @@ public static class MemoryPackFormatterProvider
         static Cache()
         {
             if (Check<T>.registered) return;
-            formatter = CreateFormatter(typeof(T)) as IMemoryPackFormatter<T>;
+
+            var type = typeof(T);
+            var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+            formatter = CreateFormatter(type, typeIsReferenceOrContainsReferences) as IMemoryPackFormatter<T>;
+
             Check<T>.registered = true;
         }
     }
 
-    // should avoid large loop in generic type so use nongenerics method.
-    internal static IMemoryPackFormatter? CreateFormatter(Type type)
+    internal static IMemoryPackFormatter? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
-        return null;
+        Type? instanceType = null;
+        if (type.IsArray)
+        {
+            if (typeIsReferenceOrContainsReferences)
+            {
+                instanceType = typeof(UnmanagedTypeArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+            }
+
+
+            // RuntimeHelpers.IsReferenceOrContainsReferences()
+
+
+
+
+        }
+
+        return (instanceType != null)
+             ? Activator.CreateInstance(instanceType) as IMemoryPackFormatter
+            : null;
     }
 }

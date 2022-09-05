@@ -1,5 +1,6 @@
 ﻿using MemoryPack.Internal;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace MemoryPack.Formatters;
@@ -16,10 +17,24 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
             return;
         }
 
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            if (value is T?[] array) // value is T[] ???
+            {
+                context.DangerousWriteUnmanagedArray(ref array!); // nullable? ok?
+                return;
+            }
+            else if (value is List<T?> list)
+            {
+                ReadOnlySpan<T> span = CollectionsMarshal.AsSpan(list);
+                context.DangerousWriteUnmanagedSpan<T>(ref span);
+                return;
+            }
+        }
+
         context.WriteLengthHeader(value.Count);
         if (value.Count != 0)
         {
-            // TODO:direct write?
             var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
             foreach (var item in value)
             {
@@ -31,6 +46,16 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
 
     public void Deserialize(ref DeserializationContext context, ref IReadOnlyCollection<T?>? value)
     {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            value = context.DangerousReadUnmanagedArray<T>();
+            return;
+        }
+
+
+
+
+
         if (!context.TryReadLength(out var length))
         {
             value = null;
@@ -42,6 +67,8 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
             value = Array.Empty<T>();
             return;
         }
+
+        // context.TryReadUnmanagedSpan<
 
         // TODO: security check
         var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();// TODO:direct?
@@ -123,5 +150,47 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
         }
 
         return false;
+    }
+}
+
+public class ArrayFormatter<T> : IMemoryPackFormatter<T[]>
+{
+    public void Deserialize(ref DeserializationContext context, ref T[]? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T[]? value) where TBufferWriter : IBufferWriter<byte>
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class UnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
+    where T : unmanaged
+{
+    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T[]? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        context.WriteUnmanagedArray(ref value);
+    }
+
+    public void Deserialize(ref DeserializationContext context, ref T[]? value)
+    {
+        value = context.ReadUnmanagedArray<T>();
+    }
+}
+
+public class DangerousUnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
+{
+    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T[]? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        context.DangerousWriteUnmanagedArray(ref value);
+    }
+
+    public void Deserialize(ref DeserializationContext context, ref T[]? value)
+    {
+        value = context.DangerousReadUnmanagedArray<T>();
     }
 }

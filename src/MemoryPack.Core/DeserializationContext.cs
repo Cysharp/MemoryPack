@@ -105,14 +105,56 @@ public ref struct DeserializationContext
 
     public string? ReadString()
     {
-        if (!TryReadLength(out var length)) return null;
+        if (!TryReadUnmanagedSpan<char>(out var view, out var advanceLength))
+        {
+            return null;
+        }
 
-        var charSpan = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref GetSpanReference(length)), length / 2);
-        var str = new string(charSpan);
-
-        Advance(length);
+        var str = new string(view);
+        Advance(advanceLength);
 
         return str;
+    }
+
+    public T[]? ReadUnmanagedArray<T>()
+        where T : unmanaged
+    {
+        return DangerousReadUnmanagedArray<T>();
+    }
+
+    // T: should be unamanged type
+    public T[]? DangerousReadUnmanagedArray<T>()
+    {
+        if (!DangerousTryReadUnmanagedSpan<T>(out var view, out var advanceLength))
+        {
+            return null;
+        }
+
+        var array = view.ToArray();
+        Advance(advanceLength);
+
+        return array;
+    }
+
+    public bool TryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
+        where T : unmanaged
+    {
+        return DangerousTryReadUnmanagedSpan(out view, out advanceLength);
+    }
+
+    // T: should be unamanged type
+    public bool DangerousTryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
+    {
+        if (!TryReadLength(out var length))
+        {
+            view = default;
+            advanceLength = 0;
+            return false;
+        }
+
+        view = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, T>(ref GetSpanReference(length)), length);
+        advanceLength = view.Length * Unsafe.SizeOf<T>();
+        return true;
     }
 
     [DoesNotReturn]

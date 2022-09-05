@@ -9,7 +9,8 @@ public sealed class UriFormatter : IMemoryPackFormatter<Uri>
     public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Uri? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.WriteString(value?.OriginalString);
+        var str = value?.OriginalString;
+        context.WriteString(ref str);
     }
 
     public void Deserialize(ref DeserializationContext context, ref Uri? value)

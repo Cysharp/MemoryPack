@@ -93,7 +93,8 @@ public ref struct SerializationContext<TBufferWriter>
         Advance(4);
     }
 
-    public void WriteString(string? value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteString(ref string? value)
     {
         if (value == null)
         {
@@ -101,10 +102,61 @@ public ref struct SerializationContext<TBufferWriter>
             return;
         }
 
-        var src = MemoryMarshal.AsBytes(value.AsSpan());
+        var span = value.AsSpan();
+        WriteUnmanagedSpan(ref span);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanagedArray<T>(ref T[]? value)
+        where T : unmanaged
+    {
+        if (value == null)
+        {
+            WriteNullLengthHeader();
+            return;
+        }
+
+        var span = new ReadOnlySpan<T>(value);
+        WriteUnmanagedSpan(ref span);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DangerousWriteUnmanagedArray<T>(ref T[]? value)
+    {
+        if (value == null)
+        {
+            WriteNullLengthHeader();
+            return;
+        }
+
+        var span = new ReadOnlySpan<T>(value);
+        DangerousWriteUnmanagedSpan(ref span);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanagedSpan<T>(ref ReadOnlySpan<T> value)
+        where T : unmanaged
+    {
+        var src = MemoryMarshal.AsBytes(value);
         ref var spanRef = ref GetSpanReference(src.Length + 4);
 
-        Unsafe.WriteUnaligned(ref spanRef, src.Length);
+        Unsafe.WriteUnaligned(ref spanRef, value.Length);
+        src.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), src.Length));
+
+        Advance(src.Length + 4);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DangerousWriteUnmanagedSpan<T>(ref ReadOnlySpan<T> value)
+    {
+        // MemoryMarshal.AsBytes(value);
+        var src = MemoryMarshal.CreateReadOnlySpan<byte>(
+            ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)),
+            checked(value.Length * Unsafe.SizeOf<T>()));
+
+        ref var spanRef = ref GetSpanReference(src.Length + 4);
+
+        Unsafe.WriteUnaligned(ref spanRef, value.Length);
         src.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), src.Length));
 
         Advance(src.Length + 4);
