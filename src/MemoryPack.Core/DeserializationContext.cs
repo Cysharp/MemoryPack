@@ -110,6 +110,11 @@ public ref struct DeserializationContext
             return null;
         }
 
+        if (view.Length == 0)
+        {
+            return "";
+        }
+
         var str = new string(view);
         Advance(advanceLength);
 
@@ -123,17 +128,23 @@ public ref struct DeserializationContext
     }
 
     // T: should be unamanged type
-    public T[]? DangerousReadUnmanagedArray<T>()
+    public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {
-        if (!DangerousTryReadUnmanagedSpan<T>(out var view, out var advanceLength))
+        if (!TryReadLength(out var length))
         {
             return null;
         }
 
-        var array = view.ToArray();
-        Advance(advanceLength);
+        if (length == 0) return Array.Empty<T>();
 
-        return array;
+        var size = length * Unsafe.SizeOf<T>();
+        ref var src = ref GetSpanReference(size);
+        var dest = GC.AllocateUninitializedArray<T>(length);
+
+        Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref dest), size, size);
+        Advance(size);
+
+        return dest;
     }
 
     public bool TryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)

@@ -14,7 +14,7 @@ internal static class SequentialBufferWriterPool
         {
             return writer;
         }
-        return new SequentialBufferWriter(useFirstBuffer: false); // does not cache firstBuffer
+        return new SequentialBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
     }
 
     public static void Return(SequentialBufferWriter writer)
@@ -43,10 +43,12 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
     public int TotalWritten => totalWritten;
     bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
 
-    public SequentialBufferWriter(bool useFirstBuffer)
+    public SequentialBufferWriter(bool useFirstBuffer, bool pinned)
     {
         this.buffers = new List<BufferSegment>();
-        this.firstBuffer = useFirstBuffer ? new byte[InitialBufferSize] : noUseFirstBufferSentinel;
+        this.firstBuffer = useFirstBuffer
+            ? GC.AllocateUninitializedArray<byte>(InitialBufferSize, pinned)
+            : noUseFirstBufferSentinel;
         this.firstBufferWritten = 0;
         this.current = null;
         this.nextBufferSize = InitialBufferSize;

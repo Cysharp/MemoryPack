@@ -19,7 +19,7 @@ public static partial class MemoryPackSerializer
         var writer = threadStaticBufferWriter;
         if (writer == null)
         {
-            writer = threadStaticBufferWriter = new SequentialBufferWriter(useFirstBuffer: true);
+            writer = threadStaticBufferWriter = new SequentialBufferWriter(useFirstBuffer: true, pinned: true);
         }
 
         try
