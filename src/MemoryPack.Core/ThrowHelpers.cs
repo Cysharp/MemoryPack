@@ -2,6 +2,7 @@
 
 namespace MemoryPack;
 
+// Throw helpers is sometimes called from generated code so public.
 public static class ThrowHelpers
 {
     [DoesNotReturn]

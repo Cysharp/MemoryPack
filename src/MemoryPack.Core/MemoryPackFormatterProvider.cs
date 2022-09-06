@@ -84,4 +84,11 @@ public static class MemoryPackFormatterProvider
              ? Activator.CreateInstance(instanceType) as IMemoryPackFormatter
             : null;
     }
+
+    // TODO: generate T4
+    [ModuleInitializer]
+    internal static void RegisterWellKnownTypesFormatters()
+    {
+        Register<int>(new UnmanagedTypeFormatter<int>());
+    }
 }
