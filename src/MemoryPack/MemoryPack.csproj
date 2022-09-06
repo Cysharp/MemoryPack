@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <!-- This project is meta package -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IncludeContentInPack>false</IncludeContentInPack>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
+        <ProjectReference Include="..\MemoryPack.Generator\MemoryPack.Generator.csproj" />
+    </ItemGroup>
+
+</Project>

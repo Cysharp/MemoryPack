@@ -29,9 +29,9 @@ public class StandardRunner : ConsoleAppBase
             MemoryPackFormatterProvider.Register(new UnmanagedTypeArrayFormatter<int>());
 
             var xs = MemoryPackSerializer.Serialize(v3);
+            
 
-
-
+            
 
         }
 

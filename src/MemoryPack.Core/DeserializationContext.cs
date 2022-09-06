@@ -89,6 +89,7 @@ public ref struct DeserializationContext
         return count != MemoryPackCode.NullObject;
     }
 
+    // TODO: should check deserialize does nott occur buffer overrun
     public bool TryReadLength(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));

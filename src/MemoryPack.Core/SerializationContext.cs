@@ -84,8 +84,21 @@ public ref struct SerializationContext<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObjectHeader(byte propertyCount)
     {
+        if (propertyCount >= MemoryPackCode.Reserved1)
+        {
+            // TODO: throws invalid property length?
+        }
         GetSpanReference(1) = propertyCount;
         Advance(1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnionHeader(byte tag)
+    {
+        ref var spanRef = ref GetSpanReference(2);
+        spanRef = MemoryPackCode.Union;
+        Unsafe.Add(ref spanRef, 1) = tag;
+        Advance(2);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
