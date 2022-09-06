@@ -79,6 +79,67 @@ public class MyClass
 
 
 [MemoryPackable]
+[MemoryPackUnion(0, typeof(UnionSample))]
+[MemoryPackUnion(1, typeof(Derived))]
+public class UnionSample : IMemoryPackable<UnionSample>
+{
+    public static void Deserialize(ref DeserializationContext context, ref UnionSample? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    static readonly Dictionary<Type, byte> __typeToTag = new Dictionary<Type, byte>()
+    {
+        { typeof(UnionSample), 0 },
+        { typeof(Derived), 1 },
+    };
+
+    public static void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref UnionSample? value) where TBufferWriter : IBufferWriter<byte>
+    {
+        if (value == null)
+        {
+            return;
+        }
+
+        if (!__typeToTag.TryGetValue(value.GetType(), out var tag))
+        {
+            // throws.
+        }
+
+        context.WriteUnionHeader(tag);
+        switch (tag)
+        {
+            case 0:
+                {
+                    SerializeSelf(ref context, ref value);
+                }
+                break;
+            case 1:
+                {
+                    var v = (Derived)value;
+                    context.WriteObject(ref v);
+                    break;
+                }
+        }
+
+        throw new NotImplementedException();
+    }
+
+    static void SerializeSelf<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref UnionSample? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        // serialize self
+    }
+}
+
+[MemoryPackable]
+public class Derived : UnionSample
+{
+
+}
+
+
+[MemoryPackable]
 public partial class MySample : IMemoryPackable<MySample>
 {
     public int MyProperty { get; set; }
