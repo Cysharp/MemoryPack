@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -9,5 +9,32 @@
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Include="MemoryPackFormatterProvider.WellknownTypes.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>MemoryPackFormatterProvider.WellknownTypes.tt</DependentUpon>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="MemoryPackFormatterProvider.WellknownTypes.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>MemoryPackFormatterProvider.WellknownTypes.cs</LastGenOutput>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="MemoryPackFormatterProvider.WellknownTypes.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>MemoryPackFormatterProvider.WellknownTypes.tt</DependentUpon>
+      </Compile>
+    </ItemGroup>
 
 </Project>
