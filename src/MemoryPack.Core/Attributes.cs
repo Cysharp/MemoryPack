@@ -42,9 +42,8 @@ public sealed class MemoryPackOnSerialized : Attribute
 {
 }
 
-// only allows static method.
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public class MemoryPackOnDeserializing : Attribute
+public sealed class MemoryPackOnDeserializing : Attribute
 {
 }
 
