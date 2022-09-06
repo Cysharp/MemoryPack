@@ -116,17 +116,17 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return Array.Empty<byte>();
 
-        var result = new byte[totalWritten];
+        var result = GC.AllocateUninitializedArray<byte>(totalWritten);
         var dest = result.AsSpan();
 
         if (UseFirstBuffer)
         {
             firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
-            dest = dest.Slice(firstBufferWritten);
         }
 
         if (buffers.Count > 0)
         {
+            dest = dest.Slice(firstBufferWritten);
             foreach (var item in CollectionsMarshal.AsSpan(buffers))
             {
                 item.WrittenBuffer.CopyTo(dest);

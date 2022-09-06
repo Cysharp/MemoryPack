@@ -8,7 +8,7 @@ public static partial class MemoryPackSerializer
 {
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static unsafe byte[] SerializeUnmanaged<T>(in T value) // where T : unmanaged
+    static unsafe byte[] DangerousSerializeUnmanaged<T>(in T value) // where T : unmanaged
     {
         Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
@@ -16,28 +16,21 @@ public static partial class MemoryPackSerializer
     }
 
     [SkipLocalsInit]
-    public static unsafe int Serialize<TBufferWriter, T>(TBufferWriter bufferWriter, in T value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static unsafe void DangerousSerializeUnmanaged<TBufferWriter, T>(ref TBufferWriter bufferWriter, in T value) // where T : unmanaged
         where TBufferWriter : IBufferWriter<byte>
-        where T : unmanaged
     {
-        Span<byte> buffer = stackalloc byte[sizeof(T)];
+        var buffer = bufferWriter.GetSpan(Unsafe.SizeOf<T>());
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
-
-        var dest = bufferWriter.GetSpan(buffer.Length);
-        buffer.CopyTo(dest);
-
         bufferWriter.Advance(buffer.Length);
-
-        return sizeof(T);
     }
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static unsafe void SerializeUnmanaged<T>(Stream stream, in T value) // where T : unmanaged
+    static unsafe void DangerousSerializeUnmanaged<T>(Stream stream, in T value) // where T : unmanaged
     {
         Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
-
         stream.Write(buffer);
     }
 

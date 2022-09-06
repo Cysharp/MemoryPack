@@ -13,7 +13,7 @@ public static partial class MemoryPackSerializer
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            return SerializeUnmanaged(value);
+            return DangerousSerializeUnmanaged(value);
         }
 
         var writer = threadStaticBufferWriter;
@@ -34,11 +34,24 @@ public static partial class MemoryPackSerializer
         }
     }
 
+    public static void Serialize<T, TBufferWriter>(ref TBufferWriter bufferWriter, in T? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousSerializeUnmanaged(ref bufferWriter, value);
+            return;
+        }
+        
+        var context = new SerializationContext<TBufferWriter>(bufferWriter);
+        Serialize(ref context, value);
+    }
+
     public static void Serialize<T>(Stream stream, in T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            SerializeUnmanaged(stream, value);
+            DangerousSerializeUnmanaged(stream, value);
             return;
         }
 
