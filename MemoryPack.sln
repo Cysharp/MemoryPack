@@ -15,6 +15,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxConsoleApp", "sandbo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack.Tests", "tests\MemoryPack.Tests\MemoryPack.Tests.csproj", "{1C22BB73-56D7-4C13-99BA-D7C25C45510F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack.Generator", "src\MemoryPack.Generator\MemoryPack.Generator.csproj", "{92BFD932-2627-496D-BECA-4160C895C397}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack", "src\MemoryPack\MemoryPack.csproj", "{4118975E-9AA8-4CB1-9C49-BD3DE1B45581}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemoryPack.Streaming", "src\MemoryPack.Streaming\MemoryPack.Streaming.csproj", "{71898098-EA11-4839-AAD2-D4CB974D98E7}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "sandbox\Benchmark\Benchmark.csproj", "{31F067EA-3E16-47DD-A6E6-9AFDDD82E22F}"
 EndProject
 Global
@@ -39,6 +45,18 @@ Global
 		{31F067EA-3E16-47DD-A6E6-9AFDDD82E22F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31F067EA-3E16-47DD-A6E6-9AFDDD82E22F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31F067EA-3E16-47DD-A6E6-9AFDDD82E22F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92BFD932-2627-496D-BECA-4160C895C397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92BFD932-2627-496D-BECA-4160C895C397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92BFD932-2627-496D-BECA-4160C895C397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92BFD932-2627-496D-BECA-4160C895C397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4118975E-9AA8-4CB1-9C49-BD3DE1B45581}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4118975E-9AA8-4CB1-9C49-BD3DE1B45581}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4118975E-9AA8-4CB1-9C49-BD3DE1B45581}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4118975E-9AA8-4CB1-9C49-BD3DE1B45581}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71898098-EA11-4839-AAD2-D4CB974D98E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71898098-EA11-4839-AAD2-D4CB974D98E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71898098-EA11-4839-AAD2-D4CB974D98E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71898098-EA11-4839-AAD2-D4CB974D98E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

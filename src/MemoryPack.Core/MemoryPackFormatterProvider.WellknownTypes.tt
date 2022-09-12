@@ -1,0 +1,57 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    var unmanagedTypes = new Type[]
+    {
+        typeof(sbyte),
+        typeof(byte),
+        typeof(short),
+        typeof(ushort),
+        typeof(int),
+        typeof(uint),
+        typeof(long),
+        typeof(ulong),
+        typeof(char),
+        typeof(float),
+        typeof(double),
+        typeof(decimal),
+        typeof(bool),
+        typeof(IntPtr),
+        typeof(UIntPtr),
+
+        typeof(DateTime),
+        typeof(DateTimeOffset),
+        typeof(TimeSpan),
+    };
+
+    var knownTypes = new Type[]
+    {
+        typeof(Version),
+        typeof(Uri),
+    };
+#>
+using MemoryPack.Formatters;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+namespace MemoryPack;
+
+public static partial class MemoryPackFormatterProvider
+{
+    [ModuleInitializer]
+    internal static void RegisterWellKnownTypesFormatters()
+    {
+<# foreach(var item in unmanagedTypes) { #>
+        Register(new UnmanagedTypeFormatter<<#= item.Name #>>());
+        Register(new UnmanagedTypeArrayFormatter<<#= item.Name #>>());
+<# } #>
+
+<# foreach(var item in knownTypes) { #>
+        Register(new <#= item.Name #>Formatter());
+        Register(new ArrayFormatter<<#= item.Name #>>());
+<# } #>
+    }
+}

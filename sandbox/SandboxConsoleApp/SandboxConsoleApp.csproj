@@ -10,10 +10,15 @@
 
     <ItemGroup>
         <PackageReference Include="ConsoleAppFramework" Version="4.2.2" />
+        <PackageReference Include="MessagePack" Version="2.4.35" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">
+            <OutputItemType>Analyzer</OutputItemType>
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        </ProjectReference>
     </ItemGroup>
 
 </Project>

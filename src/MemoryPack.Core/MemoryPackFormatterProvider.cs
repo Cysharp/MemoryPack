@@ -7,7 +7,7 @@ namespace MemoryPack;
 // This provider is fallback if can't resolve in compile time(like generics).
 // Therefore, unlike MessagePack for C#, it is static and not extensible.
 
-public static class MemoryPackFormatterProvider
+public static partial class MemoryPackFormatterProvider
 {
     public static bool IsRegistered<T>() => Check<T>.registered;
 
