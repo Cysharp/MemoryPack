@@ -42,7 +42,7 @@ public static partial class MemoryPackSerializer
             DangerousSerializeUnmanaged(ref bufferWriter, value);
             return;
         }
-        
+
         var context = new SerializationContext<TBufferWriter>(bufferWriter);
         Serialize(ref context, value);
     }

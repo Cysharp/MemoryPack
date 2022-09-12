@@ -31,8 +31,8 @@ public class StandardRunner : ConsoleAppBase
             var xs = MemoryPackSerializer.Serialize(v3);
 
 
-
-
+            var i = int.Parse("100");
+            i.Hoge();
         }
 
         {
@@ -57,7 +57,7 @@ public class StandardRunner : ConsoleAppBase
         //Console.WriteLine(version!.ToString());
     }
 
-    [RootCommand]
+    // [RootCommand]
     public void Run2()
     {
         var mc = new MyClass();
@@ -69,6 +69,39 @@ public class StandardRunner : ConsoleAppBase
 
         var v = mc.MyProperty;
         vf.Deserialize(ref ctx, ref v);
+    }
+
+    [RootCommand]
+    public void Run3()
+    {
+        var v3 = Enumerable.Repeat(new Vector3 { X = 10.3f, Y = 40.5f, Z = 13411.3f }, 1000).ToArray();
+        var serialize2 = MemoryPackSerializer.Serialize(v3);
+        var writer = new ArrayBufferWriter<byte>(serialize2.Length);
+        MemoryPackSerializer.Serialize(ref writer, v3);
+        writer.Clear();
+        
+    }
+}
+
+
+//[MessagePackObject]
+public struct Vector3
+{
+  //  [Key(0)]
+    public float X;
+    //[Key(1)]
+    public float Y;
+    //[Key(2)]
+    public float Z;
+}
+
+
+public static class MyExtensions
+{
+    public static bool Hoge<T>(ref this T source)
+        where T : struct
+    {
+        return true;
     }
 }
 
