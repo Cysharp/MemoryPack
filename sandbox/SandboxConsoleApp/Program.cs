@@ -1,6 +1,9 @@
 ﻿using MemoryPack;
 using MemoryPack.Formatters;
+using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 
 ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
@@ -37,7 +40,7 @@ public class StandardRunner : ConsoleAppBase
 
         {
             var writer = new ArrayBufferWriter<byte>();
-            var context = new SerializationContext<ArrayBufferWriter<byte>>(writer);
+            var context = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref writer);
             foo.Serialize(ref context, ref v1);
 
             context.Flush();
@@ -65,21 +68,135 @@ public class StandardRunner : ConsoleAppBase
         var bin = MemoryPackSerializer.Serialize(new Version(1, 10, 100, 1000));
 
         var vf = new VersionFormatter();
-        var ctx = new DeserializationContext(bin);
+        var ctx = new MemoryPackReader(bin);
 
-        var v = mc.MyProperty;
-        vf.Deserialize(ref ctx, ref v);
+        //var v = mc.MyProperty;
+        //vf.Deserialize(ref ctx, ref v);
     }
 
-    [RootCommand]
+    // [RootCommand]
     public void Run3()
     {
+        var foo = MemoryPackSerializer.Serialize<IReadOnlyCollection<Version>>(null);
+
+
         var v3 = Enumerable.Repeat(new Vector3 { X = 10.3f, Y = 40.5f, Z = 13411.3f }, 1000).ToArray();
         var serialize2 = MemoryPackSerializer.Serialize(v3);
         var writer = new ArrayBufferWriter<byte>(serialize2.Length);
-        MemoryPackSerializer.Serialize(ref writer, v3);
+        MemoryPackSerializer.Serialize(writer, v3);
+        var serialize3 = writer.WrittenMemory.ToArray();
+        var ok = serialize2.AsSpan().SequenceEqual(serialize3);
         writer.Clear();
-        
+    }
+
+    //[RootCommand]
+    public void Run4()
+    {
+        var writer = new ArrayBufferWriter<byte>();
+        var mc = new MyClass() { X = 29, Y = 8888, Z = 99999, FirstName = "hoge", LastName = "あいうえお" };
+
+        MemoryPackSerializer.Serialize(writer, mc);
+
+        var mc2 = MemoryPackSerializer.Deserialize<MyClass>(writer.WrittenSpan);
+    }
+
+    [RootCommand]
+    public void Run5()
+    {
+        var pipe = new Pipe();
+        if (pipe.Reader.TryRead(out var result))
+        {
+            
+        }
+    }
+}
+
+[MessagePackObject]
+//[GenerateSerializer]
+public partial class MyClass : IMemoryPackable<MyClass>
+{
+    [Key(0)]
+    public int X { get; set; }
+    [Key(1)]
+    public int Y { get; set; }
+    [Key(2)]
+    public int Z { get; set; }
+    [Key(3)]
+    public string? FirstName { get; set; }
+    [Key(4)]
+    public string? LastName { get; set; }
+
+    static MyClass()
+    {
+        if (!MemoryPackFormatterProvider.IsRegistered<MyClass>())
+        {
+            MemoryPackFormatterProvider.Register(new Formatter());
+        }
+    }
+
+    public static void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MyClass? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        if (value == null)
+        {
+            context.WriteNullObjectHeader();
+            return;
+        }
+        else
+        {
+            context.WriteObjectHeader(4);
+        }
+
+        {
+            ref var spanRef = ref context.GetSpanReference(sizeof(int) /* X */ + sizeof(int) /* Y */ + sizeof(int) /* Z */);
+            Unsafe.WriteUnaligned(ref spanRef, value.X);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, sizeof(int)), value.Y);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, sizeof(int) + sizeof(int)), value.Z);
+            context.Advance(sizeof(int) + sizeof(int) + sizeof(int));
+        }
+        {
+            context.WriteString(value.FirstName);
+        }
+        {
+            context.WriteString(value.LastName);
+        }
+    }
+
+    public static void Deserialize(ref MemoryPackReader context, scoped ref MyClass? value)
+    {
+        if (value == null)
+        {
+            value = new MyClass();
+        }
+
+        context.TryReadPropertyCount(out var count);
+
+        {
+            ref var spanRef = ref context.GetSpanReference(sizeof(int) + sizeof(int) + sizeof(int));
+            value.X = Unsafe.ReadUnaligned<int>(ref spanRef);
+            value.Y = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, sizeof(int)));
+            value.Z = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, sizeof(int) + sizeof(int)));
+            context.Advance(sizeof(int) + sizeof(int) + sizeof(int));
+        }
+        {
+            value.FirstName = context.ReadString();
+        }
+        {
+            value.LastName = context.ReadString();
+        }
+    }
+
+    class Formatter : IMemoryPackFormatter<MyClass>
+    {
+        public void Deserialize(ref MemoryPackReader context, scoped ref MyClass? value)
+        {
+            MyClass.Deserialize(ref context, ref value);
+        }
+
+        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MyClass? value) where TBufferWriter : IBufferWriter<byte>
+        {
+            context.WritePackable(ref value);
+        }
     }
 }
 
@@ -87,7 +204,7 @@ public class StandardRunner : ConsoleAppBase
 //[MessagePackObject]
 public struct Vector3
 {
-  //  [Key(0)]
+    //  [Key(0)]
     public float X;
     //[Key(1)]
     public float Y;
@@ -105,18 +222,13 @@ public static class MyExtensions
     }
 }
 
-public class MyClass
-{
-    public Version? MyProperty { get; set; }
-}
-
 
 [MemoryPackable]
 [MemoryPackUnion(0, typeof(UnionSample))]
 [MemoryPackUnion(1, typeof(Derived))]
 public class UnionSample : IMemoryPackable<UnionSample>
 {
-    public static void Deserialize(ref DeserializationContext context, ref UnionSample? value)
+    public static void Deserialize(ref MemoryPackReader context, scoped ref UnionSample? value)
     {
         throw new NotImplementedException();
     }
@@ -127,7 +239,7 @@ public class UnionSample : IMemoryPackable<UnionSample>
         { typeof(Derived), 1 },
     };
 
-    public static void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref UnionSample? value) where TBufferWriter : IBufferWriter<byte>
+    public static void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref UnionSample? value) where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
         {
@@ -158,7 +270,7 @@ public class UnionSample : IMemoryPackable<UnionSample>
         throw new NotImplementedException();
     }
 
-    static void SerializeSelf<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref UnionSample? value)
+    static void SerializeSelf<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref UnionSample? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         // serialize self
@@ -203,7 +315,7 @@ public partial class MySample : IMemoryPackable<MySample>
     [MemoryPackOnDeserialized]
     static void StaticAfterDeserialize() { }
 
-    static void IMemoryPackable<MySample>.Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref MySample? value)
+    static void IMemoryPackable<MySample>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MySample? value)
     {
         StaticBeforeSerialize();
 
@@ -221,7 +333,7 @@ public partial class MySample : IMemoryPackable<MySample>
         StaticAfterSerialize();
     }
 
-    static void IMemoryPackable<MySample>.Deserialize(ref DeserializationContext context, ref MySample? value)
+    static void IMemoryPackable<MySample>.Deserialize(ref MemoryPackReader context, scoped ref MySample? value)
     {
         StaticBeforeDeserialize();
 
@@ -242,12 +354,12 @@ public partial class MySample : IMemoryPackable<MySample>
 
     sealed class MySampleFormatter : IMemoryPackFormatter<MySample>
     {
-        public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref MySample? value) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MySample? value) where TBufferWriter : IBufferWriter<byte>
         {
             context.WritePackable(ref value);
         }
 
-        public void Deserialize(ref DeserializationContext context, ref MySample? value)
+        public void Deserialize(ref MemoryPackReader context, scoped ref MySample? value)
         {
             // context.ReadPackable
         }
@@ -267,24 +379,24 @@ public class Bar : IMemoryPackFormatter<Bar>
     }
 
 
-    public void Deserialize(ref DeserializationContext context, ref Bar? value)
+    public void Deserialize(ref MemoryPackReader context, scoped ref Bar? value)
     {
         throw new NotImplementedException();
     }
 
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Bar? value) where TBufferWriter : IBufferWriter<byte>
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Bar? value) where TBufferWriter : IBufferWriter<byte>
     {
         throw new NotImplementedException();
     }
 
     sealed class BarFormatter : IMemoryPackFormatter<Bar>
     {
-        public void Deserialize(ref DeserializationContext context, ref Bar? value)
+        public void Deserialize(ref MemoryPackReader context, scoped ref Bar? value)
         {
             throw new NotImplementedException();
         }
 
-        public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Bar? value)
+        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Bar? value)
             where TBufferWriter : IBufferWriter<byte>
         {
             throw new NotImplementedException();
@@ -309,25 +421,25 @@ public class Foo<T> : IMemoryPackable<Foo<T>>
         }
     }
 
-    static void IMemoryPackable<Foo<T>>.Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Foo<T>? value)
+    static void IMemoryPackable<Foo<T>>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Foo<T>? value)
     {
         // throw new NotImplementedException();
         // write T...
     }
 
-    static void IMemoryPackable<Foo<T>>.Deserialize(ref DeserializationContext context, ref Foo<T>? value)
+    static void IMemoryPackable<Foo<T>>.Deserialize(ref MemoryPackReader context, scoped ref Foo<T>? value)
     {
         throw new NotImplementedException();
     }
 
     sealed class Formatter : IMemoryPackFormatter<Foo<T>>
     {
-        public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Foo<T>? value) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Foo<T>? value) where TBufferWriter : IBufferWriter<byte>
         {
             context.WritePackable(ref value);
         }
 
-        public void Deserialize(ref DeserializationContext context, ref Foo<T>? value)
+        public void Deserialize(ref MemoryPackReader context, scoped ref Foo<T>? value)
         {
             throw new NotImplementedException();
         }

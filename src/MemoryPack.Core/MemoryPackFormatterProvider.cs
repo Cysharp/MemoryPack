@@ -41,6 +41,12 @@ public static partial class MemoryPackFormatterProvider
         throw new InvalidOperationException($"{type.FullName} is not registered in this provider.");
     }
 
+    static MemoryPackFormatterProvider()
+    {
+        // TODO:remove?
+        Register(new CollectionFormatter<Version>());
+    }
+
     static class Check<T>
     {
         public static bool registered;

@@ -1,0 +1,36 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    string MakeT(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"T{x}"));
+    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"in T{x} value{x}"));
+    string MakeWhere(int count) => string.Join("\r\n        ", Enumerable.Range(1, count).Select(x => $"where T{x} : unmanaged"));
+    string MakeSize(int count) => string.Join(" + ", Enumerable.Range(1, count).Select(x => $"Unsafe.SizeOf<T{x}>()"));
+#>
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace MemoryPack;
+
+public ref partial struct MemoryPackWriter<TBufferWriter>
+{
+<# for(var i = 1; i < 16; i++ ) { #>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
+        <#= MakeWhere(i) #>
+    {
+        var size = <#= MakeSize(i) #>;
+        ref var spanRef = ref GetSpanReference(size);
+        Unsafe.WriteUnaligned(ref spanRef, value1);
+<# for(var j = 2; j <= i; j++) { #>
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #>), value<#= j #>);
+<# } #>
+        Advance(size);
+    }
+
+<# } #>
+}

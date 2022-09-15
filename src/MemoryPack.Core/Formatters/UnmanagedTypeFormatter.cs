@@ -14,14 +14,14 @@ public sealed class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
 {
     static readonly int size = Unsafe.SizeOf<T>(); // TODO:which faster? load from field or Unsafe.SizeOf<T> directly
 
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T value)
         where TBufferWriter : IBufferWriter<byte>
     {
         Unsafe.WriteUnaligned(ref context.GetSpanReference(size), value);
         context.Advance(size);
     }
 
-    public void Deserialize(ref DeserializationContext context, ref T value)
+    public void Deserialize(ref MemoryPackReader context, scoped ref T value)
     {
         value = Unsafe.ReadUnaligned<T>(ref context.GetSpanReference(size));
         context.Advance(size);
@@ -32,7 +32,7 @@ public sealed class UnmanagedTypeFormatter<T> : IMemoryPackFormatter<T>
 public sealed class NullableUnmanagedTypeFormatter<T> : IMemoryPackFormatter<T?>
     where T : unmanaged
 {
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
 
@@ -40,7 +40,7 @@ public sealed class NullableUnmanagedTypeFormatter<T> : IMemoryPackFormatter<T?>
         throw new NotImplementedException();
     }
 
-    public void Deserialize(ref DeserializationContext context, ref T? value)
+    public void Deserialize(ref MemoryPackReader context, scoped ref T? value)
     {
         throw new NotImplementedException();
     }

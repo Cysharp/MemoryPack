@@ -4,7 +4,7 @@ namespace MemoryPack.Generator
 {
     // dotnet/runtime generators.
 
-    // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.RegularExpressions/gen/RegexGenerator.cs
+    // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.RegularExpressions/gen/
     // https://github.com/dotnet/runtime/tree/main/src/libraries/System.Text.Json/gen
     // https://github.com/dotnet/runtime/tree/main/src/libraries/System.Private.CoreLib/gen
     // https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.Logging.Abstractions/gen

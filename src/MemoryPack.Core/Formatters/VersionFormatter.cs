@@ -10,7 +10,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 
     // Serialize as [Major, Minor, Build, Revision]
 
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Version? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Version? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
@@ -30,7 +30,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
         context.Advance(17);
     }
 
-    public void Deserialize(ref DeserializationContext context, ref Version? value)
+    public void Deserialize(ref MemoryPackReader context, scoped ref Version? value)
     {
         if (!context.TryReadPropertyCount(out var count))
         {
@@ -38,7 +38,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
             return;
         }
 
-        if (count != 4) ThrowHelpers.InvalidPropertyCount(4, count);
+        if (count != 4) ThrowHelper.ThrowInvalidPropertyCount(4, count);
 
         ref var spanRef = ref context.GetSpanReference(16);
 

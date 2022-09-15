@@ -4,27 +4,27 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-public ref struct SerializationContext<TBufferWriter>
+public ref partial struct MemoryPackWriter<TBufferWriter>
     where TBufferWriter : IBufferWriter<byte>
 {
-    readonly TBufferWriter bufferWriter; // TODO: ref field?
-    Span<byte> buffer; // TODO: ref byte bufferReference
+    ref TBufferWriter bufferWriter;
+    ref byte bufferReference;
     int bufferLength;
     int advancedCount;
 
-    public SerializationContext(TBufferWriter writer)
+    public MemoryPackWriter(ref TBufferWriter writer)
     {
-        this.bufferWriter = writer;
-        this.buffer = default;
+        this.bufferWriter = ref writer;
+        this.bufferReference = ref Unsafe.NullRef<byte>();
         this.bufferLength = 0;
         this.advancedCount = 0;
     }
 
     // unsafe ctor, becareful to use.
-    public SerializationContext(TBufferWriter writer, byte[] firstBufferOfWriter)
+    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter)
     {
-        this.bufferWriter = writer;
-        this.buffer = firstBufferOfWriter;
+        this.bufferWriter = ref writer;
+        this.bufferReference = ref MemoryMarshal.GetArrayDataReference(firstBufferOfWriter);
         this.bufferLength = firstBufferOfWriter.Length;
         this.advancedCount = 0;
     }
@@ -37,27 +37,28 @@ public ref struct SerializationContext<TBufferWriter>
             RequestNewBuffer(sizeHint);
         }
 
-        // TODO: return ref bufferReference;
-        return ref MemoryMarshal.GetReference(buffer);
+        return ref bufferReference;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    void RequestNewBuffer(int size)
+    void RequestNewBuffer(int sizeHint)
     {
         if (advancedCount != 0)
         {
             bufferWriter.Advance(advancedCount);
             advancedCount = 0;
         }
-        buffer = bufferWriter.GetSpan(size - buffer.Length);
-        bufferLength = buffer.Length;
+        var span = bufferWriter.GetSpan(sizeHint);
+        bufferReference = ref MemoryMarshal.GetReference(span);
+        bufferLength = span.Length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
-        buffer = buffer.Slice(count); // TODO: ref Unsafe.Add(ref bufferReference, count)
-        bufferLength = buffer.Length;
+        bufferLength = bufferLength - count;
+        // TODO: check safe advance?
+        bufferReference = ref Unsafe.Add(ref bufferReference, count);
         advancedCount += count;
     }
 
@@ -68,7 +69,7 @@ public ref struct SerializationContext<TBufferWriter>
             bufferWriter.Advance(advancedCount);
             advancedCount = 0;
         }
-        buffer = default;
+        bufferReference = ref Unsafe.NullRef<byte>();
         bufferLength = 0;
     }
 
@@ -116,7 +117,7 @@ public ref struct SerializationContext<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteString(ref string? value)
+    public void WriteString(string? value)
     {
         if (value == null)
         {
@@ -129,7 +130,7 @@ public ref struct SerializationContext<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedArray<T>(ref T[]? value)
+    public void WriteUnmanagedArray<T>(T[]? value)
         where T : unmanaged
     {
         if (value == null)
@@ -143,7 +144,7 @@ public ref struct SerializationContext<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DangerousWriteUnmanagedArray<T>(ref T[]? value)
+    public void DangerousWriteUnmanagedArray<T>(T[]? value)
     {
         if (value == null)
         {
@@ -159,13 +160,7 @@ public ref struct SerializationContext<TBufferWriter>
     public void WriteUnmanagedSpan<T>(ref ReadOnlySpan<T> value)
         where T : unmanaged
     {
-        var src = MemoryMarshal.AsBytes(value);
-        ref var spanRef = ref GetSpanReference(src.Length + 4);
-
-        Unsafe.WriteUnaligned(ref spanRef, value.Length);
-        src.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), src.Length));
-
-        Advance(src.Length + 4);
+        DangerousWriteUnmanagedSpan(ref value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -184,14 +179,14 @@ public ref struct SerializationContext<TBufferWriter>
         Advance(src.Length + 4);
     }
 
-    public void WritePackable<T>(ref T? value)
+    public void WritePackable<T>(scoped ref T? value)
         where T : IMemoryPackable<T>
     {
         T.Serialize(ref this, ref value);
     }
 
     // non packable, get formatter dynamically.
-    public void WriteObject<T>(ref T? value)
+    public void WriteObject<T>(scoped ref T? value)
     {
         var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
         formatter.Serialize(ref this, ref value);

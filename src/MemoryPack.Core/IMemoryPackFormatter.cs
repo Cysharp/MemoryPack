@@ -8,7 +8,7 @@ public interface IMemoryPackFormatter
 
 public interface IMemoryPackFormatter<T> : IMemoryPackFormatter
 {
-    void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref T? value)
+    void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;
-    void Deserialize(ref DeserializationContext context, ref T? value);
+    void Deserialize(ref MemoryPackReader context, scoped ref T? value);
 }

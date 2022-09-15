@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -16,12 +16,21 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>MemoryPackFormatterProvider.WellknownTypes.tt</DependentUpon>
       </None>
+      <None Include="MemoryPackWriter.Unmanaged.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>MemoryPackWriter.Unmanaged.tt</DependentUpon>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
       <None Update="MemoryPackFormatterProvider.WellknownTypes.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>MemoryPackFormatterProvider.WellknownTypes.cs</LastGenOutput>
+      </None>
+      <None Update="MemoryPackWriter.Unmanaged.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>MemoryPackWriter.Unmanaged.cs</LastGenOutput>
       </None>
     </ItemGroup>
 
@@ -34,6 +43,11 @@
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
         <DependentUpon>MemoryPackFormatterProvider.WellknownTypes.tt</DependentUpon>
+      </Compile>
+      <Compile Update="MemoryPackWriter.Unmanaged.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>MemoryPackWriter.Unmanaged.tt</DependentUpon>
       </Compile>
     </ItemGroup>
 

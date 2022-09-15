@@ -139,7 +139,7 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         return result;
     }
 
-    public unsafe void WriteToAndReset<TBufferWriter>(ref SerializationContext<TBufferWriter> context)
+    public unsafe void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return;

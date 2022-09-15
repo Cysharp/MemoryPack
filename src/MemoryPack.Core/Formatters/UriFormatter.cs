@@ -10,13 +10,13 @@ public sealed class UriFormatter : IMemoryPackFormatter<Uri>
 
     // treat as a string(OriginalString).
 
-    public void Serialize<TBufferWriter>(ref SerializationContext<TBufferWriter> context, ref Uri? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Uri? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.WriteString(ref Unsafe.AsRef(value?.OriginalString));
+        context.WriteString(value?.OriginalString);
     }
 
-    public void Deserialize(ref DeserializationContext context, ref Uri? value)
+    public void Deserialize(ref MemoryPackReader context, scoped ref Uri? value)
     {
         var str = context.ReadString();
         if (str == null)

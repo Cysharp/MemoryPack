@@ -5,38 +5,38 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-public ref struct DeserializationContext
+public ref struct MemoryPackReader
 {
-    readonly long totalLength;
-    ReadOnlySequence<byte> bufferSource; // TODO:ref?
-    ReadOnlySpan<byte> buffer; // TODO:ref byte bufferReference
+    ReadOnlySequence<byte> bufferSource;
+    ref byte bufferReference;
     int bufferLength;
     byte[]? rentBuffer;
+    long rest; // TODO:used for malformed length check
 
-    public DeserializationContext(ReadOnlySequence<byte> sequence)
+    public MemoryPackReader(in ReadOnlySequence<byte> sequence)
     {
-        this.bufferSource = sequence.IsSingleSegment ? default : sequence;
-        this.buffer = sequence.FirstSpan;
-        this.bufferLength = buffer.Length;
+        this.bufferSource = sequence.IsSingleSegment ? ref Unsafe.NullRef<ReadOnlySequence<byte>>() : ref sequence;
+        var span = sequence.FirstSpan;
+        this.bufferReference = ref MemoryMarshal.GetReference(span);
+        this.bufferLength = span.Length;
         this.rentBuffer = null;
-        this.totalLength = sequence.Length;
+        this.rest = sequence.Length;
     }
 
-    public DeserializationContext(ReadOnlySpan<byte> buffer)
+    public MemoryPackReader(ReadOnlySpan<byte> buffer)
     {
-        this.bufferSource = default;
-        this.buffer = buffer;
+        this.bufferSource = ReadOnlySequence<byte>.Empty;
+        this.bufferReference = ref MemoryMarshal.GetReference(buffer);
         this.bufferLength = buffer.Length;
         this.rentBuffer = null;
-        this.totalLength = buffer.Length;
+        this.rest = buffer.Length;
     }
 
     public ref byte GetSpanReference(int sizeHint)
     {
-        if (sizeHint <= buffer.Length)
+        if (sizeHint <= bufferLength)
         {
-            // TODO: return ref bufferReference
-            return ref MemoryMarshal.GetReference(buffer);
+            return ref bufferReference;
         }
 
         if (rentBuffer != null)
@@ -45,22 +45,24 @@ public ref struct DeserializationContext
             rentBuffer = null;
         }
 
-        bufferSource = bufferSource.Slice(buffer.Length);
+        bufferSource = bufferSource.Slice(bufferLength);
+        rest = bufferSource.Length;
 
-        if (bufferSource.Length < sizeHint)
+        if (rest < sizeHint)
         {
             if (bufferSource.FirstSpan.Length < sizeHint)
             {
-                buffer = bufferSource.FirstSpan;
-                bufferLength = buffer.Length;
-                return ref MemoryMarshal.GetReference(buffer);
+                bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
+                bufferLength = bufferSource.FirstSpan.Length;
+                return ref bufferReference;
             }
 
             rentBuffer = ArrayPool<byte>.Shared.Rent(sizeHint);
             bufferSource.Slice(0, sizeHint).CopyTo(rentBuffer);
-            buffer = rentBuffer.AsSpan(0, sizeHint);
-            bufferLength = buffer.Length;
-            return ref MemoryMarshal.GetReference(buffer);
+            var span = rentBuffer.AsSpan(0, sizeHint);
+            bufferReference = ref MemoryMarshal.GetReference(span);
+            bufferLength = span.Length;
+            return ref bufferReference;
         }
 
         throw new Exception("TODO:message.");
@@ -68,8 +70,9 @@ public ref struct DeserializationContext
 
     public void Advance(int count)
     {
-        buffer = buffer.Slice(count); // TODO: ref Unsafe.Add(ref bufferReference, count)
-        bufferLength = buffer.Length;
+        // TODO:check length.
+        bufferLength = bufferLength - count;
+        bufferReference = ref Unsafe.Add(ref bufferReference, count);
     }
 
     public void Dispose()
@@ -96,7 +99,7 @@ public ref struct DeserializationContext
         Advance(4);
 
         // If collection-length is larger than buffer-length, it is invalid data.
-        if (totalLength < length)
+        if (rest < length)
         {
             ThrowInsufficientBufferUnless();
         }
