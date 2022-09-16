@@ -15,7 +15,7 @@ public static class MemoryPackCode
     public const byte Union = 254;
     public const byte NullObject = 255;
 
-    // predefined
+    // predefined, C# compiler optimize byte[] as ReadOnlySpan<byte> property
     internal static ReadOnlySpan<byte> NullCollection => new byte[] { 255, 255, 255, 255 }; // -1
     internal static ReadOnlySpan<byte> ZeroCollection => new byte[] { 0, 0, 0, 0 }; // 0
 }

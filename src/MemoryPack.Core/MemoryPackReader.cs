@@ -12,16 +12,18 @@ public ref partial struct MemoryPackReader
     ref byte bufferReference;
     int bufferLength;
     byte[]? rentBuffer;
-    long rest; // TODO:used for malformed length check
+    int advancedCount;
+    long restSequenceLength; // TODO:used for malformed length check
 
     public MemoryPackReader(in ReadOnlySequence<byte> sequence)
     {
-        this.bufferSource = sequence.IsSingleSegment ? ref Unsafe.NullRef<ReadOnlySequence<byte>>() : ref sequence;
+        this.bufferSource = sequence.IsSingleSegment ? ReadOnlySequence<byte>.Empty : sequence;
         var span = sequence.FirstSpan;
         this.bufferReference = ref MemoryMarshal.GetReference(span);
         this.bufferLength = span.Length;
+        this.advancedCount = 0;
         this.rentBuffer = null;
-        this.rest = sequence.Length;
+        this.restSequenceLength = sequence.Length;
     }
 
     public MemoryPackReader(ReadOnlySpan<byte> buffer)
@@ -29,10 +31,12 @@ public ref partial struct MemoryPackReader
         this.bufferSource = ReadOnlySequence<byte>.Empty;
         this.bufferReference = ref MemoryMarshal.GetReference(buffer);
         this.bufferLength = buffer.Length;
+        this.advancedCount = 0;
         this.rentBuffer = null;
-        this.rest = buffer.Length;
+        this.restSequenceLength = buffer.Length;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref byte GetSpanReference(int sizeHint)
     {
         if (sizeHint <= bufferLength)
@@ -40,18 +44,37 @@ public ref partial struct MemoryPackReader
             return ref bufferReference;
         }
 
+        return ref GetNextSpan(sizeHint);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    ref byte GetNextSpan(int sizeHint)
+    {
         if (rentBuffer != null)
         {
             ArrayPool<byte>.Shared.Return(rentBuffer);
             rentBuffer = null;
         }
 
-        bufferSource = bufferSource.Slice(bufferLength);
-        rest = bufferSource.Length;
-
-        if (rest < sizeHint)
+        if (restSequenceLength == 0)
         {
-            if (bufferSource.FirstSpan.Length < sizeHint)
+            ThrowHelper.ThrowSequenceReachedEnd();
+        }
+
+        try
+        {
+            bufferSource = bufferSource.Slice(advancedCount);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowHelper.ThrowSequenceReachedEnd();
+        }
+
+        advancedCount = 0;
+
+        if (sizeHint <= restSequenceLength)
+        {
+            if (sizeHint <= bufferSource.FirstSpan.Length)
             {
                 bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
                 bufferLength = bufferSource.FirstSpan.Length;
@@ -66,14 +89,23 @@ public ref partial struct MemoryPackReader
             return ref bufferReference;
         }
 
-        throw new Exception("TODO:message.");
+        ThrowHelper.ThrowSequenceReachedEnd();
+        return ref bufferReference; // dummy.
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
-        // TODO:check length.
-        bufferLength = bufferLength - count;
+        var rest = bufferLength - count;
+        if (rest < 0)
+        {
+            ThrowHelper.ThrowInvalidAdvance();
+        }
+
+        bufferLength = rest;
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
+        advancedCount += count;
+        restSequenceLength -= count;
     }
 
     public void Dispose()
@@ -86,6 +118,7 @@ public ref partial struct MemoryPackReader
 
     // helpers
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadObjectHeader(out byte propertyCount)
     {
         propertyCount = GetSpanReference(1);
@@ -93,16 +126,16 @@ public ref partial struct MemoryPackReader
         return propertyCount != MemoryPackCode.NullObject;
     }
 
-    // TODO: should check deserialize does nott occur buffer overrun
-    public bool TryReadLength(out int length)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryReadLengthHeader(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
 
         // If collection-length is larger than buffer-length, it is invalid data.
-        if (rest < length)
+        if (restSequenceLength < length)
         {
-            ThrowInsufficientBufferUnless();
+            ThrowHelper.ThrowInsufficientBufferUnless(length);
         }
 
         return length != MemoryPackCode.NullLength;
@@ -135,7 +168,7 @@ public ref partial struct MemoryPackReader
     // T: should be unamanged type
     public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {
-        if (!TryReadLength(out var length))
+        if (!TryReadLengthHeader(out var length))
         {
             return null;
         }
@@ -154,7 +187,7 @@ public ref partial struct MemoryPackReader
 
     public unsafe void DangerousReadUnmanagedArray<T>(ref T[]? value)
     {
-        if (!TryReadLength(out var length))
+        if (!TryReadLengthHeader(out var length))
         {
             value = null;
             return;
@@ -192,7 +225,7 @@ public ref partial struct MemoryPackReader
     // T: should be unamanged type
     public bool DangerousTryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
     {
-        if (!TryReadLength(out var length))
+        if (!TryReadLengthHeader(out var length))
         {
             view = default;
             advanceLength = 0;
@@ -202,12 +235,5 @@ public ref partial struct MemoryPackReader
         view = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, T>(ref GetSpanReference(length)), length);
         advanceLength = view.Length * Unsafe.SizeOf<T>();
         return true;
-    }
-
-    // TODO:use THrowHelper?
-    [DoesNotReturn]
-    static void ThrowInsufficientBufferUnless()
-    {
-        throw new EndOfStreamException();
     }
 }

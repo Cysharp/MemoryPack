@@ -75,6 +75,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         advancedCount += count;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Flush()
     {
         if (advancedCount != 0)
@@ -100,7 +101,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (propertyCount >= MemoryPackCode.Reserved1)
         {
-            // TODO: throws invalid property length?
+            ThrowHelper.ThrowWriteInvalidPropertyCount(propertyCount);
         }
         GetSpanReference(1) = propertyCount;
         Advance(1);
@@ -192,6 +193,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(src.Length + 4);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackable<T>(scoped ref T? value)
         where T : IMemoryPackable<T>
     {
@@ -199,6 +201,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     // non packable, get formatter dynamically.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObject<T>(scoped ref T? value)
     {
         MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref value);

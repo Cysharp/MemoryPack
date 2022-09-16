@@ -23,4 +23,22 @@ public static class ThrowHelper
     {
         throw new InvalidOperationException($"Cannot advance past the end of the buffer.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowSequenceReachedEnd()
+    {
+        throw new InvalidOperationException($"Sequence reached end, reader can not provide more buffer.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowWriteInvalidPropertyCount(byte propertyCount)
+    {
+        throw new InvalidOperationException($"Property count allows < 250 but try to write {propertyCount}.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowInsufficientBufferUnless(int length)
+    {
+        throw new InvalidOperationException($"Length header size is larger than buffer size, length: {length}.");
+    }
 }

@@ -5,6 +5,8 @@ namespace MemoryPack.Internal;
 // Flush Stream when Advance called.
 internal struct SyncStreamBufferWriter : IBufferWriter<byte>, IDisposable
 {
+    // TODO:impl this
+
     // 64K buffer
 
     readonly Stream underlyingStream;
@@ -15,7 +17,7 @@ internal struct SyncStreamBufferWriter : IBufferWriter<byte>, IDisposable
     {
         this.underlyingStream = underlyingStream;
         // this.buffer = ArrayPool<byte>.Shared.Return(
-      //  this.buffer = default!;
+        //  this.buffer = default!;
     }
 
     public void Advance(int count)

@@ -56,7 +56,7 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
 
 
 
-        if (!reader.TryReadLength(out var length))
+        if (!reader.TryReadLengthHeader(out var length))
         {
             value = null;
             return;
@@ -192,7 +192,7 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
 
     public void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
     {
-        if (!reader.TryReadLength(out var length))
+        if (!reader.TryReadLengthHeader(out var length))
         {
             value = null;
             return;
@@ -240,7 +240,7 @@ public class ArrayFormatter<T> : IMemoryPackFormatter<T?[]>
 
     public void Deserialize(ref MemoryPackReader reader, scoped ref T?[]? value)
     {
-        if (!reader.TryReadLength(out var length))
+        if (!reader.TryReadLengthHeader(out var length))
         {
             value = null;
             return;
@@ -279,7 +279,7 @@ public sealed class ListFormatter<T> : IMemoryPackFormatter<List<T?>>
 
     public void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
     {
-        if (!reader.TryReadLength(out var length))
+        if (!reader.TryReadLengthHeader(out var length))
         {
             value = null;
             return;

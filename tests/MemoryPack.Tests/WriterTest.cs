@@ -45,16 +45,48 @@ public class WriterTest
     }
 
     [Fact]
-    public void WriteTest()
+    public void WriteObjectHeaderTest()
     {
         var buffer = new ArrayBufferWriter<byte>();
 
-        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+        {
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
 
-        writer.WriteNullObjectHeader();
-        writer.Flush();
+            writer.WriteNullObjectHeader();
+            writer.Flush();
 
-        // TODO: check!
+            buffer.WrittenSpan[0].Should().Be(MemoryPackCode.NullObject);
+            buffer.Clear();
+        }
+        for (var i = 0; i < 250; i++)
+        {
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+            writer.WriteObjectHeader((byte)i);
+            writer.Flush();
+
+            buffer.WrittenSpan[0].Should().Be((byte)i);
+            buffer.Clear();
+        }
+
+        for (byte i = MemoryPackCode.Reserved1; i <= MemoryPackCode.NullObject; i++)
+        {
+            if (i == 0) break;
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+            var error = false;
+            try
+            {
+                writer.WriteObjectHeader((byte)i);
+            }
+            catch (InvalidOperationException)
+            {
+                error = true;
+            }
+            finally
+            {
+                buffer.Clear();
+            }
+            error.Should().BeTrue();
+        }
     }
 
 

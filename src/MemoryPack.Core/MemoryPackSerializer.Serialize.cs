@@ -54,7 +54,7 @@ public static partial class MemoryPackSerializer
         try
         {
             var context = new MemoryPackWriter<LinkedArrayBufferWriter>(ref writer, writer.DangerousGetFirstBuffer());
-            Serialize(ref context, value);
+            SerializeCore(ref context, value);
             return writer.ToArrayAndReset();
         }
         finally
@@ -106,7 +106,7 @@ public static partial class MemoryPackSerializer
         }
 
         var context = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter));
-        Serialize(ref context, value);
+        SerializeCore(ref context, value);
     }
 
     [SkipLocalsInit]
@@ -124,7 +124,7 @@ public static partial class MemoryPackSerializer
         try
         {
             var context = new MemoryPackWriter<SyncStreamBufferWriter>(ref streamWriter);
-            Serialize(ref context, value);
+            SerializeCore(ref context, value);
         }
         finally
         {
@@ -133,7 +133,7 @@ public static partial class MemoryPackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
+    static void SerializeCore<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         writer.WriteObject(ref Unsafe.AsRef(value));
@@ -158,4 +158,6 @@ public static partial class MemoryPackSerializer
 
         return size;
     }
+
+    // TODO:NonGenerics?
 }
