@@ -29,6 +29,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
     }
 
+    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter)
+    {
+        this.bufferWriter = ref writer;
+        this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
+        this.bufferLength = firstBufferOfWriter.Length;
+        this.advancedCount = 0;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref byte GetSpanReference(int sizeHint)
     {
@@ -56,8 +64,13 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
-        bufferLength = bufferLength - count;
-        // TODO: check safe advance?
+        var rest = bufferLength - count;
+        if (rest < 0)
+        {
+            ThrowHelper.ThrowInvalidAdvance();
+        }
+
+        bufferLength = rest;
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
         advancedCount += count;
     }
@@ -73,7 +86,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         bufferLength = 0;
     }
 
-    // helpers
+    // Write methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullObjectHeader()
@@ -126,7 +139,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var span = value.AsSpan();
-        WriteUnmanagedSpan(ref span);
+        WriteUnmanagedSpan(span);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -140,7 +153,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var span = new ReadOnlySpan<T>(value);
-        WriteUnmanagedSpan(ref span);
+        WriteUnmanagedSpan(span);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,18 +166,18 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var span = new ReadOnlySpan<T>(value);
-        DangerousWriteUnmanagedSpan(ref span);
+        DangerousWriteUnmanagedSpan(span);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedSpan<T>(ref ReadOnlySpan<T> value)
+    public void WriteUnmanagedSpan<T>(ReadOnlySpan<T> value)
         where T : unmanaged
     {
-        DangerousWriteUnmanagedSpan(ref value);
+        DangerousWriteUnmanagedSpan(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DangerousWriteUnmanagedSpan<T>(ref ReadOnlySpan<T> value)
+    public void DangerousWriteUnmanagedSpan<T>(ReadOnlySpan<T> value)
     {
         // MemoryMarshal.AsBytes(value);
         var src = MemoryMarshal.CreateReadOnlySpan<byte>(
@@ -188,7 +201,6 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     // non packable, get formatter dynamically.
     public void WriteObject<T>(scoped ref T? value)
     {
-        var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
-        formatter.Serialize(ref this, ref value);
+        MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref value);
     }
 }

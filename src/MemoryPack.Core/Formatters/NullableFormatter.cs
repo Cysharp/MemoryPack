@@ -9,40 +9,40 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
     // Nullable<T> is sometimes serialized on UnmanagedTypeFormatter.
     // to keep same result, check if type is unmanaged.
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            Unsafe.WriteUnaligned(ref context.GetSpanReference(Unsafe.SizeOf<T>()), value);
-            context.Advance(Unsafe.SizeOf<T>());
+            Unsafe.WriteUnaligned(ref writer.GetSpanReference(Unsafe.SizeOf<T>()), value);
+            writer.Advance(Unsafe.SizeOf<T>());
             return;
         }
 
         if (!value.HasValue)
         {
-            context.WriteNullObjectHeader();
+            writer.WriteNullObjectHeader();
             return;
         }
         else
         {
-            context.WriteObjectHeader(1);
+            writer.WriteObjectHeader(1);
         }
 
         var v = value.Value;
-        context.WriteObject(ref v);
+        writer.WriteObject(ref v);
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref T? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            value = Unsafe.ReadUnaligned<T?>(ref context.GetSpanReference(Unsafe.SizeOf<T>()));
-            context.Advance(Unsafe.SizeOf<T>());
+            value = Unsafe.ReadUnaligned<T?>(ref reader.GetSpanReference(Unsafe.SizeOf<T>()));
+            reader.Advance(Unsafe.SizeOf<T>());
             return;
         }
 
-        if (!context.TryReadPropertyCount(out var count))
+        if (!reader.TryReadObjectHeader(out var count))
         {
             value = null;
             return;
@@ -51,7 +51,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
         if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
 
         T v = default;
-        MemoryPackFormatterProvider.GetRequiredFormatter<T>().Deserialize(ref context, ref v);
+        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref reader, ref v);
         value = v;
     }
 }

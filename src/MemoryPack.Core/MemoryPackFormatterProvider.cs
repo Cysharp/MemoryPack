@@ -1,4 +1,5 @@
 ﻿using MemoryPack.Formatters;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -18,33 +19,9 @@ public static partial class MemoryPackFormatterProvider
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IMemoryPackFormatter<T>? GetFormatter<T>()
+    public static IMemoryPackFormatter<T> GetFormatter<T>()
     {
         return Cache<T>.formatter;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IMemoryPackFormatter<T> GetRequiredFormatter<T>()
-    {
-        var formatter = Cache<T>.formatter;
-        if (formatter == null)
-        {
-            ThrowInvalidOperationException(typeof(T));
-        }
-
-        return formatter;
-    }
-
-    [DoesNotReturn]
-    static void ThrowInvalidOperationException(Type type)
-    {
-        throw new InvalidOperationException($"{type.FullName} is not registered in this provider.");
-    }
-
-    static MemoryPackFormatterProvider()
-    {
-        // TODO:remove?
-        Register(new CollectionFormatter<Version>());
     }
 
     static class Check<T>
@@ -54,7 +31,7 @@ public static partial class MemoryPackFormatterProvider
 
     static class Cache<T>
     {
-        public static IMemoryPackFormatter<T>? formatter;
+        public static IMemoryPackFormatter<T> formatter = default!;
 
         static Cache()
         {
@@ -62,13 +39,15 @@ public static partial class MemoryPackFormatterProvider
 
             var type = typeof(T);
             var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-            formatter = CreateFormatter(type, typeIsReferenceOrContainsReferences) as IMemoryPackFormatter<T>;
+            var f = CreateFormatter(type, typeIsReferenceOrContainsReferences) as IMemoryPackFormatter<T>;
+
+            formatter = f ?? new ErrorMemoryPackFormatter<T>();
 
             Check<T>.registered = true;
         }
     }
 
-    internal static IMemoryPackFormatter? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
+    internal static object? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
         Type? instanceType = null;
         if (type.IsArray)
@@ -77,17 +56,24 @@ public static partial class MemoryPackFormatterProvider
             {
                 instanceType = typeof(UnmanagedTypeArrayFormatter<>).MakeGenericType(type.GetElementType()!);
             }
-
-
-            // RuntimeHelpers.IsReferenceOrContainsReferences()
-
-
-
-
         }
 
         return (instanceType != null)
-             ? Activator.CreateInstance(instanceType) as IMemoryPackFormatter
+             ? Activator.CreateInstance(instanceType)
             : null;
+    }
+}
+
+internal sealed class ErrorMemoryPackFormatter<T> : IMemoryPackFormatter<T>
+{
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        throw new InvalidOperationException($"{typeof(T).FullName} is not registered in this provider.");
+    }
+
+    public void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
+    {
+        throw new InvalidOperationException($"{typeof(T).FullName} is not registered in this provider.");
     }
 }

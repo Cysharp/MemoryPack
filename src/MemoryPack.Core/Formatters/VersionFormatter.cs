@@ -1,38 +1,27 @@
 ﻿using System.Buffers;
-using System.Runtime.CompilerServices;
+using System.Globalization;
 
 namespace MemoryPack.Formatters;
 
 public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 {
-    [ModuleInitializer]
-    internal static void RegisterFormatter() => MemoryPackFormatterProvider.Register(new VersionFormatter());
-
     // Serialize as [Major, Minor, Build, Revision]
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Version? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Version? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
         {
-            context.WriteNullObjectHeader();
+            writer.WriteNullObjectHeader();
             return;
         }
 
-        ref var spanRef = ref context.GetSpanReference(17); // header + int * 4
-
-        Unsafe.WriteUnaligned(ref spanRef, 4);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value.Major);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 5), value.Minor);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 9), value.Build);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 13), value.Revision);
-
-        context.Advance(17);
+        writer.WriteUnmanagedWithObjectHeader(4, value.Major, value.Minor, value.Build, value.Revision);
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref Version? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref Version? value)
     {
-        if (!context.TryReadPropertyCount(out var count))
+        if (!reader.TryReadObjectHeader(out var count))
         {
             value = null;
             return;
@@ -40,15 +29,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
 
         if (count != 4) ThrowHelper.ThrowInvalidPropertyCount(4, count);
 
-        ref var spanRef = ref context.GetSpanReference(16);
-
-        var major = Unsafe.ReadUnaligned<int>(ref spanRef);
-        var minor = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, 4));
-        var build = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, 8));
-        var revision = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref spanRef, 12));
-
+        reader.ReadUnmanaged(out int major, out int minor, out int build, out int revision);
         value = new Version(major, minor, build, revision);
-
-        context.Advance(16);
     }
 }

@@ -6,7 +6,7 @@
 <#@ output extension=".cs" #>
 <#
     string MakeT(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"T{x}"));
-    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"in T{x} value{x}"));
+    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"out T{x} value{x}"));
     string MakeWhere(int count) => string.Join("\r\n        ", Enumerable.Range(1, count).Select(x => $"where T{x} : unmanaged"));
     string MakeSize(int count) => string.Join(" + ", Enumerable.Range(1, count).Select(x => $"Unsafe.SizeOf<T{x}>()"));
 #>
@@ -16,32 +16,18 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-public ref partial struct MemoryPackWriter<TBufferWriter>
+public ref partial struct MemoryPackReader
 {
 <# for(var i = 1; i < 16; i++ ) { #>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
+    public void ReadUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
         <#= MakeWhere(i) #>
     {
         var size = <#= MakeSize(i) #>;
         ref var spanRef = ref GetSpanReference(size);
-        Unsafe.WriteUnaligned(ref spanRef, value1);
+        value1 = Unsafe.ReadUnaligned<T1>(ref spanRef);
 <# for(var j = 2; j <= i; j++) { #>
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #>), value<#= j #>);
-<# } #>
-        Advance(size);
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
-        <#= MakeWhere(i) #>
-    {
-        var size = Unsafe.SizeOf<T1>() + 1;
-        ref var spanRef = ref GetSpanReference(size);
-        Unsafe.WriteUnaligned(ref spanRef, propertyCount);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
-<# for(var j = 2; j <= i; j++) { #>
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #> + 1), value<#= j #>);
+        value<#= j #> = Unsafe.ReadUnaligned<T<#= j #>>(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #>));
 <# } #>
         Advance(size);
     }

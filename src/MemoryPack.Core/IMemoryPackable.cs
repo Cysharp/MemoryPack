@@ -4,7 +4,7 @@ namespace MemoryPack;
 
 public interface IMemoryPackable<T>
 {
-    static abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T? value)
+    static abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;
-    static abstract void Deserialize(ref MemoryPackReader context, scoped ref T? value);
+    static abstract void Deserialize(ref MemoryPackReader reader, scoped ref T? value);
 }

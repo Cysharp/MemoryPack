@@ -4,20 +4,20 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack.Internal;
 
-internal static class SequentialBufferWriterPool
+internal static class LinkedArrayBufferWriterPool
 {
-    static readonly ConcurrentQueue<SequentialBufferWriter> queue = new ConcurrentQueue<SequentialBufferWriter>();
+    static readonly ConcurrentQueue<LinkedArrayBufferWriter> queue = new ConcurrentQueue<LinkedArrayBufferWriter>();
 
-    public static SequentialBufferWriter Rent()
+    public static LinkedArrayBufferWriter Rent()
     {
         if (queue.TryDequeue(out var writer))
         {
             return writer;
         }
-        return new SequentialBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
+        return new LinkedArrayBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
     }
 
-    public static void Return(SequentialBufferWriter writer)
+    public static void Return(LinkedArrayBufferWriter writer)
     {
         writer.Reset();
         queue.Enqueue(writer);
@@ -25,7 +25,7 @@ internal static class SequentialBufferWriterPool
 }
 
 // This class has large buffer so should cache [ThreadStatic] or Pool.
-internal sealed class SequentialBufferWriter : IBufferWriter<byte>
+internal sealed class LinkedArrayBufferWriter : IBufferWriter<byte>
 {
     const int InitialBufferSize = 65536; // 64K
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];
@@ -43,7 +43,7 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
     public int TotalWritten => totalWritten;
     bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
 
-    public SequentialBufferWriter(bool useFirstBuffer, bool pinned)
+    public LinkedArrayBufferWriter(bool useFirstBuffer, bool pinned)
     {
         this.buffers = new List<BufferSegment>();
         this.firstBuffer = useFirstBuffer
@@ -139,25 +139,25 @@ internal sealed class SequentialBufferWriter : IBufferWriter<byte>
         return result;
     }
 
-    public unsafe void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context)
+    public unsafe void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return;
 
         if (UseFirstBuffer)
         {
-            ref var spanRef = ref context.GetSpanReference(firstBufferWritten);
+            ref var spanRef = ref writer.GetSpanReference(firstBufferWritten);
             firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(MemoryMarshal.CreateSpan(ref spanRef, firstBufferWritten));
-            context.Advance(firstBufferWritten);
+            writer.Advance(firstBufferWritten);
         }
 
         if (buffers.Count > 0)
         {
             foreach (var item in CollectionsMarshal.AsSpan(buffers))
             {
-                ref var spanRef = ref context.GetSpanReference(item.WrittenCount);
+                ref var spanRef = ref writer.GetSpanReference(item.WrittenCount);
                 item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
-                context.Advance(item.WrittenCount);
+                writer.Advance(item.WrittenCount);
                 item.Clear(); // reset
             }
         }

@@ -22,7 +22,7 @@ public static partial class MemoryPackSerializer
         var context = new MemoryPackReader(buffer);
         try
         {
-            var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
 
             T? value = default;
             formatter.Deserialize(ref context, ref value);

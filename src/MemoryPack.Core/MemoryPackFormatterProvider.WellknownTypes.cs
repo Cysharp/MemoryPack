@@ -5,7 +5,6 @@ namespace MemoryPack;
 
 public static partial class MemoryPackFormatterProvider
 {
-    [ModuleInitializer]
     internal static void RegisterWellKnownTypesFormatters()
     {
         Register(new UnmanagedTypeFormatter<SByte>());

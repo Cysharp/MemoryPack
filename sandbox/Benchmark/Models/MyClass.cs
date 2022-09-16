@@ -46,38 +46,38 @@ public partial class MyClass : IMemoryPackable<MyClass>
         }
     }
 
-    static void IMemoryPackable<MyClass>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MyClass? value)
+    static void IMemoryPackable<MyClass>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value)
     {
         if (value == null)
         {
-            context.WriteNullObjectHeader();
+            writer.WriteNullObjectHeader();
             return;
         }
         else
         {
-            context.WriteObjectHeader(4);
+            writer.WriteObjectHeader(4);
         }
 
-        context.WriteUnmanaged(value.X, value.Y, value.Z);
-        context.WriteString(value.FirstName);
-        context.WriteString(value.LastName);
+        writer.WriteUnmanaged(value.X, value.Y, value.Z);
+        writer.WriteString(value.FirstName);
+        writer.WriteString(value.LastName);
     }
 
-    static void IMemoryPackable<MyClass>.Deserialize(ref MemoryPackReader context, scoped ref MyClass? value)
+    static void IMemoryPackable<MyClass>.Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
     {
         throw new NotImplementedException();
     }
 
     class Formatter : IMemoryPackFormatter<MyClass>
     {
-        public void Deserialize(ref MemoryPackReader context, scoped ref MyClass? value)
+        public void Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
         {
 
         }
 
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref MyClass? value) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value) where TBufferWriter : IBufferWriter<byte>
         {
-            context.WritePackable(ref value);
+            writer.WritePackable(ref value);
         }
     }
 }

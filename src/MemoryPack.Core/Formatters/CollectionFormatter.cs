@@ -8,12 +8,12 @@ namespace MemoryPack.Formatters;
 // T is not unmanaged
 public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyCollection<T?>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref IReadOnlyCollection<T?>? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IReadOnlyCollection<T?>? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
         {
-            context.WriteNullLengthHeader();
+            writer.WriteNullLengthHeader();
             return;
         }
 
@@ -21,34 +21,34 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         {
             if (value is T?[] array) // value is T[] ???
             {
-                context.DangerousWriteUnmanagedArray(array!); // nullable? ok?
+                writer.DangerousWriteUnmanagedArray(array!); // nullable? ok?
                 return;
             }
             else if (value is List<T?> list)
             {
                 ReadOnlySpan<T> span = CollectionsMarshal.AsSpan(list);
-                context.DangerousWriteUnmanagedSpan<T>(ref span);
+                writer.DangerousWriteUnmanagedSpan<T>(span);
                 return;
             }
         }
 
-        context.WriteLengthHeader(value.Count);
+        writer.WriteLengthHeader(value.Count);
         if (value.Count != 0)
         {
-            var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
             foreach (var item in value)
             {
                 var v = item;
-                formatter.Serialize(ref context, ref v);
+                formatter.Serialize(ref writer, ref v);
             }
         }
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref IReadOnlyCollection<T?>? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyCollection<T?>? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            value = context.DangerousReadUnmanagedArray<T>();
+            value = reader.DangerousReadUnmanagedArray<T>();
             return;
         }
 
@@ -56,7 +56,7 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
 
 
 
-        if (!context.TryReadLength(out var length))
+        if (!reader.TryReadLength(out var length))
         {
             value = null;
             return;
@@ -71,12 +71,12 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         // context.TryReadUnmanagedSpan<
 
         // TODO: security check
-        var formatter = MemoryPackFormatterProvider.GetRequiredFormatter<T>();// TODO:direct?
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();// TODO:direct?
         var collection = new T?[length];
         for (int i = 0; i < length; i++)
         {
             // TODO: read item
-            formatter.Deserialize(ref context, ref collection[i]);
+            formatter.Deserialize(ref reader, ref collection[i]);
         }
 
         value = collection;
@@ -85,18 +85,18 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
 
 public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref IEnumerable<T>? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IEnumerable<T>? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
         {
-            context.WriteNullLengthHeader();
+            writer.WriteNullLengthHeader();
             return;
         }
 
         if (TryGetNonEnumeratedCount(value, out var count))
         {
-            context.WriteLengthHeader(count);
+            writer.WriteLengthHeader(count);
             foreach (var item in value)
             {
                 // TODO: write item
@@ -104,10 +104,10 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
         }
         else
         {
-            var tempWriter = SequentialBufferWriterPool.Rent();
+            var tempWriter = LinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempContext = new MemoryPackWriter<SequentialBufferWriter>(ref tempWriter);
+                var tempContext = new MemoryPackWriter<LinkedArrayBufferWriter>(ref tempWriter);
 
                 foreach (var item in value)
                 {
@@ -116,18 +116,18 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
 
                 tempContext.Flush();
 
-                context.WriteLengthHeader(tempWriter.TotalWritten);
-                tempWriter.WriteToAndReset(ref context);
+                writer.WriteLengthHeader(tempWriter.TotalWritten);
+                tempWriter.WriteToAndReset(ref writer);
             }
             finally
             {
                 tempWriter.Reset();
-                SequentialBufferWriterPool.Return(tempWriter);
+                LinkedArrayBufferWriterPool.Return(tempWriter);
             }
         }
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref IEnumerable<T>? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref IEnumerable<T>? value)
     {
         // TODO:...
         throw new NotImplementedException();
@@ -168,48 +168,48 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
         this.equalityComparer = equalityComparer;
     }
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Dictionary<TKey, TValue?>? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Dictionary<TKey, TValue?>? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (value == null)
         {
-            context.WriteNullLengthHeader();
+            writer.WriteNullLengthHeader();
             return;
         }
 
-        context.WriteLengthHeader(value.Count);
+        writer.WriteLengthHeader(value.Count);
 
-        var keyFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TKey>();
-        var valueFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TValue?>();
+        var keyFormatter = MemoryPackFormatterProvider.GetFormatter<TKey>();
+        var valueFormatter = MemoryPackFormatterProvider.GetFormatter<TValue?>();
 
         foreach (var item in value)
         {
             // TODO: which is best, var k = item.Key, Unsafe.AsRef....
-            keyFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Key)!);
-            valueFormatter.Serialize(ref context, ref Unsafe.AsRef(item.Value));
+            keyFormatter.Serialize(ref writer, ref Unsafe.AsRef(item.Key)!);
+            valueFormatter.Serialize(ref writer, ref Unsafe.AsRef(item.Value));
         }
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref Dictionary<TKey, TValue?>? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
     {
-        if (!context.TryReadLength(out var length))
+        if (!reader.TryReadLength(out var length))
         {
             value = null;
             return;
         }
 
-        var keyFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TKey>();
-        var valueFormatter = MemoryPackFormatterProvider.GetRequiredFormatter<TValue>();
+        var keyFormatter = MemoryPackFormatterProvider.GetFormatter<TKey>();
+        var valueFormatter = MemoryPackFormatterProvider.GetFormatter<TValue>();
 
         var dict = new Dictionary<TKey, TValue?>(length, equalityComparer);
 
         for (int i = 0; i < length; i++)
         {
             TKey? k = default;
-            keyFormatter.Deserialize(ref context, ref k);
+            keyFormatter.Deserialize(ref reader, ref k);
 
             TValue? v = default;
-            valueFormatter.Deserialize(ref context, ref v);
+            valueFormatter.Deserialize(ref reader, ref v);
 
             dict.Add(k!, v);
         }
@@ -218,44 +218,149 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
     }
 }
 
-public class ArrayFormatter<T> : IMemoryPackFormatter<T[]>
+public class ArrayFormatter<T> : IMemoryPackFormatter<T?[]>
 {
-    public void Deserialize(ref MemoryPackReader context, scoped ref T[]? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[]? value)
+        where TBufferWriter : IBufferWriter<byte>
     {
-        throw new NotImplementedException();
+        if (value == null)
+        {
+            writer.WriteNullLengthHeader();
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+
+        writer.WriteLengthHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            formatter.Serialize(ref writer, ref value[i]);
+        }
     }
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T[]? value) where TBufferWriter : IBufferWriter<byte>
+    public void Deserialize(ref MemoryPackReader reader, scoped ref T?[]? value)
+    {
+        if (!reader.TryReadLength(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+
+        value = new T[length];
+        for (int i = 0; i < length; i++)
+        {
+            formatter.Deserialize(ref reader, ref value[i]);
+        }
+    }
+}
+
+public sealed class ListFormatter<T> : IMemoryPackFormatter<List<T?>>
+{
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        if (value == null)
+        {
+            writer.WriteNullLengthHeader();
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+
+        var span = CollectionsMarshal.AsSpan(value);
+        writer.WriteLengthHeader(span.Length);
+        for (int i = 0; i < span.Length; i++)
+        {
+            formatter.Serialize(ref writer, ref span[i]);
+        }
+    }
+
+    public void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
+    {
+        if (!reader.TryReadLength(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        if (value == null)
+        {
+            value = new List<T?>(length);
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+
+        for (int i = 0; i < length; i++)
+        {
+            T? v = default;
+            formatter.Deserialize(ref reader, ref v);
+            value.Add(v);
+        }
+    }
+}
+
+public sealed class StackFormatter<T> : IMemoryPackFormatter<Stack<T?>>
+{
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        if (value == null)
+        {
+            writer.WriteNullLengthHeader();
+            return;
+        }
+
+
+        // TODO:reverse order?
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+
+        writer.WriteLengthHeader(value.Count);
+        foreach (var item in value)
+        {
+            var v = item;
+            formatter.Serialize(ref writer, ref v);
+        }
+    }
+
+    public void Deserialize(ref MemoryPackReader reader, scoped ref Stack<T?>? value)
     {
         throw new NotImplementedException();
     }
 }
 
+
 public class UnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
     where T : unmanaged
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T[]? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.WriteUnmanagedArray(value);
+        writer.WriteUnmanagedArray(value);
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref T[]? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
     {
-        value = context.ReadUnmanagedArray<T>();
+        // TODO:use ref and override.
+        value = reader.ReadUnmanagedArray<T>();
     }
 }
 
 public class DangerousUnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref T[]? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.DangerousWriteUnmanagedArray(value);
+        writer.DangerousWriteUnmanagedArray(value);
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref T[]? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
     {
-        value = context.DangerousReadUnmanagedArray<T>();
+        value = reader.DangerousReadUnmanagedArray<T>();
     }
 }

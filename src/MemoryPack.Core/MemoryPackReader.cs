@@ -1,11 +1,12 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-public ref struct MemoryPackReader
+public ref partial struct MemoryPackReader
 {
     ReadOnlySequence<byte> bufferSource;
     ref byte bufferReference;
@@ -85,11 +86,11 @@ public ref struct MemoryPackReader
 
     // helpers
 
-    public bool TryReadPropertyCount(out byte count)
+    public bool TryReadObjectHeader(out byte propertyCount)
     {
-        count = GetSpanReference(1);
+        propertyCount = GetSpanReference(1);
         Advance(1);
-        return count != MemoryPackCode.NullObject;
+        return propertyCount != MemoryPackCode.NullObject;
     }
 
     // TODO: should check deserialize does nott occur buffer overrun
@@ -151,6 +152,37 @@ public ref struct MemoryPackReader
         return dest;
     }
 
+    public unsafe void DangerousReadUnmanagedArray<T>(ref T[]? value)
+    {
+        if (!TryReadLength(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        if (length == 0)
+        {
+            if (value != null && value.Length == 0) return;
+            value = Array.Empty<T>();
+            return;
+        }
+
+        var size = length * Unsafe.SizeOf<T>();
+        ref var src = ref GetSpanReference(size);
+
+        if (value != null && value.Length == length)
+        {
+            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref value), size, size);
+        }
+        else
+        {
+            var dest = GC.AllocateUninitializedArray<T>(length);
+            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref dest), size, size);
+            value = dest;
+        }
+        Advance(size);
+    }
+
     public bool TryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
         where T : unmanaged
     {
@@ -172,8 +204,9 @@ public ref struct MemoryPackReader
         return true;
     }
 
+    // TODO:use THrowHelper?
     [DoesNotReturn]
-    void ThrowInsufficientBufferUnless()
+    static void ThrowInsufficientBufferUnless()
     {
         throw new EndOfStreamException();
     }

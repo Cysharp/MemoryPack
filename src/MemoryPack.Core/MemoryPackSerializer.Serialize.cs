@@ -8,7 +8,7 @@ namespace MemoryPack;
 public static partial class MemoryPackSerializer
 {
     [ThreadStatic]
-    static SequentialBufferWriter? threadStaticBufferWriter;
+    static LinkedArrayBufferWriter? threadStaticBufferWriter;
 
     public static unsafe byte[] Serialize<T>(in T? value)
     {
@@ -48,12 +48,12 @@ public static partial class MemoryPackSerializer
         var writer = threadStaticBufferWriter;
         if (writer == null)
         {
-            writer = threadStaticBufferWriter = new SequentialBufferWriter(useFirstBuffer: true, pinned: true);
+            writer = threadStaticBufferWriter = new LinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
         }
 
         try
         {
-            var context = new MemoryPackWriter<SequentialBufferWriter>(ref writer, writer.DangerousGetFirstBuffer());
+            var context = new MemoryPackWriter<LinkedArrayBufferWriter>(ref writer, writer.DangerousGetFirstBuffer());
             Serialize(ref context, value);
             return writer.ToArrayAndReset();
         }
@@ -133,11 +133,11 @@ public static partial class MemoryPackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, in T? value)
+    public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.WriteObject(ref Unsafe.AsRef(value));
-        context.Flush();
+        writer.WriteObject(ref Unsafe.AsRef(value));
+        writer.Flush();
     }
 
     // TODO: is this api ok?

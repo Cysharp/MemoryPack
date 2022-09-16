@@ -17,4 +17,10 @@ public static class ThrowHelper
     {
         throw new InvalidOperationException($"Requires size is {expected} but buffer length is {actual}.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowInvalidAdvance()
+    {
+        throw new InvalidOperationException($"Cannot advance past the end of the buffer.");
+    }
 }

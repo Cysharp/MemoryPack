@@ -1,24 +1,20 @@
 ﻿using System.Buffers;
-using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
 public sealed class UriFormatter : IMemoryPackFormatter<Uri>
 {
-    [ModuleInitializer]
-    internal static void RegisterFormatter() => MemoryPackFormatterProvider.Register(new UriFormatter());
-
     // treat as a string(OriginalString).
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> context, scoped ref Uri? value)
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Uri? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        context.WriteString(value?.OriginalString);
+        writer.WriteString(value?.OriginalString);
     }
 
-    public void Deserialize(ref MemoryPackReader context, scoped ref Uri? value)
+    public void Deserialize(ref MemoryPackReader reader, scoped ref Uri? value)
     {
-        var str = context.ReadString();
+        var str = reader.ReadString();
         if (str == null)
         {
             value = null;
