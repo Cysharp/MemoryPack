@@ -202,7 +202,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteObject<T>(scoped ref T? value)
+    public void WriteObject<T>(scoped ref T? value) 
     {
         MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref value);
     }

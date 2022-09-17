@@ -1,9 +1,6 @@
 {
   "profiles": {
     "MemoryPack.Generator": {
-      "commandName": "Project"
-    },
-    "Roslyn Component Debug": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\..\\sandbox\\SandboxConsoleApp\\SandboxConsoleApp.csproj"
     }
