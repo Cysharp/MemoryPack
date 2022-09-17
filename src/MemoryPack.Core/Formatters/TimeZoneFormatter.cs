@@ -2,15 +2,14 @@
 
 namespace MemoryPack.Formatters;
 
-public sealed class TimeZoneFormatter : IMemoryPackFormatter<TimeZoneInfo>
+public sealed class TimeZoneFormatter : MemoryPackFormatter<TimeZoneInfo>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TimeZoneInfo? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TimeZoneInfo? value)
     {
         writer.WriteString(value?.ToSerializedString());
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref TimeZoneInfo? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref TimeZoneInfo? value)
     {
         var source = reader.ReadString();
         if (source == null)

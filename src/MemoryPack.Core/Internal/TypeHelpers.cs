@@ -39,17 +39,24 @@ internal static class TypeHelpers
 
         static Cache()
         {
-            var type = typeof(T);
-            IsReferenceOrNullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
-
-            if (type.IsSZArray)
+            try
             {
-                var elementType = type.GetElementType();
-                bool containsReference = (bool)(isReferenceOrContainsReferences.MakeGenericMethod(elementType!).Invoke(null, null)!);
-                if (!containsReference)
+                var type = typeof(T);
+                IsReferenceOrNullable = !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+
+                if (type.IsSZArray)
                 {
-                    UnmanagedSZArrayElementSize = Marshal.SizeOf(elementType!);
+                    var elementType = type.GetElementType();
+                    bool containsReference = (bool)(isReferenceOrContainsReferences.MakeGenericMethod(elementType!).Invoke(null, null)!);
+                    if (!containsReference)
+                    {
+                        UnmanagedSZArrayElementSize = Marshal.SizeOf(elementType!);
+                    }
                 }
+            }
+            catch
+            {
+                UnmanagedSZArrayElementSize = null;
             }
         }
     }

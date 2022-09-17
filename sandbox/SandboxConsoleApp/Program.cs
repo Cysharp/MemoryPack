@@ -33,7 +33,6 @@ public class StandardRunner : ConsoleAppBase
 
             var xs = MemoryPackSerializer.Serialize(v3);
 
-
             var i = int.Parse("100");
             i.Hoge();
         }
@@ -186,14 +185,14 @@ public partial class MyClass : IMemoryPackable<MyClass>
         }
     }
 
-    class Formatter : IMemoryPackFormatter<MyClass>
+    class Formatter : MemoryPackFormatter<MyClass>
     {
-        public void Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
         {
             MyClass.Deserialize(ref reader, ref value);
         }
 
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value) where TBufferWriter : IBufferWriter<byte>
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value)
         {
             writer.WritePackable(ref value);
         }
@@ -352,14 +351,14 @@ public partial class MySample : IMemoryPackable<MySample>
 
     // generate...
 
-    sealed class MySampleFormatter : IMemoryPackFormatter<MySample>
+    sealed class MySampleFormatter : MemoryPackFormatter<MySample>
     {
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MySample? value) where TBufferWriter : IBufferWriter<byte>
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MySample? value)
         {
             writer.WritePackable(ref value);
         }
 
-        public void Deserialize(ref MemoryPackReader reader, scoped ref MySample? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref MySample? value)
         {
             // context.ReadPackable
         }
@@ -367,7 +366,7 @@ public partial class MySample : IMemoryPackable<MySample>
 }
 
 
-public class Bar : IMemoryPackFormatter<Bar>
+public class Bar : MemoryPackFormatter<Bar>
 {
     [ModuleInitializer]
     internal static void RegisterFormatter()
@@ -379,25 +378,24 @@ public class Bar : IMemoryPackFormatter<Bar>
     }
 
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref Bar? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Bar? value)
     {
         throw new NotImplementedException();
     }
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Bar? value) where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Bar? value)
     {
         throw new NotImplementedException();
     }
 
-    sealed class BarFormatter : IMemoryPackFormatter<Bar>
+    sealed class BarFormatter : MemoryPackFormatter<Bar>
     {
-        public void Deserialize(ref MemoryPackReader reader, scoped ref Bar? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Bar? value)
         {
             throw new NotImplementedException();
         }
 
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Bar? value)
-            where TBufferWriter : IBufferWriter<byte>
+        public  override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Bar? value)
         {
             throw new NotImplementedException();
         }
@@ -432,14 +430,15 @@ public class Foo<T> : IMemoryPackable<Foo<T>>
         throw new NotImplementedException();
     }
 
-    sealed class Formatter : IMemoryPackFormatter<Foo<T>>
+    sealed class Formatter : MemoryPackFormatter<Foo<T>>
     {
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Foo<T>? value) where TBufferWriter : IBufferWriter<byte>
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Foo<T>? value)
+           
         {
             writer.WritePackable(ref value);
         }
 
-        public void Deserialize(ref MemoryPackReader reader, scoped ref Foo<T>? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Foo<T>? value)
         {
             throw new NotImplementedException();
         }

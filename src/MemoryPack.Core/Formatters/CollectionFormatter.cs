@@ -6,10 +6,9 @@ using System.Runtime.InteropServices;
 namespace MemoryPack.Formatters;
 
 // T is not unmanaged
-public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyCollection<T?>>
+public sealed class CollectionFormatter<T> : MemoryPackFormatter<IReadOnlyCollection<T?>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IReadOnlyCollection<T?>? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IReadOnlyCollection<T?>? value)
     {
         if (value == null)
         {
@@ -44,7 +43,7 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyCollection<T?>? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyCollection<T?>? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -83,10 +82,9 @@ public sealed class CollectionFormatter<T> : IMemoryPackFormatter<IReadOnlyColle
     }
 }
 
-public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>>
+public sealed class EnumerableFormatter<T> : MemoryPackFormatter<IEnumerable<T>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IEnumerable<T>? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IEnumerable<T>? value)
     {
         if (value == null)
         {
@@ -104,10 +102,10 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
         }
         else
         {
-            var tempWriter = LinkedArrayBufferWriterPool.Rent();
+            var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempContext = new MemoryPackWriter<LinkedArrayBufferWriter>(ref tempWriter);
+                var tempContext = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempWriter);
 
                 foreach (var item in value)
                 {
@@ -122,12 +120,12 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
             finally
             {
                 tempWriter.Reset();
-                LinkedArrayBufferWriterPool.Return(tempWriter);
+                ReusableLinkedArrayBufferWriterPool.Return(tempWriter);
             }
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref IEnumerable<T>? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref IEnumerable<T>? value)
     {
         // TODO:...
         throw new NotImplementedException();
@@ -153,7 +151,7 @@ public sealed class EnumerableFormatter<T> : IMemoryPackFormatter<IEnumerable<T>
     }
 }
 
-public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary<TKey, TValue?>>
+public class DictionaryFormatter<TKey, TValue> : MemoryPackFormatter<Dictionary<TKey, TValue?>>
     where TKey : notnull
 {
     IEqualityComparer<TKey>? equalityComparer;
@@ -168,8 +166,7 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
         this.equalityComparer = equalityComparer;
     }
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Dictionary<TKey, TValue?>? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Dictionary<TKey, TValue?>? value)
     {
         if (value == null)
         {
@@ -190,7 +187,7 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
     {
         if (!reader.TryReadLengthHeader(out var length))
         {
@@ -218,10 +215,9 @@ public class DictionaryFormatter<TKey, TValue> : IMemoryPackFormatter<Dictionary
     }
 }
 
-public class ArrayFormatter<T> : IMemoryPackFormatter<T?[]>
+public class ArrayFormatter<T> : MemoryPackFormatter<T?[]>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[]? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[]? value)
     {
         if (value == null)
         {
@@ -238,7 +234,7 @@ public class ArrayFormatter<T> : IMemoryPackFormatter<T?[]>
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref T?[]? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref T?[]? value)
     {
         if (!reader.TryReadLengthHeader(out var length))
         {
@@ -256,10 +252,9 @@ public class ArrayFormatter<T> : IMemoryPackFormatter<T?[]>
     }
 }
 
-public sealed class ListFormatter<T> : IMemoryPackFormatter<List<T?>>
+public sealed class ListFormatter<T> : MemoryPackFormatter<List<T?>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
     {
         if (value == null)
         {
@@ -277,7 +272,7 @@ public sealed class ListFormatter<T> : IMemoryPackFormatter<List<T?>>
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
     {
         if (!reader.TryReadLengthHeader(out var length))
         {
@@ -305,10 +300,9 @@ public sealed class ListFormatter<T> : IMemoryPackFormatter<List<T?>>
     }
 }
 
-public sealed class StackFormatter<T> : IMemoryPackFormatter<Stack<T?>>
+public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
     {
         if (value == null)
         {
@@ -328,38 +322,46 @@ public sealed class StackFormatter<T> : IMemoryPackFormatter<Stack<T?>>
         }
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref Stack<T?>? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Stack<T?>? value)
     {
         throw new NotImplementedException();
     }
 }
 
 
-public class UnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
+public class UnmanagedTypeArrayFormatter<T> : MemoryPackFormatter<T[]>
     where T : unmanaged
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
     {
         writer.WriteUnmanagedArray(value);
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
     {
         // TODO:use ref and override.
         value = reader.ReadUnmanagedArray<T>();
     }
 }
 
-public class DangerousUnmanagedTypeArrayFormatter<T> : IMemoryPackFormatter<T[]>
+public class DangerousUnmanagedTypeArrayFormatter<T> : MemoryPackFormatter<T[]>
 {
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
-        where TBufferWriter : IBufferWriter<byte>
+    //public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
+    //    where TBufferWriter : IBufferWriter<byte>
+    //{
+    //    writer.DangerousWriteUnmanagedArray(value);
+    //}
+
+    //public override void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
+    //{
+    //    value = reader.DangerousReadUnmanagedArray<T>();
+    //}
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
     {
         writer.DangerousWriteUnmanagedArray(value);
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref T[]? value)
     {
         value = reader.DangerousReadUnmanagedArray<T>();
     }

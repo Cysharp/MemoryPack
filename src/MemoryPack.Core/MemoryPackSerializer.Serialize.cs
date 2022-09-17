@@ -8,7 +8,7 @@ namespace MemoryPack;
 public static partial class MemoryPackSerializer
 {
     [ThreadStatic]
-    static LinkedArrayBufferWriter? threadStaticBufferWriter;
+    static ReusableLinkedArrayBufferWriter? threadStaticBufferWriter;
 
     public static unsafe byte[] Serialize<T>(in T? value)
     {
@@ -45,21 +45,21 @@ public static partial class MemoryPackSerializer
             return destArray;
         }
 
-        var writer = threadStaticBufferWriter;
-        if (writer == null)
+        var bufferWriter = threadStaticBufferWriter;
+        if (bufferWriter == null)
         {
-            writer = threadStaticBufferWriter = new LinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
         }
 
         try
         {
-            var context = new MemoryPackWriter<LinkedArrayBufferWriter>(ref writer, writer.DangerousGetFirstBuffer());
-            SerializeCore(ref context, value);
-            return writer.ToArrayAndReset();
+            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer());
+            Serialize(ref writer, value);
+            return bufferWriter.ToArrayAndReset();
         }
         finally
         {
-            writer.Reset();
+            bufferWriter.Reset();
         }
     }
 
@@ -105,59 +105,30 @@ public static partial class MemoryPackSerializer
             return;
         }
 
-        var context = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter));
-        SerializeCore(ref context, value);
-    }
-
-    [SkipLocalsInit]
-    public static void Serialize<T>(Stream stream, in T? value)
-    {
-        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-        {
-            Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
-            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
-            stream.Write(buffer);
-            return;
-        }
-
-        var streamWriter = new SyncStreamBufferWriter(stream);
-        try
-        {
-            var context = new MemoryPackWriter<SyncStreamBufferWriter>(ref streamWriter);
-            SerializeCore(ref context, value);
-        }
-        finally
-        {
-            streamWriter.Dispose();
-        }
+        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter));
+        Serialize(ref writer, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static void SerializeCore<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
+    public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
         writer.WriteObject(ref Unsafe.AsRef(value));
         writer.Flush();
     }
 
-    // TODO: is this api ok?
-    public static async ValueTask<int> SerializeAsync<T>(Stream stream, T value, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
         where T : unmanaged
     {
-        var size = Unsafe.SizeOf<T>();
-        var buffer = ArrayPool<byte>.Shared.Rent(size);
+        var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
-            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer.AsSpan()), value);
-            await stream.WriteAsync(buffer.AsMemory(0, size), cancellationToken).ConfigureAwait(false);
+            Serialize(tempWriter, value);
+            await tempWriter.WriteToAndResetAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            ReusableLinkedArrayBufferWriterPool.Return(tempWriter);
         }
-
-        return size;
     }
-
-    // TODO:NonGenerics?
 }

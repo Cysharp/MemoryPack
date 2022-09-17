@@ -4,20 +4,20 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack.Internal;
 
-internal static class LinkedArrayBufferWriterPool
+internal static class ReusableLinkedArrayBufferWriterPool
 {
-    static readonly ConcurrentQueue<LinkedArrayBufferWriter> queue = new ConcurrentQueue<LinkedArrayBufferWriter>();
+    static readonly ConcurrentQueue<ReusableLinkedArrayBufferWriter> queue = new ConcurrentQueue<ReusableLinkedArrayBufferWriter>();
 
-    public static LinkedArrayBufferWriter Rent()
+    public static ReusableLinkedArrayBufferWriter Rent()
     {
         if (queue.TryDequeue(out var writer))
         {
             return writer;
         }
-        return new LinkedArrayBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
+        return new ReusableLinkedArrayBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
     }
 
-    public static void Return(LinkedArrayBufferWriter writer)
+    public static void Return(ReusableLinkedArrayBufferWriter writer)
     {
         writer.Reset();
         queue.Enqueue(writer);
@@ -25,7 +25,7 @@ internal static class LinkedArrayBufferWriterPool
 }
 
 // This class has large buffer so should cache [ThreadStatic] or Pool.
-internal sealed class LinkedArrayBufferWriter : IBufferWriter<byte>
+internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 {
     const int InitialBufferSize = 65536; // 64K
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];
@@ -43,7 +43,7 @@ internal sealed class LinkedArrayBufferWriter : IBufferWriter<byte>
     public int TotalWritten => totalWritten;
     bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
 
-    public LinkedArrayBufferWriter(bool useFirstBuffer, bool pinned)
+    public ReusableLinkedArrayBufferWriter(bool useFirstBuffer, bool pinned)
     {
         this.buffers = new List<BufferSegment>();
         this.firstBuffer = useFirstBuffer
@@ -139,7 +139,7 @@ internal sealed class LinkedArrayBufferWriter : IBufferWriter<byte>
         return result;
     }
 
-    public unsafe void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
+    public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
         where TBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return;
@@ -158,6 +158,27 @@ internal sealed class LinkedArrayBufferWriter : IBufferWriter<byte>
                 ref var spanRef = ref writer.GetSpanReference(item.WrittenCount);
                 item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
                 writer.Advance(item.WrittenCount);
+                item.Clear(); // reset
+            }
+        }
+
+        ResetCore();
+    }
+
+    public async ValueTask WriteToAndResetAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        if (totalWritten == 0) return;
+
+        if (UseFirstBuffer)
+        {
+            await stream.WriteAsync(firstBuffer.AsMemory(0, firstBufferWritten), cancellationToken).ConfigureAwait(false);
+        }
+
+        if (buffers.Count > 0)
+        {
+            foreach (var item in buffers)
+            {
+                await stream.WriteAsync(item.WrittenMemory, cancellationToken).ConfigureAwait(false);
                 item.Clear(); // reset
             }
         }
@@ -193,6 +214,7 @@ internal struct BufferSegment
 
     public int WrittenCount => written;
     public Span<byte> WrittenBuffer => buffer.AsSpan(0, written);
+    public Memory<byte> WrittenMemory => buffer.AsMemory(0, written);
     public Span<byte> FreeBuffer => buffer.AsSpan(written);
 
     public BufferSegment(int size)

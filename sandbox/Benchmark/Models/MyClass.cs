@@ -68,14 +68,14 @@ public partial class MyClass : IMemoryPackable<MyClass>
         throw new NotImplementedException();
     }
 
-    class Formatter : IMemoryPackFormatter<MyClass>
+    class Formatter : MemoryPackFormatter<MyClass>
     {
-        public void Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref MyClass? value)
         {
 
         }
 
-        public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value) where TBufferWriter : IBufferWriter<byte>
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value)
         {
             writer.WritePackable(ref value);
         }

@@ -3,14 +3,13 @@ using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
-public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
+public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
     where T : struct
 {
     // Nullable<T> is sometimes serialized on UnmanagedTypeFormatter.
     // to keep same result, check if type is unmanaged.
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -33,7 +32,7 @@ public sealed class NullableFormatter<T> : IMemoryPackFormatter<T?>
         writer.WriteObject(ref v);
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {

@@ -41,4 +41,10 @@ public static class ThrowHelper
     {
         throw new InvalidOperationException($"Length header size is larger than buffer size, length: {length}.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowNotRegisteredInProvider(Type type)
+    {
+        throw new InvalidOperationException($"{type.FullName} is not registered in this provider.");
+    }
 }

@@ -3,12 +3,11 @@ using System.Globalization;
 
 namespace MemoryPack.Formatters;
 
-public sealed class VersionFormatter : IMemoryPackFormatter<Version>
+public sealed class VersionFormatter : MemoryPackFormatter<Version>
 {
     // Serialize as [Major, Minor, Build, Revision]
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Version? value)
-        where TBufferWriter : IBufferWriter<byte>
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Version? value)
     {
         if (value == null)
         {
@@ -19,7 +18,7 @@ public sealed class VersionFormatter : IMemoryPackFormatter<Version>
         writer.WriteUnmanagedWithObjectHeader(4, value.Major, value.Minor, value.Build, value.Revision);
     }
 
-    public void Deserialize(ref MemoryPackReader reader, scoped ref Version? value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Version? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
         {

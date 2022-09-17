@@ -179,7 +179,7 @@ public ref partial struct MemoryPackReader
         ref var src = ref GetSpanReference(size);
         var dest = GC.AllocateUninitializedArray<T>(length);
 
-        Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref dest), size, size);
+        Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
         Advance(size);
 
         return dest;
@@ -205,12 +205,12 @@ public ref partial struct MemoryPackReader
 
         if (value != null && value.Length == length)
         {
-            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref value), size, size);
+            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(value)), size, size);
         }
         else
         {
             var dest = GC.AllocateUninitializedArray<T>(length);
-            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref dest), size, size);
+            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
             value = dest;
         }
         Advance(size);
