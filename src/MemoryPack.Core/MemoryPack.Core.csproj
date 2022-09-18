@@ -11,29 +11,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="MemoryPackFormatterProvider.Initialize.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="MemoryPackFormatterProvider.Initialize.cs" />
-      <None Include="MemoryPackFormatterProvider.WellknownTypes.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>MemoryPackFormatterProvider.WellknownTypes.tt</DependentUpon>
-      </None>
-      <None Include="MemoryPackReader.Unmanaged.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>MemoryPackReader.Unmanaged.tt</DependentUpon>
-      </None>
-      <None Include="MemoryPackWriter.Unmanaged.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>MemoryPackWriter.Unmanaged.tt</DependentUpon>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
       <None Update="MemoryPackFormatterProvider.WellknownTypes.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>MemoryPackFormatterProvider.WellknownTypes.cs</LastGenOutput>

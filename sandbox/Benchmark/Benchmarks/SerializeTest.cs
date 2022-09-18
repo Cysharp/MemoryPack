@@ -7,7 +7,9 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using BinaryPack.Models;
 using MemoryPack;
+using MemoryPack.Formatters;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
@@ -31,9 +33,8 @@ namespace Benchmark.Benchmarks;
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-public class SerializeTest<T>
+public class SerializeTest<T> : SerializerTestBase<T>
 {
-    T value;
     ArrayBufferWriter<byte> writer;
     MemoryStream stream;
     Utf8JsonWriter jsonWriter;
@@ -41,24 +42,8 @@ public class SerializeTest<T>
     //Serializer<T> orleansSerializer;
 
     public SerializeTest()
+        : base()
     {
-        if (typeof(T) == typeof(int))
-        {
-            value = (T)(object)999999;
-        }
-        else if (typeof(T) == typeof(Vector3[]))
-        {
-            value = (T)(object)Enumerable.Repeat(new Vector3 { X = 10.3f, Y = 40.5f, Z = 13411.3f }, 1000).ToArray();
-        }
-        else if (typeof(T) == typeof(MyClass))
-        {
-            value = (T)(object)new MyClass { X = 100, Y = 99999999, Z = 4444, FirstName = "Hoge Huga Tako", LastName = "あいうえおかきくけこ" };
-        }
-        else
-        {
-            throw new NotSupportedException();
-        }
-
         // Orleans
         var serviceProvider = new ServiceCollection()
             .AddSerializer(builder => builder.AddAssembly(typeof(SerializeTest<>).Assembly))
@@ -75,8 +60,9 @@ public class SerializeTest<T>
         var serialize3 = stream.ToArray();
         stream.Position = 0;
         var serialize4 = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
+        var serialize5 = MemoryPackSerializer.Serialize(value);
 
-        writer = new ArrayBufferWriter<byte>(new[] { /* serialize1, */ serialize2, serialize3, serialize4 }.Max(x => x.Length));
+        writer = new ArrayBufferWriter<byte>(new[] { /* serialize1, */ serialize2, serialize3, serialize4, serialize5 }.Max(x => x.Length));
         jsonWriter = new Utf8JsonWriter(writer);
     }
 

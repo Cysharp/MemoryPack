@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace MemoryPack;
@@ -21,6 +22,12 @@ public static partial class MemoryPackFormatterProvider
         Check<T>.registered = true; // avoid to call Cache() constructor called.
         formatters[typeof(T)] = formatter;
         Cache<T>.formatter = formatter;
+    }
+
+    public static void Register<T>()
+        where T : IMemoryPackable<T>
+    {
+        T.RegisterFormatter();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -55,8 +62,20 @@ public static partial class MemoryPackFormatterProvider
             if (Check<T>.registered) return;
 
             var type = typeof(T);
+            if (type.IsAssignableTo(typeof(IMemoryPackable)))
+            {
+                var m = type.GetMethod("MemoryPack.IMemoryPackable.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                m!.Invoke(null, null);
+                return;
+            }
+
+
             var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
             var f = CreateFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
+
+
+
+
 
             formatter = f ?? new ErrorMemoryPackFormatter<T>();
 

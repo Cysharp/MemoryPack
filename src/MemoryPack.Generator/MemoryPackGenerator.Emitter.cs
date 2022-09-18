@@ -19,6 +19,7 @@ partial class MemoryPackGenerator
         // verify is partial
         if (!IsPartial(syntax))
         {
+            // TODO:error line only single line...
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, syntax.GetLocation(), typeSymbol.Name));
             return;
         }
@@ -41,8 +42,6 @@ using System;
 using MemoryPack;
 ");
 
-        // TODO:namespace(same namespace as type).
-
         var ns = typeMeta.Symbol.ContainingNamespace;
         if (!ns.IsGlobalNamespace)
         {
@@ -57,72 +56,10 @@ using MemoryPack;
         context.AddSource($"{typeMeta.Name}.MemoryPackFormatter.g.cs", code);
     }
 
-
-
     static bool IsPartial(TypeDeclarationSyntax typeDeclaration)
     {
         return typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
     }
-}
-
-
-
-
-internal static class StringWriterExtensions
-{
-    public static void WriteIndent(this StringWriter writer)
-    {
-        writer.Write("        ");
-    }
-}
-
-internal static class EnumerableExtensions
-{
-    public static string NewLine(this IEnumerable<string> source)
-    {
-        return string.Join(Environment.NewLine, source);
-    }
-}
-
-
-public class ReferenceSymbols
-{
-    public Compilation Compilation { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackableAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackUnionAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackConstructorAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackIgnoreAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackOnSerializingAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackOnSerializedAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackOnDeserializingAttribute { get; }
-    public INamedTypeSymbol MemoryPack_MemoryPackOnDeserializedAttribute { get; }
-    public INamedTypeSymbol MemoryPack_IMemoryPackable { get; }
-
-    public ReferenceSymbols(Compilation compilation)
-    {
-        Compilation = compilation;
-        // MemoryPack
-        MemoryPack_MemoryPackableAttribute = GetTypeByMetadataName(MemoryPackGenerator.MemoryPackableAttributeFullName);
-        MemoryPack_MemoryPackUnionAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackUnionAttribute");
-        MemoryPack_MemoryPackConstructorAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackConstructorAttribute");
-        MemoryPack_MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");
-        MemoryPack_MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializing");
-        MemoryPack_MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerialized");
-        MemoryPack_MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializing");
-        MemoryPack_MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserialized");
-        MemoryPack_IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
-    }
-
-    INamedTypeSymbol GetTypeByMetadataName(string metadataName)
-    {
-        var symbol = Compilation.GetTypeByMetadataName(metadataName);
-        if (symbol == null)
-        {
-            throw new InvalidOperationException($"Type {metadataName} is not found in compilation.");
-        }
-        return symbol;
-    }
-
 }
 
 public class TypeMeta
@@ -233,6 +170,11 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 {
     static {{Name}}()
     {
+        MemoryPackFormatterProvider.Register<{{Name}}>();
+    }
+
+    static void IMemoryPackable.RegisterFormatter()
+    {
         if (!MemoryPackFormatterProvider.IsRegistered<{{Name}}>())
         {
             MemoryPackFormatterProvider.Register(new {{Name}}Formatter());
@@ -284,8 +226,6 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 """;
     }
 }
-
-
 public class MethodMeta
 {
     public IMethodSymbol Symbol { get; }
@@ -375,7 +315,7 @@ public class MemberMeta
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"writer.WritePackable(ref value.{Name});";
+                return $"writer.WritePackable(value.{Name});";
             case MemberKind.Unmanaged:
                 return $"writer.WriteUnmanaged(value.{Name});";
             case MemberKind.String:
@@ -384,7 +324,7 @@ public class MemberMeta
             case MemberKind.Collection: // TODO: inline optimization.
             case MemberKind.NonSerializable:
             default:
-                return $"writer.WriteObject(ref value.{Name});";
+                return $"writer.WriteObject(value.{Name});";
         }
     }
 
@@ -395,7 +335,7 @@ public class MemberMeta
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"var __{Name} = reader.ReadPackable<{MemberType.Name}>();";
+                return $"var __{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Unmanaged:
                 return $"reader.ReadUnmanaged<{MemberType.Name}>(out var __{Name});";
             case MemberKind.String:
@@ -404,7 +344,7 @@ public class MemberMeta
             case MemberKind.Collection: // TODO: inline optimization.
             case MemberKind.NonSerializable:
             default:
-                return $"var __{Name} = reader.ReadObject<{MemberType.Name}>();";
+                return $"var __{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
     }
 

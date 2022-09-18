@@ -30,12 +30,12 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     const int InitialBufferSize = 65536; // 64K
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];
 
-    List<BufferSegment> buffers;
+    List<BufferSegment> buffers; // add freezed buffer.
 
     byte[] firstBuffer; // cache firstBuffer to avoid call ArrayPoo.Rent/Return
     int firstBufferWritten;
 
-    BufferSegment? current;
+    BufferSegment current;
     int nextBufferSize;
 
     int totalWritten;
@@ -50,7 +50,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             ? GC.AllocateUninitializedArray<byte>(InitialBufferSize, pinned)
             : noUseFirstBufferSentinel;
         this.firstBufferWritten = 0;
-        this.current = null;
+        this.current = default;
         this.nextBufferSize = InitialBufferSize;
         this.totalWritten = 0;
     }
@@ -65,7 +65,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
     public Span<byte> GetSpan(int sizeHint = 0)
     {
-        if (current == null)
+        if (current.IsNull)
         {
             // use firstBuffer
             var free = firstBuffer.Length - firstBufferWritten;
@@ -76,7 +76,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         }
         else
         {
-            var buffer = current.Value.FreeBuffer;
+            var buffer = current.FreeBuffer;
             if (buffer.Length < sizeHint)
             {
                 return buffer;
@@ -94,20 +94,20 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             next = new BufferSegment(sizeHint);
         }
 
-        buffers.Add(next);
+        buffers.Add(current);
         current = next;
         return next.FreeBuffer;
     }
 
     public void Advance(int count)
     {
-        if (current == null)
+        if (current.IsNull)
         {
             firstBufferWritten += count;
         }
         else
         {
-            current.Value.Advance(count);
+            current.Advance(count);
         }
         totalWritten += count;
     }
@@ -133,6 +133,12 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
                 dest = dest.Slice(item.WrittenCount);
                 item.Clear(); // reset buffer-segment in this loop to avoid iterate twice for Reset
             }
+        }
+
+        if (!current.IsNull)
+        {
+            current.WrittenBuffer.CopyTo(dest);
+            current.Clear();
         }
 
         ResetCore();
@@ -162,6 +168,16 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             }
         }
 
+        if (!current.IsNull)
+        {
+            ref var spanRef = ref writer.GetSpanReference(current.WrittenCount);
+            current.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, current.WrittenCount));
+            writer.Advance(current.WrittenCount);
+            current.Clear();
+        }
+
+        writer.Flush();
+
         ResetCore();
     }
 
@@ -183,6 +199,12 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             }
         }
 
+        if (!current.IsNull)
+        {
+            await stream.WriteAsync(current.WrittenMemory, cancellationToken).ConfigureAwait(false);
+            current.Clear();
+        }
+
         ResetCore();
     }
 
@@ -192,7 +214,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         firstBufferWritten = 0;
         buffers.Clear();
         totalWritten = 0;
-        current = null;
+        current = default;
         nextBufferSize = InitialBufferSize;
     }
 
@@ -212,6 +234,8 @@ internal struct BufferSegment
     byte[] buffer;
     int written;
 
+    public bool IsNull => buffer == null;
+
     public int WrittenCount => written;
     public Span<byte> WrittenBuffer => buffer.AsSpan(0, written);
     public Memory<byte> WrittenMemory => buffer.AsMemory(0, written);
@@ -230,7 +254,10 @@ internal struct BufferSegment
 
     public void Clear()
     {
-        ArrayPool<byte>.Shared.Return(buffer);
+        if (buffer != null)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
         buffer = null!;
         written = 0;
     }

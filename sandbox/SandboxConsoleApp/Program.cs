@@ -2,7 +2,9 @@
 using MemoryPack.Formatters;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
@@ -79,23 +81,60 @@ public class StandardRunner : ConsoleAppBase
 
     }
 
-    //[RootCommand]
+    [RootCommand]
     public void Run4()
     {
+        var hasFormatter = MemoryPackFormatterProvider.GetFormatter<MyClass>();
 
+        Console.WriteLine("RUN4");
+        Console.WriteLine("CALLING TYPEOF:" + typeof(TakoyakiX));
+        Console.WriteLine("CALLED TYPE:" + CalledType<TakoyakiX>());
+        Console.WriteLine("CALLED DEFAULT:" + default(TakoyakiX));
+        TakoyakiX.Init();
+        Console.WriteLine("CALLED INIT");
+        Console.WriteLine("---");
+        Console.WriteLine("CALLED NEW:" + new TakoyakiX());
 
     }
 
-    [RootCommand]
+    Type CalledType<T>()
+    {
+        return typeof(T);
+    }
+
+    //[RootCommand]
     public void Run5()
     {
         var mc = new MyClass() { MyProperty = 9999, MyProperty2 = "foobarbaz" };
         var writer = new ArrayBufferWriter<byte>();
         var writer2 = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref writer);
 
+
+
         var bytes = MemoryPackSerializer.Serialize(mc);
         var mc2 = MemoryPackSerializer.Deserialize<MyClass>(bytes);
-        
+
+    }
+}
+
+public class TakoyakiX
+{
+    static TakoyakiX()
+    {
+        Console.WriteLine("Called SCTOR.");
+    }
+
+    public static void Init()
+    {
+    }
+
+    public static void RegisterFormatter()
+    {
+    }
+
+    class Formatter
+    {
+
     }
 }
 
@@ -107,6 +146,19 @@ public partial class MyClass
 
     public static void Foo()
     {
+    }
+}
+
+[MemoryPackable]
+public partial class Mogera
+{
+    public string MyProperty4 { get; set; } = default!;
+    public int No { get; set; }
+    public int[]? ZMAN { get; set; }
+
+    void Foo()
+    {
+        new MogeraFormatter();
     }
 }
 

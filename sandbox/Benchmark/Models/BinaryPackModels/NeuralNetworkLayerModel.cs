@@ -2,6 +2,10 @@
 using System.Linq;
 using BinaryPack.Models.Helpers;
 using BinaryPack.Models.Interfaces;
+using MemoryPack;
+using MessagePack;
+using Orleans;
+using ProtoBuf;
 
 #nullable enable
 
@@ -11,22 +15,33 @@ namespace BinaryPack.Models
     /// A model that represents an example of a neural network model
     /// </summary>
     [Serializable]
-    public sealed class NeuralNetworkLayerModel : IInitializable, IEquatable<NeuralNetworkLayerModel>
+    [MemoryPackable]
+    [MessagePackObject]
+    [ProtoContract]
+    public sealed partial class NeuralNetworkLayerModel : IInitializable, IEquatable<NeuralNetworkLayerModel>
     {
+        [Key(0), Id(0), ProtoMember(1)]
         public string? Id { get; set; }
 
+        [Key(1), Id(1), ProtoMember(2)]
         public int Index { get; set; }
 
+        [Key(2), Id(2), ProtoMember(3)]
         public int Inputs { get; set; }
 
+        [Key(3), Id(3), ProtoMember(4)]
         public int Outputs { get; set; }
 
+        [Key(4), Id(4), ProtoMember(5)]
         public float[]? Weights { get; set; }
 
+        [Key(5), Id(5), ProtoMember(6)]
         public float[]? Biases { get; set; }
 
+        [Key(6), Id(6), ProtoMember(7)]
         public ActivationType Activation { get; set; }
 
+        [Key(7), Id(7), ProtoMember(8)]
         public DateTime LastUpdateTime { get; set; }
 
         /// <inheritdoc/>
