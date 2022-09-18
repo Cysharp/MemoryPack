@@ -10,13 +10,13 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
-      <NoWarn>$(NoWarn);CS1591;CS8604;CS8032;CS8002;CS8600</NoWarn>
+        <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
+        <NoWarn>$(NoWarn);CS1591;CS8604;CS8032;CS8002;CS8600</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
-      <NoWarn>$(NoWarn);CS1591;CS8604;CS8032;CS8002;CS8600</NoWarn>
+        <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
+        <NoWarn>$(NoWarn);CS1591;CS8604;CS8032;CS8002;CS8600</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -35,6 +35,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <Using Include="BenchmarkDotNet.Attributes" />
     </ItemGroup>
 
 </Project>

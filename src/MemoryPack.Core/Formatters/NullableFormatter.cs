@@ -28,8 +28,7 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
             writer.WriteObjectHeader(1);
         }
 
-        var v = value.Value;
-        writer.WriteObject(ref v);
+        writer.WriteObject(value.Value);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)

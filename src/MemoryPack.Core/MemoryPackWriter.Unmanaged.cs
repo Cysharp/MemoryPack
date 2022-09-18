@@ -7,7 +7,7 @@ namespace MemoryPack;
 public ref partial struct MemoryPackWriter<TBufferWriter>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1>(in T1 value1)
+    public void WriteUnmanaged<T1>(scoped in T1 value1)
         where T1 : unmanaged
     {
         var size = Unsafe.SizeOf<T1>();
@@ -17,7 +17,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1>(byte propertyCount, in T1 value1)
+    public void WriteUnmanagedWithObjectHeader<T1>(byte propertyCount, scoped in T1 value1)
         where T1 : unmanaged
     {
         var size = Unsafe.SizeOf<T1>() + 1;
@@ -28,7 +28,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2>(in T1 value1, in T2 value2)
+    public void WriteUnmanaged<T1, T2>(scoped in T1 value1, scoped in T2 value2)
         where T1 : unmanaged
         where T2 : unmanaged
     {
@@ -40,7 +40,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2>(byte propertyCount, in T1 value1, in T2 value2)
+    public void WriteUnmanagedWithObjectHeader<T1, T2>(byte propertyCount, scoped in T1 value1, scoped in T2 value2)
         where T1 : unmanaged
         where T2 : unmanaged
     {
@@ -53,7 +53,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3>(in T1 value1, in T2 value2, in T3 value3)
+    public void WriteUnmanaged<T1, T2, T3>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -67,7 +67,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -82,7 +82,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4>(in T1 value1, in T2 value2, in T3 value3, in T4 value4)
+    public void WriteUnmanaged<T1, T2, T3, T4>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -98,7 +98,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -115,7 +115,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -133,7 +133,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -152,7 +152,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -172,7 +172,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -193,7 +193,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -215,7 +215,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -238,7 +238,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -262,7 +262,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -287,7 +287,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -313,7 +313,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -340,7 +340,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -368,7 +368,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -397,7 +397,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -427,7 +427,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -458,7 +458,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -490,7 +490,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -523,7 +523,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -557,7 +557,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -592,7 +592,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13, in T14 value14)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13, scoped in T14 value14)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -628,7 +628,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13, in T14 value14)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13, scoped in T14 value14)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -665,7 +665,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13, in T14 value14, in T15 value15)
+    public void WriteUnmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13, scoped in T14 value14, scoped in T15 value15)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged
@@ -703,7 +703,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(byte propertyCount, in T1 value1, in T2 value2, in T3 value3, in T4 value4, in T5 value5, in T6 value6, in T7 value7, in T8 value8, in T9 value9, in T10 value10, in T11 value11, in T12 value12, in T13 value13, in T14 value14, in T15 value15)
+    public void WriteUnmanagedWithObjectHeader<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(byte propertyCount, scoped in T1 value1, scoped in T2 value2, scoped in T3 value3, scoped in T4 value4, scoped in T5 value5, scoped in T6 value6, scoped in T7 value7, scoped in T8 value8, scoped in T9 value9, scoped in T10 value10, scoped in T11 value11, scoped in T12 value12, scoped in T13 value13, scoped in T14 value14, scoped in T15 value15)
         where T1 : unmanaged
         where T2 : unmanaged
         where T3 : unmanaged

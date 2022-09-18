@@ -6,7 +6,7 @@
 <#@ output extension=".cs" #>
 <#
     string MakeT(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"T{x}"));
-    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"in T{x} value{x}"));
+    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"scoped in T{x} value{x}"));
     string MakeWhere(int count) => string.Join("\r\n        ", Enumerable.Range(1, count).Select(x => $"where T{x} : unmanaged"));
     string MakeSize(int count) => string.Join(" + ", Enumerable.Range(1, count).Select(x => $"Unsafe.SizeOf<T{x}>()"));
 #>

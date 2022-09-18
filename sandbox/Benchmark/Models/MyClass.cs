@@ -77,7 +77,7 @@ public partial class MyClass : IMemoryPackable<MyClass>
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref MyClass? value)
         {
-            writer.WritePackable(ref value);
+            writer.WritePackable(value);
         }
     }
 }

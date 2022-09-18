@@ -179,6 +179,7 @@ public ref partial struct MemoryPackReader
         ref var src = ref GetSpanReference(size);
         var dest = GC.AllocateUninitializedArray<T>(length);
 
+        // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
         Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
         Advance(size);
 
@@ -205,11 +206,13 @@ public ref partial struct MemoryPackReader
 
         if (value != null && value.Length == length)
         {
+            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
             Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(value)), size, size);
         }
         else
         {
             var dest = GC.AllocateUninitializedArray<T>(length);
+            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
             Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
             value = dest;
         }
@@ -235,5 +238,36 @@ public ref partial struct MemoryPackReader
         view = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, T>(ref GetSpanReference(length)), length);
         advanceLength = view.Length * Unsafe.SizeOf<T>();
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackable<T>(scoped ref T? value)
+        where T : IMemoryPackable<T>
+    {
+        T.Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadPackable<T>()
+        where T : IMemoryPackable<T>
+    {
+        T? value = default;
+        T.Deserialize(ref this, ref value);
+        return value;
+    }
+
+    // non packable, get formatter dynamically.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadObject<T>(scoped ref T? value)
+    {
+        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadObject<T>()
+    {
+        T? value = default;
+        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+        return value;
     }
 }

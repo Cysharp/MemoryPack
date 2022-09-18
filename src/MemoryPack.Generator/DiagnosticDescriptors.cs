@@ -9,7 +9,7 @@ internal static class DiagnosticDescriptors
 {
     const string Category = "GenerateMemoryPack";
 
-    static readonly DiagnosticDescriptor MustBePartial = new(
+    public static readonly DiagnosticDescriptor MustBePartial = new(
         id: "MEMPACK001",
         title: "MemoryPackable object must be partial",
         messageFormat: "The MemoryPackable object '{0}' must be partial",

@@ -20,7 +20,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
     }
 
-    // unsafe ctor, becareful to use.
+    // optimized ctor, avoid first GetSpan call if we can.
     public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter)
     {
         this.bufferWriter = ref writer;
@@ -194,16 +194,16 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WritePackable<T>(scoped ref T? value)
+    public void WritePackable<T>(scoped in T? value)
         where T : IMemoryPackable<T>
     {
-        T.Serialize(ref this, ref value);
+        T.Serialize(ref this, ref Unsafe.AsRef(value));
     }
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteObject<T>(scoped ref T? value) 
+    public void WriteObject<T>(scoped in T? value)
     {
-        MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref value);
+        MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
     }
 }

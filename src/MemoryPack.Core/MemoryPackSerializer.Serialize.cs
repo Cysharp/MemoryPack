@@ -37,6 +37,7 @@ public static partial class MemoryPackSerializer
 
             ref var head = ref MemoryMarshal.GetArrayDataReference(destArray);
             Unsafe.WriteUnaligned(ref head, length);
+            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
             Buffer.MemoryCopy(
                 source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(srcArray)),
                 destination: Unsafe.AsPointer(ref Unsafe.Add(ref head, 4)),
@@ -96,6 +97,7 @@ public static partial class MemoryPackSerializer
             var destSpan = bufferWriter.GetSpan(dataSize + 4);
             ref var head = ref MemoryMarshal.GetReference(destSpan);
             Unsafe.WriteUnaligned(ref head, length);
+            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
             Buffer.MemoryCopy(
                 source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(srcArray)),
                 destination: Unsafe.AsPointer(ref Unsafe.Add(ref head, 4)),
@@ -113,7 +115,7 @@ public static partial class MemoryPackSerializer
     public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        writer.WriteObject(ref Unsafe.AsRef(value));
+        writer.WriteObject(value);
         writer.Flush();
     }
 

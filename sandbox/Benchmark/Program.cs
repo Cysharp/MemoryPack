@@ -1,4 +1,5 @@
 ﻿using Benchmark.Benchmarks;
+using Benchmark.Micro;
 using Benchmark.Models;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -16,4 +17,8 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run(Assembly.GetEntryAssembly()!, config, args);
 
 //BenchmarkRunner.Run<SerializeInt>(config, args);
-BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
+//BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
+
+BenchmarkRunner.Run<BlockCopy>(config, args);
+
+
