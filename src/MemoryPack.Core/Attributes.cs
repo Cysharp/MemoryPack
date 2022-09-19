@@ -1,13 +1,10 @@
 ﻿namespace MemoryPack;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackableAttribute : Attribute
 {
-    public bool AllowPrivate { get; }
-
-    public MemoryPackableAttribute(bool allowPrivate = false)
+    public MemoryPackableAttribute()
     {
-        AllowPrivate = allowPrivate;
     }
 }
 
@@ -29,6 +26,11 @@ public sealed class MemoryPackUnionAttribute : Attribute
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackIgnoreAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackIncludeAttribute : Attribute
 {
 }
 

@@ -2,6 +2,7 @@
 using MemoryPack.Formatters;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using SandboxConsoleApp;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -9,7 +10,8 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
-ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
+//ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
+ConsoleAppFramework.ConsoleApp.Run<SystemTextJsonChecker>(args);
 
 public class StandardRunner : ConsoleAppBase
 {
@@ -115,7 +117,11 @@ public class StandardRunner : ConsoleAppBase
         var mc2 = MemoryPackSerializer.Deserialize<MyClass>(bytes);
 
     }
+
+
 }
+
+
 
 public class TakoyakiX
 {
@@ -158,7 +164,7 @@ public partial class Mogera
 
     void Foo()
     {
-        new MogeraFormatter();
+        _ = new MogeraFormatter();
     }
 }
 

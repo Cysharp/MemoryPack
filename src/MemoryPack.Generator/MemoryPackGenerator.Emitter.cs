@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Reflection;
 
 namespace MemoryPack.Generator;
 
@@ -19,14 +20,25 @@ partial class MemoryPackGenerator
         // verify is partial
         if (!IsPartial(syntax))
         {
-            // TODO:error line only single line...
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, syntax.GetLocation(), typeSymbol.Name));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, syntax.Identifier.GetLocation(), typeSymbol.Name));
+            return;
+        }
+
+        // nested is not allowed
+        if (IsNested(syntax))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedNotAllow, syntax.Identifier.GetLocation(), typeSymbol.Name));
             return;
         }
 
         var reference = new ReferenceSymbols(compilation);
-
         var typeMeta = new TypeMeta(typeSymbol, reference);
+
+        // ReportDiagnostic when validate failed.
+        if (!typeMeta.Validate(syntax, context))
+        {
+            return;
+        }
 
         var sw = new StringWriter();
 
@@ -52,13 +64,20 @@ using MemoryPack;
 
         var code = sw.ToString();
 
-        // TODO:Full qualified?
-        context.AddSource($"{typeMeta.Name}.MemoryPackFormatter.g.cs", code);
+        // global::FooBarBaz.MyClass
+        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace("global::", "");
+        context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
     }
 
     static bool IsPartial(TypeDeclarationSyntax typeDeclaration)
     {
         return typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+    }
+
+    static bool IsNested(TypeDeclarationSyntax typeDeclaration)
+    {
+        return typeDeclaration.Parent is TypeDeclarationSyntax;
     }
 }
 
@@ -67,7 +86,6 @@ public class TypeMeta
     public INamedTypeSymbol Symbol { get; }
     public string Name { get; }
     public MemberMeta[] Members { get; }
-    public bool AllowPrivate { get; }
     public bool IsValueType { get; set; }
     public bool IsUnmanagedType { get; }
     public bool IsUnion { get; }
@@ -84,29 +102,56 @@ public class TypeMeta
         this.Symbol = symbol;
         this.Name = symbol.Name;
 
-        var attr = symbol.GetAttributes().First(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPack_MemoryPackableAttribute));
-        this.AllowPrivate = false;
-        if (attr.ConstructorArguments.Length != 0)
-        {
-            this.AllowPrivate = (bool)attr.ConstructorArguments[0].Value!;
-        }
-
         this.Members = symbol.GetMembers()
             .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false })
-            .Where(x => AllowPrivate
-                ? true // allows all accessibility
-                : x.DeclaredAccessibility is Accessibility.Public)
+            .Where(x =>
+            {
+                var include = x.ContainsAttribute(reference.MemoryPackIncludeAttribute);
+                var ignore = x.ContainsAttribute(reference.MemoryPackIgnoreAttribute);
+                if (ignore) return false;
+                if (include) return true;
+                return x.DeclaredAccessibility is Accessibility.Public;
+            })
             .Select(x => new MemberMeta(x, reference))
-            .ToArray(); // TODO:GetMembers?TYpeMembers?CHeckOrder?
+            .ToArray();
         this.IsValueType = symbol.IsValueType;
         this.IsUnmanagedType = symbol.IsUnmanagedType;
-        this.IsInterfaceOrAbstract = symbol.IsAbstract; // TODO:IsInterface?
+        this.IsInterfaceOrAbstract = symbol.IsAbstract;
+        this.IsUnion = symbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
         this.IsRecord = symbol.IsRecord;
-        this.Consrtuctor = null; // TODO:choose best-match constructor
+        this.Consrtuctor = ChooseConstructor(symbol);
         this.OnSerializing = Array.Empty<MethodMeta>(); // TODO:get methods
         this.OnSerialized = Array.Empty<MethodMeta>(); // TODO:get methods
         this.OnDeserializing = Array.Empty<MethodMeta>(); // TODO:get methods
         this.OnDeserialized = Array.Empty<MethodMeta>(); // TODO:get methods
+    }
+
+    // MemoryPack choose class/struct as same rule.
+    // If has no explicit constrtucotr, use parameterless one.
+    // If has a one parameterless/parameterized constructor, choose it.
+    // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+    IMethodSymbol? ChooseConstructor(ITypeSymbol symbol)
+    {
+        var ctors = symbol.GetMembers().OfType<IMethodSymbol>().Where(x => x.MethodKind == MethodKind.Constructor).ToArray();
+        if (ctors.Length == 0)
+        {
+            return null;
+        }
+
+
+        return ctors[0];
+    }
+
+    public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
+    {
+        // interface/abstract but not union
+        if (IsInterfaceOrAbstract && !IsUnion)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AbstractMustUnion, syntax.Identifier.GetLocation(), Symbol.Name));
+            return false;
+        }
+
+        return true;
     }
 
     public void Emit(StringWriter writer)
@@ -299,7 +344,7 @@ public class MemberMeta
         {
             Kind = MemberKind.String;
         }
-        else if (MemberType.AllInterfaces.Any(x => x.IsGenericType && SymbolEqualityComparer.Default.Equals(x.ConstructUnboundGenericType(), references.MemoryPack_IMemoryPackable)))
+        else if (MemberType.AllInterfaces.Any(x => x.IsGenericType && SymbolEqualityComparer.Default.Equals(x.ConstructUnboundGenericType(), references.IMemoryPackable)))
         {
             Kind = MemberKind.MemoryPackable;
         }
