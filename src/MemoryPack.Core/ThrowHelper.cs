@@ -11,7 +11,6 @@ public static class ThrowHelper
         throw new InvalidOperationException($"Current object's property count is {expected} but binary's header maked as {actual}, can't deserialize about versioning.");
     }
 
-    // TODO:inefficient range?
     [DoesNotReturn]
     public static void ThrowInvalidRange(int expected, int actual)
     {
@@ -46,5 +45,17 @@ public static class ThrowHelper
     public static void ThrowNotRegisteredInProvider(Type type)
     {
         throw new InvalidOperationException($"{type.FullName} is not registered in this provider.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowNotFoundInUnionType(Type actualType, Type baseType)
+    {
+        throw new InvalidOperationException($"Type {actualType.FullName} is not annotated in {baseType.FullName} MessagePackUnion.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowInvalidTag(byte tag, Type baseType)
+    {
+        throw new InvalidOperationException($"Data read tag: {tag} but not found in {baseType.FullName} MessagePackUnion annotations.");
     }
 }

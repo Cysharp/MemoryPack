@@ -127,6 +127,14 @@ public ref partial struct MemoryPackReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryReadUnionHeader(out byte tag)
+    {
+        tag = GetSpanReference(1);
+        Advance(1);
+        return tag != MemoryPackCode.NullObject;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadLengthHeader(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));

@@ -116,4 +116,30 @@ public class GeneratorTest
         MemoryPackSerializer.Deserialize<MethodCall>(bin2);
         MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserialized1");
     }
+
+    [Fact]
+    public void Records()
+    {
+        VerifyEquivalent(new UnmanagedStruct { X = 9, Y = 3, Z = 2222 });
+        VerifyEquivalent(new IncludesReferenceStruct { X = 9, Y = "foobarbaz" });
+        VerifyEquivalent(new RequiredType { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
+        VerifyEquivalent(new RequiredType2 { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
+        VerifyEquivalent(new StructWithConstructor1("foo"));
+        VerifyEquivalent(new MyRecord(10, 20, "haa"));
+        VerifyEquivalent(new StructRecordUnmanaged(10, 20));
+        VerifyEquivalent(new StructRecordWithReference(10, "zzz"));
+    }
+
+    [Fact]
+    public void Derived()
+    {
+        VerifyEquivalent(new StandardBase { MyProperty1 = 1, MyProperty2 = 2 });
+        VerifyEquivalent(new Derived1 { MyProperty1 = 1, MyProperty2 = 2, DerivedProp1 = 3, DerivedProp2 = 4 });
+        VerifyEquivalent(new Derived2 { MyProperty1 = 1, MyProperty2 = 2, DerivedProp1 = 3, DerivedProp2 = 4, Derived2Prop1 = 5, Derived2Prop2 = 6 });
+
+
+
+
+    }
+
 }

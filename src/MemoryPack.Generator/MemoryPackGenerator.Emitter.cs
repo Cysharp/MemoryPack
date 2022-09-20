@@ -50,6 +50,7 @@ partial class MemoryPackGenerator
 #pragma warning disable CS0164 // Unreferenced label
 #pragma warning disable CS0219 // Variable assigned but never used
 #pragma warning disable CS8601 // Possible null reference assignment
+#pragma warning disable CS8604 // Possible null reference argument for parameter
 
 using System;
 using MemoryPack;
@@ -99,13 +100,15 @@ public class TypeMeta
     public MethodMeta[] OnSerialized { get; }
     public MethodMeta[] OnDeserializing { get; }
     public MethodMeta[] OnDeserialized { get; }
+    public (byte Tag, INamedTypeSymbol Type)[] UnionTags { get; }
 
     public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.Consrtuctor = ChooseConstructor(symbol, reference);
-        this.Members = symbol.GetMembers()
+
+        this.Members = symbol.GetAllMembers() // iterate includes parent type
             .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false })
             .Where(x =>
             {
@@ -126,6 +129,18 @@ public class TypeMeta
         this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType);
         this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType);
         this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType);
+        if (IsUnion)
+        {
+            this.UnionTags = symbol.GetAttributes()
+                .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPackUnionAttribute))
+                .Where(x => x.ConstructorArguments.Length == 2)
+                .Select(x => ((byte)x.ConstructorArguments[0].Value!, (INamedTypeSymbol)x.ConstructorArguments[1].Value!))
+                .ToArray();
+        }
+        else
+        {
+            this.UnionTags = Array.Empty<(byte, INamedTypeSymbol)>();
+        }
     }
 
     // MemoryPack choose class/struct as same rule.
@@ -134,10 +149,15 @@ public class TypeMeta
     // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
     IMethodSymbol? ChooseConstructor(ITypeSymbol symbol, ReferenceSymbols reference)
     {
-        var ctors = symbol.GetMembers().OfType<IMethodSymbol>().Where(x => x.MethodKind == MethodKind.Constructor).ToArray();
+        var ctors = symbol.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.MethodKind == MethodKind.Constructor)
+            .Where(x => !x.IsImplicitlyDeclared) // remove empty ctor(struct always generate it), record's clone ctor
+            .ToArray();
+
         if (ctors.Length == 0)
         {
-            return null;
+            return null; // allows null as ok(not exists explicitly declared constructor == has implictly empty ctor)
         }
 
         if (ctors.Length == 1)
@@ -216,6 +236,13 @@ public class TypeMeta
             }
         }
 
+        // Union tags validation
+        // TODO: not allowed same tag number
+        // TODO: type does not derived target symbol
+        // TODO: union type not allow struct
+        // TODO: sealed type can't be union
+        // TODO: not abstract have to include self
+
         return noError;
     }
 
@@ -232,34 +259,15 @@ public class TypeMeta
         reader.ReadUnmanaged(out value);
 """;
         }
+        else if (IsUnion)
+        {
+            serializeBody = EmitUnionSerializeBody();
+            deserializeBody = EmitUnionDeserializeBody();
+        }
         else
         {
-            serializeBody = $$"""
-{{(!IsValueType ? $$"""
-        if (value == null)
-        {
-            writer.WriteNullObjectHeader();
-{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
-        }
-""" : "")}}
-
-        writer.WriteObjectHeader({{Members.Length}});
-{{Members.Select(x => "        " + x.EmitSerialize()).NewLine()}}
-""";
-            // TODO: versioning check for count...
-            deserializeBody = $$"""
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
-        }
-        
-        if (count != {{Members.Length}}) ThrowHelper.ThrowInvalidPropertyCount({{Members.Length}}, count);
-
-{{Members.Select(x => "        " + x.EmitDeserialize()).NewLine()}}
-""";
+            serializeBody = EmitSerializeBody();
+            deserializeBody = EmitDeserializeBody();
         }
 
         var classOrStructOrRecord = (IsRecord, IsValueType) switch
@@ -281,6 +289,8 @@ public class TypeMeta
 
 partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 {
+{{EmitUnionTypeToTagField()}}
+
     static {{Name}}()
     {
         MemoryPackFormatterProvider.Register<{{Name}}>();
@@ -328,6 +338,40 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         writer.WriteLine(code);
     }
 
+    private string EmitDeserializeBody()
+    {
+        // TODO: versioning check for count...
+        return $$"""
+        if (!reader.TryReadObjectHeader(out var count))
+        {
+            value = default;
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
+            return;
+        }
+        
+        if (count != {{Members.Length}}) ThrowHelper.ThrowInvalidPropertyCount({{Members.Length}}, count);
+
+{{Members.Select(x => "        " + x.EmitDeserialize()).NewLine()}}
+""";
+    }
+
+    string EmitSerializeBody()
+    {
+        return $$"""
+{{(!IsValueType ? $$"""
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+            return;
+        }
+""" : "")}}
+
+        writer.WriteObjectHeader({{Members.Length}});
+{{Members.Select(x => "        " + x.EmitSerialize()).NewLine()}}
+""";
+    }
+
     string EmitConstructor()
     {
         // noee need `;` because after using object initializer
@@ -362,7 +406,89 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         };
 """;
     }
+
+
+    string EmitUnionTypeToTagField()
+    {
+        if (!IsUnion) return "";
+
+        var elements = UnionTags.Select(x => $"        {{ typeof({x.Type.Name}), {x.Tag} }},").NewLine();
+
+        return $$"""
+    static readonly Dictionary<Type, byte> __typeToTag = new({{UnionTags.Length}})
+    {
+{{elements}}
+    };
+""";
+    }
+
+    string EmitUnionSerializeBody()
+    {
+        var writeBody = UnionTags
+            .Select(x => $"                case {x.Tag}: writer.WritePackable(System.Runtime.CompilerServices.Unsafe.As<{Name}?, {x.Type.Name}>(ref value)); break;")
+            .NewLine();
+
+        return $$"""
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+            return;
+        }
+
+        if (__typeToTag.TryGetValue(value.GetType(), out var tag))
+        {
+            writer.WriteUnionHeader(tag);
+
+            switch (tag)
+            {
+{{writeBody}}                
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{Name}}));
+        }
+""";
+    }
+
+    string EmitUnionDeserializeBody()
+    {
+        var readBody = UnionTags.Select(x => $$"""
+            case {{x.Tag}}:
+                if (value is {{x.Type.Name}})
+                {
+                    reader.ReadPackable(ref System.Runtime.CompilerServices.Unsafe.As<{{Name}}?, {{x.Type.Name}}>(ref value));
+                }
+                else
+                {
+                    value = reader.ReadPackable<{{x.Type.Name}}>();
+                }
+                break;
+""").NewLine();
+
+
+        return $$"""
+        if (!reader.TryReadUnionHeader(out var tag))
+        {
+            value = default;
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
+            return;
+        }
+        
+        switch (tag)
+        {
+{{readBody}}
+            default:
+                ThrowHelper.ThrowInvalidTag(tag, typeof({{Name}}));
+                break;
+        }
+""";
+    }
 }
+
 public class MethodMeta
 {
     public IMethodSymbol Symbol { get; }
