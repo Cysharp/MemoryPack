@@ -21,6 +21,7 @@ namespace BinaryPack.Models
     [ProtoContract]
     public sealed partial class JsonResponseModel : IInitializable, IEquatable<JsonResponseModel>
     {
+        [MemoryPackConstructor]
         public JsonResponseModel() { }
 
         public JsonResponseModel(bool initialize)

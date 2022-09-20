@@ -1,4 +1,5 @@
 ﻿using Benchmark.BenchmarkNetUtilities;
+using BinaryPack.Models;
 using MemoryPack;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Benchmarks;
 
+[GenericTypeArguments(typeof(JsonResponseModel))]
+[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 public class DeserializeTest<T> : SerializerTestBase<T>
 {
     //SerializerSessionPool pool;

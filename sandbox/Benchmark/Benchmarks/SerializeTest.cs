@@ -30,6 +30,9 @@ namespace Benchmark.Benchmarks;
 //[GenericTypeArguments(typeof(int))]
 //[GenericTypeArguments(typeof(Vector3[]))]
 //[GenericTypeArguments(typeof(MyClass))]
+
+[GenericTypeArguments(typeof(JsonResponseModel))]
+[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
@@ -145,6 +148,9 @@ public class SerializeTest<T> : SerializerTestBase<T>
         writer.Clear();
         jsonWriter.Reset(writer);
     }
+
+    // https://github.com/dotnet/orleans/pull/7984/
+    // should use `session.PartialReset();`, not with using ?
 
     //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
     //public void OrleansBufferWriter()

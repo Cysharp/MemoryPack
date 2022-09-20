@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 using System.Reflection;
 
 namespace MemoryPack.Generator;
@@ -83,6 +84,8 @@ using MemoryPack;
 
 public class TypeMeta
 {
+    DiagnosticDescriptor? ctorInvalid = null;
+
     public INamedTypeSymbol Symbol { get; }
     public string Name { get; }
     public MemberMeta[] Members { get; }
@@ -101,7 +104,7 @@ public class TypeMeta
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
-
+        this.Consrtuctor = ChooseConstructor(symbol, reference);
         this.Members = symbol.GetMembers()
             .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false })
             .Where(x =>
@@ -112,25 +115,24 @@ public class TypeMeta
                 if (include) return true;
                 return x.DeclaredAccessibility is Accessibility.Public;
             })
-            .Select(x => new MemberMeta(x, reference))
+            .Select(x => new MemberMeta(x, Consrtuctor, reference))
             .ToArray();
         this.IsValueType = symbol.IsValueType;
         this.IsUnmanagedType = symbol.IsUnmanagedType;
         this.IsInterfaceOrAbstract = symbol.IsAbstract;
         this.IsUnion = symbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
         this.IsRecord = symbol.IsRecord;
-        this.Consrtuctor = ChooseConstructor(symbol);
-        this.OnSerializing = Array.Empty<MethodMeta>(); // TODO:get methods
-        this.OnSerialized = Array.Empty<MethodMeta>(); // TODO:get methods
-        this.OnDeserializing = Array.Empty<MethodMeta>(); // TODO:get methods
-        this.OnDeserialized = Array.Empty<MethodMeta>(); // TODO:get methods
+        this.OnSerializing = CollectMethod(reference.MemoryPackOnSerializingAttribute, IsValueType);
+        this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType);
+        this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType);
+        this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType);
     }
 
     // MemoryPack choose class/struct as same rule.
     // If has no explicit constrtucotr, use parameterless one.
     // If has a one parameterless/parameterized constructor, choose it.
     // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
-    IMethodSymbol? ChooseConstructor(ITypeSymbol symbol)
+    IMethodSymbol? ChooseConstructor(ITypeSymbol symbol, ReferenceSymbols reference)
     {
         var ctors = symbol.GetMembers().OfType<IMethodSymbol>().Where(x => x.MethodKind == MethodKind.Constructor).ToArray();
         if (ctors.Length == 0)
@@ -138,20 +140,83 @@ public class TypeMeta
             return null;
         }
 
+        if (ctors.Length == 1)
+        {
+            return ctors[0];
+        }
 
-        return ctors[0];
+        var ctorWithAttrs = ctors.Where(x => x.ContainsAttribute(reference.MemoryPackConstructorAttribute)).ToArray();
+
+        if (ctorWithAttrs.Length == 0)
+        {
+            ctorInvalid = DiagnosticDescriptors.MultipleCtorWithoutAttribute;
+            return null;
+        }
+        else if (ctorWithAttrs.Length == 1)
+        {
+            return ctorWithAttrs[0]; // ok
+        }
+        else
+        {
+            ctorInvalid = DiagnosticDescriptors.MultipleCtorAttribute;
+            return null;
+        }
+    }
+
+    MethodMeta[] CollectMethod(INamedTypeSymbol attribute, bool isValueType)
+    {
+        return Symbol.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.ContainsAttribute(attribute))
+            .Select(x => new MethodMeta(x, isValueType))
+            .ToArray();
     }
 
     public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
     {
+        var noError = true;
         // interface/abstract but not union
         if (IsInterfaceOrAbstract && !IsUnion)
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AbstractMustUnion, syntax.Identifier.GetLocation(), Symbol.Name));
-            return false;
+            noError = false;
         }
 
-        return true;
+        if (ctorInvalid != null)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ctorInvalid, syntax.Identifier.GetLocation(), Symbol.Name));
+            noError = false;
+        }
+
+        // check ctor members
+        if (this.Consrtuctor != null)
+        {
+            var nameDict = new HashSet<string>(Members.Where(x => x.IsConstructorParameter).Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
+            var allParameterExists = this.Consrtuctor.Parameters.All(x => nameDict.Contains(x.Name));
+            if (!allParameterExists)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+        }
+
+        foreach (var item in OnSerializing.Concat(OnSerialized).Concat(OnDeserializing).Concat(OnDeserialized))
+        {
+            if (item.Symbol.Parameters.Length != 0)
+            {
+                // diagnostics location should be method identifier
+                // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
+                noError = false;
+            }
+            if (IsUnmanagedType)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
+                noError = false;
+            }
+        }
+
+        return noError;
     }
 
     public void Emit(StringWriter writer)
@@ -174,6 +239,7 @@ public class TypeMeta
         if (value == null)
         {
             writer.WriteNullObjectHeader();
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
             return;
         }
 """ : "")}}
@@ -186,6 +252,7 @@ public class TypeMeta
         if (!reader.TryReadObjectHeader(out var count))
         {
             value = default;
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
             return;
         }
         
@@ -211,6 +278,7 @@ public class TypeMeta
         // TODO:ctor
 
         var code = $$"""
+
 partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 {
     static {{Name}}()
@@ -237,6 +305,7 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{deserializeBody}}
+        {{(!IsUnmanagedType ? "value = " + EmitConstructor() : "")}}
 {{(!IsUnmanagedType ? EmitDeserializeConstruction() : "")}}
 {{OnDeserialized.Select(x => "        " + x.Emit()).NewLine()}}
     }
@@ -259,14 +328,37 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         writer.WriteLine(code);
     }
 
+    string EmitConstructor()
+    {
+        // noee need `;` because after using object initializer
+        if (this.Consrtuctor == null || this.Consrtuctor.Parameters.Length == 0)
+        {
+            return $"new {Name}()";
+        }
+        else
+        {
+            var nameDict = Members.ToDictionary(x => x.Name, x => x.Name, StringComparer.OrdinalIgnoreCase);
+            var parameters = this.Consrtuctor.Parameters
+                .Select(x =>
+                {
+                    if (nameDict.TryGetValue(x.Name, out var name))
+                    {
+                        return $"__{name}";
+                    }
+                    return null; // invalid, validated.
+                })
+                .Where(x => x != null);
+
+            return $"new {Name}({string.Join(", ", parameters)})";
+        }
+    }
+
     string EmitDeserializeConstruction()
     {
         // all value is deserialized, __Name is exsits.
-        // TODO:constructorMeta.Emit();
         return $$"""
-        value = new {{Name}}()
         {
-{{string.Join("," + Environment.NewLine, Members.Select(x => "            " + x.EmitConstruction()))}}
+{{string.Join("," + Environment.NewLine, Members.Where(x => x.IsSettable && !x.IsConstructorParameter).Select(x => "            " + x.EmitConstruction()))}}
         };
 """;
     }
@@ -276,12 +368,14 @@ public class MethodMeta
     public IMethodSymbol Symbol { get; }
     public string Name { get; }
     public bool IsStatic { get; }
+    public bool IsValueType { get; }
 
-    public MethodMeta(IMethodSymbol symbol)
+    public MethodMeta(IMethodSymbol symbol, bool isValueType)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.IsStatic = symbol.IsStatic;
+        this.IsValueType = isValueType;
     }
 
     public string Emit()
@@ -292,7 +386,14 @@ public class MethodMeta
         }
         else
         {
-            return $"value.{Name}();";
+            if (IsValueType)
+            {
+                return $"value.{Name}();";
+            }
+            else
+            {
+                return $"value?.{Name}();";
+            }
         }
     }
 }
@@ -305,20 +406,29 @@ public class MemberMeta
     public bool IsField { get; }
     public bool IsProperty { get; }
     public bool IsRef { get; }
-    public bool IsReadOnly { get; }
+    public bool IsSettable { get; }
+    public bool IsConstructorParameter { get; }
     public MemberKind Kind { get; }
 
-    public MemberMeta(ISymbol symbol, ReferenceSymbols references)
+    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.MemberType = symbol.ContainingType;
+        if (constructor != null)
+        {
+            this.IsConstructorParameter = constructor.Parameters.Any(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
+        }
+        else
+        {
+            this.IsConstructorParameter = false;
+        }
 
         if (symbol is IFieldSymbol f)
         {
             IsProperty = false;
             IsField = true;
-            IsReadOnly = f.IsReadOnly;
+            IsSettable = !f.IsReadOnly; // readonly field can not set.
             IsRef = f.RefKind == RefKind.Ref || f.RefKind == RefKind.RefReadOnly;
             MemberType = f.Type;
 
@@ -327,7 +437,7 @@ public class MemberMeta
         {
             IsProperty = true;
             IsField = false;
-            IsReadOnly = p.IsReadOnly;
+            IsSettable = !p.IsReadOnly;
             IsRef = p.RefKind == RefKind.Ref || p.RefKind == RefKind.RefReadOnly;
             MemberType = p.Type;
         }

@@ -12,6 +12,7 @@ using BinaryPack.Models.Interfaces;
 using Iced.Intel;
 using MemoryPack;
 using MemoryPack.Formatters;
+using System.Reflection;
 
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
@@ -33,7 +34,12 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
-BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
+//BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
+
+BenchmarkSwitcher.FromTypes(new[]{
+    typeof(SerializeTest<>),
+    typeof(DeserializeTest<>) })
+    .RunAllJoined(config);
 
 
 #if DEBUG

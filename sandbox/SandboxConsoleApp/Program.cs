@@ -8,10 +8,28 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using System.Security;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 //ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
 ConsoleAppFramework.ConsoleApp.Run<SystemTextJsonChecker>(args);
+
+public partial class MyClass5
+{
+    [GeneratedRegex("..(abcdefg).+", RegexOptions.Compiled)]
+    public partial Regex Generated();
+}
+
+public partial class Tako
+{
+
+    public partial class Nano
+    {
+        [GeneratedRegex("..(abzg).+", RegexOptions.Compiled)]
+        public partial Regex Generated();
+    }
+}
 
 public class StandardRunner : ConsoleAppBase
 {
@@ -164,7 +182,7 @@ public partial class Mogera
 
     void Foo()
     {
-        _ = new MogeraFormatter();
+        // _ = new MogeraFormatter();
     }
 }
 

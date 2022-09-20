@@ -32,4 +32,44 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MultipleCtorWithoutAttribute = new(
+        id: "MEMPACK004",
+        title: "Require [MemoryPackConstructor] when exists multiple constructors",
+        messageFormat: "The MemoryPackable object '{0}' must annotate with [MemoryPackConstructor] when exists multiple constructors",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MultipleCtorAttribute = new(
+        id: "MEMPACK005",
+        title: "[MemoryPackConstructor] exists in multiple constructors",
+        messageFormat: "Mupltiple [MemoryPackConstructor] exists in '{0}' but allows only single ctor",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ConstructorHasNoMatchedParameter = new(
+        id: "MEMPACK006",
+        title: "MemoryPackObject's constructor has no matched parameter",
+        messageFormat: "The MemoryPackable object '{0}' constructor's all parameters must match serialized member name(case-insensitive)",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor OnMethodHasParameter = new(
+        id: "MEMPACK007",
+        title: "MemoryPackObject's On*** methods must has no parameter",
+        messageFormat: "The MemoryPackable object '{0}''s '{1}' method must has no parameter",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor OnMethodInUnamannagedType = new(
+        id: "MEMPACK007",
+        title: "MemoryPackObject's On*** methods can't annotate in unamnaged struct",
+        messageFormat: "The MemoryPackable object '{0}' is unmanaged struct that can't annotate On***Attribute however '{1}' method annotaed",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
