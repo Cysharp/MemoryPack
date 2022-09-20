@@ -66,7 +66,7 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor OnMethodInUnamannagedType = new(
-        id: "MEMPACK007",
+        id: "MEMPACK008",
         title: "MemoryPackObject's On*** methods can't annotate in unamnaged struct",
         messageFormat: "The MemoryPackable object '{0}' is unmanaged struct that can't annotate On***Attribute however '{1}' method annotaed",
         category: Category,

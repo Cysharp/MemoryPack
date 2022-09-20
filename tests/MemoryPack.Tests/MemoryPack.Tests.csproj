@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="6.7.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0-1.final" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -19,6 +20,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj" />
         <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
