@@ -16,5 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
+        with:
+          dotnet-version: '7.0' # require 7.0-rc
+          include-prerelease: 'true'
       - run: dotnet build -c Debug
       - run: dotnet test -c Debug --no-build
