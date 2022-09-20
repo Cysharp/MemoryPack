@@ -5,9 +5,9 @@ namespace FooBarBaz;
 [MemoryPackable]
 public partial class MyClassZ
 {
-    [MemoryPackable]
-    public partial class Nested
-    {
+    //[MemoryPackable]
+    //public partial class Nested
+    //{
 
-    }
+    //}
 }
