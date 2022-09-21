@@ -7,10 +7,13 @@ namespace MemoryPack;
 public ref partial struct MemoryPackWriter<TBufferWriter>
     where TBufferWriter : IBufferWriter<byte>
 {
+    const int DepthLimit = 1000;
+
     ref TBufferWriter bufferWriter;
     ref byte bufferReference;
     int bufferLength;
     int advancedCount;
+    int depth; // check recursive serialize
 
     public MemoryPackWriter(ref TBufferWriter writer)
     {
@@ -18,6 +21,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref Unsafe.NullRef<byte>();
         this.bufferLength = 0;
         this.advancedCount = 0;
+        this.depth = 0;
     }
 
     // optimized ctor, avoid first GetSpan call if we can.
@@ -27,6 +31,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref MemoryMarshal.GetArrayDataReference(firstBufferOfWriter);
         this.bufferLength = firstBufferOfWriter.Length;
         this.advancedCount = 0;
+        this.depth = 0;
     }
 
     public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter)
@@ -35,6 +40,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
         this.bufferLength = firstBufferOfWriter.Length;
         this.advancedCount = 0;
+        this.depth = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -197,13 +203,19 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WritePackable<T>(scoped in T? value)
         where T : IMemoryPackable<T>
     {
+        depth++;
+        if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
         T.Serialize(ref this, ref Unsafe.AsRef(value));
+        depth--;
     }
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObject<T>(scoped in T? value)
     {
+        depth++;
+        if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
         MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
+        depth--;
     }
 }

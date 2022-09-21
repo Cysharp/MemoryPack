@@ -231,4 +231,26 @@ public class GeneratorTest
         w4!.V4!.MyProperty4.Should().Be(0);
         w4!.After.Should().Be("AF");
     }
+
+    [Fact]
+    public void Recursive()
+    {
+        var rec = new Recursive() { MyProperty = 99 };
+        var rec2 = new Recursive() { MyProperty = 1000 };
+        rec.Rec = rec2;
+
+        // ok to serialize
+        var bin = MemoryPackSerializer.Serialize(rec);
+        var newRec = MemoryPackSerializer.Deserialize<Recursive>(bin);
+
+        Debug.Assert(newRec != null);
+        newRec.MyProperty.Should().Be(99);
+        newRec.Rec!.MyProperty.Should().Be(1000);
+        newRec.Rec!.Rec.Should().BeNull();
+
+        //set rec
+        rec.Rec = rec;
+        Assert.Throws<InvalidOperationException>(() => MemoryPackSerializer.Serialize(rec));
+
+    }
 }

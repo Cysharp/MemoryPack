@@ -58,4 +58,10 @@ public static class ThrowHelper
     {
         throw new InvalidOperationException($"Data read tag: {tag} but not found in {baseType.FullName} MessagePackUnion annotations.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowReachedDepthLimit(Type type)
+    {
+        throw new InvalidOperationException($"Serializing Type '{type}' reached depth limit, maybe detect circular reference.");
+    }
 }
