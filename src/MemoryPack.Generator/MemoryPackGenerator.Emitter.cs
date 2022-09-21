@@ -50,6 +50,7 @@ partial class MemoryPackGenerator
 #pragma warning disable CS0162 // Unreachable code
 #pragma warning disable CS0164 // Unreferenced label
 #pragma warning disable CS0219 // Variable assigned but never used
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Possible null reference assignment
 #pragma warning disable CS8604 // Possible null reference argument for parameter
 
