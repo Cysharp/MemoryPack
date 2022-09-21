@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Immutable;
 using System.Reflection;
 
@@ -86,6 +87,7 @@ using MemoryPack;
 public class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
+    ReferenceSymbols reference;
 
     public INamedTypeSymbol Symbol { get; }
     public string Name { get; }
@@ -104,6 +106,7 @@ public class TypeMeta
 
     public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
+        this.reference = reference;
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.Consrtuctor = ChooseConstructor(symbol, reference);
@@ -242,12 +245,19 @@ public class TypeMeta
         // TODO: union type not allow struct
         // TODO: sealed type can't be union
         // TODO: not abstract have to include self
+        // TODO: don't allow concrete type
 
         return noError;
     }
 
     public void Emit(StringWriter writer)
     {
+        if (IsUnion)
+        {
+            writer.WriteLine(EmitUnionTemplate());
+            return;
+        }
+
         var serializeBody = "";
         var deserializeBody = "";
         if (IsUnmanagedType)
@@ -258,11 +268,6 @@ public class TypeMeta
             deserializeBody = $$"""
         reader.ReadUnmanaged(out value);
 """;
-        }
-        else if (IsUnion)
-        {
-            serializeBody = EmitUnionSerializeBody();
-            deserializeBody = EmitUnionDeserializeBody();
         }
         else
         {
@@ -296,7 +301,7 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         MemoryPackFormatterProvider.Register<{{Name}}>();
     }
 
-    static void IMemoryPackable.RegisterFormatter()
+    static void IMemoryPackFormatterRegister.RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{Name}}>())
         {
@@ -407,84 +412,141 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 """;
     }
 
+    string EmitUnionTemplate()
+    {
+        var classOrInterface = Symbol.TypeKind == TypeKind.Interface ? "interface" : "class";
+
+        var code = $$"""
+
+partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
+{
+    static {{Name}}()
+    {
+        MemoryPackFormatterProvider.Register<{{Name}}>();
+    }
+
+    static void IMemoryPackFormatterRegister.RegisterFormatter()
+    {
+        if (!MemoryPackFormatterProvider.IsRegistered<{{Name}}>())
+        {
+            MemoryPackFormatterProvider.Register(new {{Name}}Formatter());
+        }
+    }
+
+    sealed class {{Name}}Formatter : MemoryPackFormatter<{{Name}}>
+    {
+{{EmitUnionTypeToTagField()}}
+
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{Name}}? value)
+        {
+{{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
+{{EmitUnionSerializeBody()}}
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref {{Name}}? value)
+        {
+{{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
+{{EmitUnionDeserializeBody()}}
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}            
+        }
+    }
+}
+""";
+
+        return code;
+    }
+
 
     string EmitUnionTypeToTagField()
     {
         if (!IsUnion) return "";
 
-        var elements = UnionTags.Select(x => $"        {{ typeof({x.Type.Name}), {x.Tag} }},").NewLine();
+        var elements = UnionTags.Select(x => $"            {{ typeof({x.Type.Name}), {x.Tag} }},").NewLine();
 
         return $$"""
-    static readonly Dictionary<Type, byte> __typeToTag = new({{UnionTags.Length}})
-    {
+        static readonly System.Collections.Generic.Dictionary<Type, byte> __typeToTag = new({{UnionTags.Length}})
+        {
 {{elements}}
-    };
+        };
 """;
     }
 
     string EmitUnionSerializeBody()
     {
         var writeBody = UnionTags
-            .Select(x => $"                case {x.Tag}: writer.WritePackable(System.Runtime.CompilerServices.Unsafe.As<{Name}?, {x.Type.Name}>(ref value)); break;")
+            .Select(x =>
+            {
+                var method = x.Type.IsWillImplementIMemoryPackable(reference)
+                    ? "WritePackable"
+                    : "WriteObject";
+                return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{Name}?, {x.Type.Name}>(ref value)); break;";
+            })
             .NewLine();
 
         return $$"""
-        if (value == null)
-        {
-            writer.WriteNullObjectHeader();
-{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
-        }
-
-        if (__typeToTag.TryGetValue(value.GetType(), out var tag))
-        {
-            writer.WriteUnionHeader(tag);
-
-            switch (tag)
+            if (value == null)
             {
-{{writeBody}}                
-                default:
-                    break;
+                writer.WriteNullObjectHeader();
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+                return;
             }
-        }
-        else
-        {
-            ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{Name}}));
-        }
+
+            if (__typeToTag.TryGetValue(value.GetType(), out var tag))
+            {
+                writer.WriteUnionHeader(tag);
+
+                switch (tag)
+                {
+{{writeBody}}                
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{Name}}));
+            }
 """;
     }
 
     string EmitUnionDeserializeBody()
     {
-        var readBody = UnionTags.Select(x => $$"""
-            case {{x.Tag}}:
-                if (value is {{x.Type.Name}})
-                {
-                    reader.ReadPackable(ref System.Runtime.CompilerServices.Unsafe.As<{{Name}}?, {{x.Type.Name}}>(ref value));
-                }
-                else
-                {
-                    value = reader.ReadPackable<{{x.Type.Name}}>();
-                }
-                break;
-""").NewLine();
+        var readBody = UnionTags.Select(x =>
+        {
+            var method = x.Type.IsWillImplementIMemoryPackable(reference)
+                ? "ReadPackable"
+                : "ReadObject";
+            return $$"""
+                case {{x.Tag}}:
+                    if (value is {{x.Type.Name}})
+                    {
+                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{Name}}?, {{x.Type.Name}}>(ref value));
+                    }
+                    else
+                    {
+                        value = reader.{{method}}<{{x.Type.Name}}>();
+                    }
+                    break;
+""";
+        }).NewLine();
 
 
         return $$"""
-        if (!reader.TryReadUnionHeader(out var tag))
-        {
-            value = default;
-{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
-        }
+            if (!reader.TryReadUnionHeader(out var tag))
+            {
+                value = default;
+{{OnDeserialized.Select(x => "                " + x.Emit()).NewLine()}}
+                return;
+            }
         
-        switch (tag)
-        {
+            switch (tag)
+            {
 {{readBody}}
-            default:
-                ThrowHelper.ThrowInvalidTag(tag, typeof({{Name}}));
-                break;
-        }
+                default:
+                    ThrowHelper.ThrowInvalidTag(tag, typeof({{Name}}));
+                    break;
+            }
 """;
     }
 }

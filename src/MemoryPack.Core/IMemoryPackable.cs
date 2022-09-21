@@ -2,12 +2,12 @@
 
 namespace MemoryPack;
 
-public interface IMemoryPackable
+public interface IMemoryPackFormatterRegister
 {
     static abstract void RegisterFormatter();
 }
 
-public interface IMemoryPackable<T> : IMemoryPackable
+public interface IMemoryPackable<T> : IMemoryPackFormatterRegister
 {
     static abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;

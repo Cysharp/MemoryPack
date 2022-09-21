@@ -1,5 +1,6 @@
 ﻿using MemoryPack.Tests.Models;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -136,10 +137,52 @@ public class GeneratorTest
         VerifyEquivalent(new StandardBase { MyProperty1 = 1, MyProperty2 = 2 });
         VerifyEquivalent(new Derived1 { MyProperty1 = 1, MyProperty2 = 2, DerivedProp1 = 3, DerivedProp2 = 4 });
         VerifyEquivalent(new Derived2 { MyProperty1 = 1, MyProperty2 = 2, DerivedProp1 = 3, DerivedProp2 = 4, Derived2Prop1 = 5, Derived2Prop2 = 6 });
-
-
-
-
     }
 
+    [Fact]
+    public void Union()
+    {
+        // interface
+        {
+            IUnionInterface a = new Impl1 { MyProperty = 10, Foo = 999 };
+            IUnionInterface b = new Impl2 { MyProperty = 1000, Bar = "foobarbaz" };
+            {
+                var bin = MemoryPackSerializer.Serialize(a);
+                var a1 = MemoryPackSerializer.Deserialize<IUnionInterface>(bin);
+
+                a1.Should().NotBeNull();
+                a1!.MyProperty.Should().Be(10);
+                (a1 as Impl1)!.Foo.Should().Be(999);
+            }
+            {
+                var bin = MemoryPackSerializer.Serialize(b);
+                var b1 = MemoryPackSerializer.Deserialize<IUnionInterface>(bin);
+
+                b1.Should().NotBeNull();
+                b1!.MyProperty.Should().Be(1000);
+                (b1 as Impl2)!.Bar.Should().Be("foobarbaz");
+            }
+        }
+        // abstract
+        {
+            UnionAbstractClass a = new ImplA1 { MyProperty = 10, Foo = 999 };
+            UnionAbstractClass b = new ImplA2 { MyProperty = 1000, Bar = "foobarbaz" };
+            {
+                var bin = MemoryPackSerializer.Serialize(a);
+                var a1 = MemoryPackSerializer.Deserialize<UnionAbstractClass>(bin);
+
+                a1.Should().NotBeNull();
+                a1!.MyProperty.Should().Be(10);
+                (a1 as ImplA1)!.Foo.Should().Be(999);
+            }
+            {
+                var bin = MemoryPackSerializer.Serialize(b);
+                var b1 = MemoryPackSerializer.Deserialize<UnionAbstractClass>(bin);
+
+                b1.Should().NotBeNull();
+                b1!.MyProperty.Should().Be(1000);
+                (b1 as ImplA2)!.Bar.Should().Be("foobarbaz");
+            }
+        }
+    }
 }

@@ -21,13 +21,26 @@ internal static class Extensions
         {
             foreach (var item in GetAllMembers(symbol.BaseType))
             {
-                yield return item;
+                // override item already iterated in parent type
+                if (!item.IsOverride)
+                {
+                    yield return item;
+                }
             }
         }
 
         foreach (var item in symbol.GetMembers())
         {
-            yield return item;
+            if (!item.IsOverride)
+            {
+                yield return item;
+            }
         }
+    }
+
+    public static bool IsWillImplementIMemoryPackable(this INamedTypeSymbol symbol, ReferenceSymbols reference)
+    {
+        // [MemoryPackable] and not interface/abstract, generator will implmement IMemoryPackable<T>
+        return !symbol.IsAbstract && symbol.ContainsAttribute(reference.MemoryPackableAttribute);
     }
 }

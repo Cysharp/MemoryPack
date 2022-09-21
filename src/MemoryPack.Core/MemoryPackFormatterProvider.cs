@@ -25,7 +25,7 @@ public static partial class MemoryPackFormatterProvider
     }
 
     public static void Register<T>()
-        where T : IMemoryPackable<T>
+        where T : IMemoryPackFormatterRegister
     {
         T.RegisterFormatter();
     }
@@ -62,9 +62,9 @@ public static partial class MemoryPackFormatterProvider
             if (Check<T>.registered) return;
 
             var type = typeof(T);
-            if (type.IsAssignableTo(typeof(IMemoryPackable)))
+            if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
             {
-                var m = type.GetMethod("MemoryPack.IMemoryPackable.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 m!.Invoke(null, null);
                 return;
             }

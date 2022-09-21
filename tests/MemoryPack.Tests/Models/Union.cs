@@ -54,15 +54,24 @@ public partial class Impl2 : IUnionInterface
     public string? Bar { get; set; }
 }
 
-//[MemoryPackable]
-//public abstract partial class UnionAbstract
-//{
-//}
-// TODO: Union can't be IMemoryPackable<T>!, only implements formatter!
-
-public interface IFooTwo : IMemoryPackable
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(ImplA1))]
+[MemoryPackUnion(1, typeof(ImplA2))]
+public abstract partial class UnionAbstractClass
 {
-    static IFooTwo()
-    {
-    }
+    public virtual int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class ImplA1 : UnionAbstractClass
+{
+    public override int MyProperty { get; set; }
+    public long Foo { get; set; }
+}
+
+[MemoryPackable]
+public partial class ImplA2 : UnionAbstractClass
+{
+    public override int MyProperty { get; set; }
+    public string? Bar { get; set; }
 }

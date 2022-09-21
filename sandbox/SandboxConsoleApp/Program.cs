@@ -15,6 +15,15 @@ using System.Xml.Linq;
 //ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
 ConsoleAppFramework.ConsoleApp.Run<SystemTextJsonChecker>(args);
 
+
+public abstract partial class FooBarBazO
+{
+}
+
+partial class FooBarBazO
+{
+}
+
 public partial class MyClass5
 {
     [GeneratedRegex("..(abcdefg).+", RegexOptions.Compiled)]
@@ -30,6 +39,25 @@ public partial class Tako
         public partial Regex Generated();
     }
 }
+
+public class FOOZ : IMemoryPackable<FOOZ>
+{
+    static void IMemoryPackable<FOOZ>.Deserialize(ref MemoryPackReader reader, scoped ref FOOZ? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    static void IMemoryPackFormatterRegister.RegisterFormatter()
+    {
+        throw new NotImplementedException();
+    }
+
+    static void IMemoryPackable<FOOZ>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,scoped ref FOOZ? value)
+    {
+        throw new NotImplementedException();
+    }
+}
+
 
 public class StandardRunner : ConsoleAppBase
 {
@@ -172,6 +200,9 @@ public partial class MyClass
     {
     }
 }
+
+
+
 
 [MemoryPackable]
 public partial class Mogera

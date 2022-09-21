@@ -36,6 +36,8 @@ public ref partial struct MemoryPackReader
         this.restSequenceLength = buffer.Length;
     }
 
+    // buffer operations
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref byte GetSpanReference(int sizeHint)
     {
@@ -116,7 +118,7 @@ public ref partial struct MemoryPackReader
         }
     }
 
-    // helpers
+    // read methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadObjectHeader(out byte propertyCount)
@@ -129,9 +131,17 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadUnionHeader(out byte tag)
     {
+        var code = GetSpanReference(1);
+        if (code != MemoryPackCode.Union)
+        {
+            tag = 0;
+            return false;
+        }
+        Advance(1);
+
         tag = GetSpanReference(1);
         Advance(1);
-        return tag != MemoryPackCode.NullObject;
+        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
