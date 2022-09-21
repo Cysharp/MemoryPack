@@ -198,6 +198,7 @@ public class TypeMeta
     public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
     {
         var noError = true;
+
         // interface/abstract but not union
         if (IsInterfaceOrAbstract && !IsUnion)
         {
@@ -223,6 +224,7 @@ public class TypeMeta
             }
         }
 
+        // methods
         foreach (var item in OnSerializing.Concat(OnSerialized).Concat(OnDeserializing).Concat(OnDeserialized))
         {
             if (item.Symbol.Parameters.Length != 0)
@@ -239,13 +241,81 @@ public class TypeMeta
             }
         }
 
-        // Union tags validation
-        // TODO: not allowed same tag number
-        // TODO: type does not derived target symbol
-        // TODO: union type not allow struct
-        // TODO: sealed type can't be union
-        // TODO: not abstract have to include self
-        // TODO: don't allow concrete type
+        // Member override member can't annotate[Ignore][Include]
+        if (Symbol.BaseType != null)
+        {
+            foreach (var item in Symbol.GetAllMembers(withoutOverride: false))
+            {
+                if (item.IsOverride)
+                {
+                    var include = item.ContainsAttribute(reference.MemoryPackIncludeAttribute);
+                    var ignore = item.ContainsAttribute(reference.MemoryPackIgnoreAttribute);
+                    if (include || ignore)
+                    {
+                        var attr = include ? "MemoryPackInclude" : "MemoryPackIgnore";
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OverrideMemberCantAddAnnotation, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, attr));
+                        noError = false;
+                    }
+                }
+            }
+        }
+
+        // Union validations
+        if (IsUnion)
+        {
+            if (Symbol.IsSealed)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SealedTypeCantBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+
+            if (!Symbol.IsAbstract)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConcreteTypeCantBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+
+            if (UnionTags.Select(x => x.Tag).HasDuplicate())
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTagDuplicate, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+
+            foreach (var item in UnionTags)
+            {
+                // type does not derived target symbol
+                if (Symbol.TypeKind == TypeKind.Interface)
+                {
+                    // interface, check interfaces.
+                    if (!item.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol)))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotImplementBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
+                        noError = false;
+                    }
+                }
+                else
+                {
+                    // abstract type, check base.
+                    if (!item.Type.GetAllBaseTypes().Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol)))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotDerivedBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
+                        noError = false;
+                    }
+                }
+
+                if (item.Type.IsValueType)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberNotAllowStruct, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
+                    noError = false;
+                }
+
+                if (!item.Type.ContainsAttribute(reference.MemoryPackableAttribute))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberMustBeMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
+                    noError = false;
+                }
+            }
+        }
 
         return noError;
     }

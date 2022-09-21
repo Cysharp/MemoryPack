@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,13 +14,20 @@ namespace MemoryPack.Tests;
 
 public class GeneratorDiagnosticsTest
 {
-    void Compile(int id, string code)
+    void Compile(int id, string code, bool allowMultipleError = false)
     {
         // note: when doesn't detect code-generator error(succeeded code generation)
         // compiler will show many errors(because compilation does not reference dependent assemblies(System.Memory.dll, etc...)
         var diagnostics = CSharpGeneratorRunner.RunGenerator(code);
-        diagnostics.Length.Should().Be(1);
-        diagnostics[0].Id.Should().Be("MEMPACK" + id.ToString("000"));
+        if (!allowMultipleError)
+        {
+            diagnostics.Length.Should().Be(1);
+            diagnostics[0].Id.Should().Be("MEMPACK" + id.ToString("000"));
+        }
+        else
+        {
+            diagnostics.Select(x => x.Id).Should().Contain("MEMPACK" + id.ToString("000"));
+        }
     }
 
     [Fact]
@@ -169,5 +177,170 @@ public partial struct Hoge
 """);
     }
 
+    [Fact]
+    public void MEMPACK009_OverrideMemberCantAddAnnotation()
+    {
+        Compile(9, """
+using MemoryPack;
 
+public abstract class MyClass
+{
+    public abstract int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class MyClass2 : MyClass
+{
+    [MemoryPackIgnore]
+    public override int MyProperty { get; set; }
+}
+""");
+
+        Compile(9, """
+using MemoryPack;
+
+public abstract class MyClass
+{
+    public abstract int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class MyClass3 : MyClass
+{
+    [MemoryPackInclude]
+    public override int MyProperty { get; set; }
+}
+
+""");
+    }
+
+    [Fact]
+    public void MEMPACK010_015_Union()
+    {
+        Compile(10, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(string))]
+public sealed partial class MyClass
+{
+}
+""", allowMultipleError: true);
+
+        Compile(11, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(string))]
+public partial class MyClass
+{
+}
+""", allowMultipleError: true);
+
+        Compile(12, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(1, typeof(MyClass1))]
+[MemoryPackUnion(1, typeof(MyClass2))]
+public partial interface IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass1 : IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass2 : IMyClass
+{
+}
+""", allowMultipleError: true);
+
+        Compile(13, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(1, typeof(MyClass1))]
+[MemoryPackUnion(2, typeof(MyClass2))]
+public partial interface IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass1 : IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass2
+{
+}
+""", allowMultipleError: true);
+
+        Compile(14, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(1, typeof(MyClass1))]
+[MemoryPackUnion(2, typeof(MyClass2))]
+public abstract partial class MyClassBase
+{
+}
+
+[MemoryPackable]
+public partial class MyClass1 : MyClassBase
+{
+}
+
+[MemoryPackable]
+public partial class MyClass2
+{
+}
+""", allowMultipleError: true);
+
+        Compile(15, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(1, typeof(MyClass1))]
+[MemoryPackUnion(2, typeof(MyClass2))]
+public partial interface IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass1 : IMyClass
+{
+}
+
+[MemoryPackable]
+public partial struct MyClass2 : IMyClass
+{
+}
+""", allowMultipleError: true);
+
+        Compile(16, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(1, typeof(MyClass1))]
+[MemoryPackUnion(2, typeof(MyClass2))]
+public partial interface IMyClass
+{
+}
+
+[MemoryPackable]
+public partial class MyClass1 : IMyClass
+{
+}
+
+// [MemoryPackable]
+public partial class MyClass2 : IMyClass
+{
+}
+""", allowMultipleError: true);
+
+    }
 }

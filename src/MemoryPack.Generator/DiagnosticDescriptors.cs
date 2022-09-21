@@ -72,4 +72,74 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor OverrideMemberCantAddAnnotation = new(
+        id: "MEMPACK009",
+        title: "Override member can't annotate Ignore/Include attribute",
+        messageFormat: "The MemoryPackable object '{0}' override member '{1}' can't annotate {2} attribute",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SealedTypeCantBeUnion = new(
+        id: "MEMPACK010",
+        title: "Sealed type can't be union",
+        messageFormat: "The MemoryPackable object '{0}' is sealed type so can't be Union",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+
+    public static readonly DiagnosticDescriptor ConcreteTypeCantBeUnion = new(
+        id: "MEMPACK011",
+        title: "Concrete type can't be union",
+        messageFormat: "The MemoryPackable object '{0}' can be Union, only allow abstract or interface",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+
+    public static readonly DiagnosticDescriptor UnionTagDuplicate = new(
+        id: "MEMPACK012",
+        title: "Union tag is duplicate",
+        messageFormat: "The MemoryPackable object '{0}' union tag value is duplicate",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+
+    public static readonly DiagnosticDescriptor UnionMemberTypeNotImplementBaseType = new(
+        id: "MEMPACK013",
+        title: "Union member not implement union interface",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' not implment union interface",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+
+    public static readonly DiagnosticDescriptor UnionMemberTypeNotDerivedBaseType = new(
+        id: "MEMPACK014",
+        title: "Union member not dervided union base type",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' not derived union type",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnionMemberNotAllowStruct = new(
+        id: "MEMPACK015",
+        title: "Union member can't be struct",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' can't be member, not allows struct",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnionMemberMustBeMemoryPackable = new(
+        id: "MEMPACK016",
+        title: "Union member must be MemoryPackable",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' must be MemoryPackable",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+
 }
