@@ -383,16 +383,18 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
+    END:
 {{OnSerialized.Select(x => "        " + x.Emit()).NewLine()}}
+        return;
     }
 
     static void IMemoryPackable<{{Name}}>.Deserialize(ref MemoryPackReader reader, scoped ref {{Name}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{deserializeBody}}
-        {{(!IsUnmanagedType ? "value = " + EmitConstructor() : "")}}
-{{(!IsUnmanagedType ? EmitDeserializeConstruction() : "")}}
+    END:
 {{OnDeserialized.Select(x => "        " + x.Emit()).NewLine()}}
+        return;
     }
 
     sealed class {{Name}}Formatter : MemoryPackFormatter<{{Name}}>
@@ -415,18 +417,42 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 
     private string EmitDeserializeBody()
     {
-        // TODO: versioning check for count...
+        var count = Members.Length;
+
         return $$"""
         if (!reader.TryReadObjectHeader(out var count))
         {
             value = default;
-{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
+            goto END;
         }
-        
-        if (count != {{Members.Length}}) ThrowHelper.ThrowInvalidPropertyCount({{Members.Length}}, count);
 
-{{Members.Select(x => "        " + x.EmitDeserialize()).NewLine()}}
+        if (count == {{count}})
+        {            
+{{Members.Select(x => "            " + x.EmitDeserialize()).NewLine()}}
+            value = {{EmitConstructor()}}
+            {
+{{EmitDeserializeConstruction("                ")}}
+            };
+            goto END;
+        }
+        else if (count > {{count}})
+        {
+            ThrowHelper.ThrowInvalidPropertyCount({{count}}, count);
+        }
+        else
+        {
+{{Members.Select(x => $"            {x.MemberType.FullyQualifiedToString()} __{x.Name} = default;").NewLine()}}
+
+            if (count == 0) goto NEW;
+{{Members.Select((x, i) => "            " + x.EmitDeserializeVersionChecked(i)).NewLine()}}
+
+            NEW:
+            value = {{EmitConstructor()}}
+            {
+{{EmitDeserializeConstruction("                ")}}
+            };
+            goto END;
+        }
 """;
     }
 
@@ -437,8 +463,7 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         if (value == null)
         {
             writer.WriteNullObjectHeader();
-{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
-            return;
+            goto END;
         }
 """ : "")}}
 
@@ -472,14 +497,11 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         }
     }
 
-    string EmitDeserializeConstruction()
+    string EmitDeserializeConstruction(string indent)
     {
         // all value is deserialized, __Name is exsits.
-        return $$"""
-        {
-{{string.Join("," + Environment.NewLine, Members.Where(x => x.IsSettable && !x.IsConstructorParameter).Select(x => "            " + x.EmitConstruction()))}}
-        };
-""";
+        return $"{string.Join("," + Environment.NewLine, Members.Where(x => x.IsSettable && !x.IsConstructorParameter)
+            .Select(x => indent + x.EmitConstruction()))}";
     }
 
     string EmitUnionTemplate()
@@ -758,6 +780,28 @@ public class MemberMeta
             case MemberKind.NonSerializable:
             default:
                 return $"var __{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+        }
+    }
+
+    public string EmitDeserializeVersionChecked(int i)
+    {
+        // TODO: MemberTypeName should be full qualified.
+        // TODO: pass ref...?
+        var ifGoto = $"if (count == {i + 1}) goto NEW;";
+
+        switch (Kind)
+        {
+            case MemberKind.MemoryPackable:
+                return $"__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(); {ifGoto}";
+            case MemberKind.Unmanaged:
+                return $"reader.ReadUnmanaged<{MemberType.Name}>(out __{Name}); {ifGoto}";
+            case MemberKind.String:
+                return $"__{Name} = reader.ReadString(); {ifGoto}";
+            case MemberKind.KnownType:
+            case MemberKind.Collection: // TODO: inline optimization.
+            case MemberKind.NonSerializable:
+            default:
+                return $"__{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(); {ifGoto}";
         }
     }
 

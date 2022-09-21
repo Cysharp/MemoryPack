@@ -34,7 +34,7 @@ namespace MemoryPack.Tests.Models
 
         public StandardTypeTwo()
         {
-            _ = new StandardTypeTwoFormatter();
+            // _ = new StandardTypeTwoFormatter();
         }
 
         // MEMPACK002 nested is not allowed
@@ -88,6 +88,6 @@ public partial class GlobalNamespaceType
 
     public GlobalNamespaceType()
     {
-        _ = new GlobalNamespaceTypeFormatter();
+        // _ = new GlobalNamespaceTypeFormatter();
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -184,5 +185,50 @@ public class GeneratorTest
                 (b1 as ImplA2)!.Bar.Should().Be("foobarbaz");
             }
         }
+    }
+
+    [Fact]
+    public void Versioning()
+    {
+        var v0 = new Versioning0();
+        var v1 = new Versioning1() { MyProperty1 = 999 };
+        var v2 = new Versioning2() { MyProperty1 = 10, MyProperty2 = 33333 };
+        var v3 = new Versioning3() { MyProperty1 = 4, MyProperty2 = 55, MyProperty3 = 24442 };
+        var v4 = new Versioning4() { MyProperty1 = 10000, MyProperty2 = 3, MyProperty3 = 4252, MyProperty4 = 99999 };
+
+        var bin0 = MemoryPackSerializer.Serialize(v0);
+        var bin1 = MemoryPackSerializer.Serialize(v1);
+        var bin2 = MemoryPackSerializer.Serialize(v2);
+        var bin3 = MemoryPackSerializer.Serialize(v3);
+        var bin4 = MemoryPackSerializer.Serialize(v4);
+
+        // small -> large is ok.
+        var v0Tov4 = MemoryPackSerializer.Deserialize<Versioning4>(bin0);
+        var v1Tov4 = MemoryPackSerializer.Deserialize<Versioning4>(bin1);
+        var v2Tov4 = MemoryPackSerializer.Deserialize<Versioning4>(bin2);
+        var v3Tov4 = MemoryPackSerializer.Deserialize<Versioning4>(bin3);
+        var v4Tov4 = MemoryPackSerializer.Deserialize<Versioning4>(bin4);
+
+        v0Tov4.Should().NotBeNull();
+        v1Tov4.Should().BeEquivalentTo(v1);
+        v2Tov4.Should().BeEquivalentTo(v2);
+        v3Tov4.Should().BeEquivalentTo(v3);
+        v4Tov4.Should().BeEquivalentTo(v4);
+
+        // large -> small is ng
+        Assert.Throws<InvalidOperationException>(() => MemoryPackSerializer.Deserialize<Versioning2>(bin3));
+
+        // check wrapped
+        var w2 = new WrappedVersioning2 { Before = "BF", V2 = v2, After = "AF" };
+        var binw2 = MemoryPackSerializer.Serialize(w2);
+
+        var w4 = MemoryPackSerializer.Deserialize<WrappedVersioning4>(binw2);
+
+        w4!.Before.Should().Be("BF");
+        w4!.V4!.MyProperty1.Should().Be(v2.MyProperty1);
+        w4!.V4!.MyProperty2.Should().Be(v2.MyProperty2);
+        w4!.V4!.MyProperty3.Should().Be(0);
+        w4!.V4!.MyProperty4.Should().Be(0);
+        w4!.After.Should().Be("AF");
     }
 }

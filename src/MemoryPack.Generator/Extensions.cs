@@ -66,4 +66,9 @@ internal static class Extensions
             t = t.BaseType;
         }
     }
+
+    public static string FullyQualifiedToString(this ISymbol symbol)
+    {
+        return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
 }
