@@ -9,8 +9,6 @@ internal static class DiagnosticDescriptors
 {
     const string Category = "GenerateMemoryPack";
 
-    // TODO: property count
-
     public static readonly DiagnosticDescriptor MustBePartial = new(
         id: "MEMPACK001",
         title: "MemoryPackable object must be partial",
@@ -139,6 +137,14 @@ internal static class DiagnosticDescriptors
         id: "MEMPACK016",
         title: "Union member must be MemoryPackable",
         messageFormat: "The MemoryPackable object '{0}' union member '{1}' must be MemoryPackable",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MembersCountOver250 = new(
+        id: "MEMPACK017",
+        title: "Members count limit",
+        messageFormat: "The MemoryPackable object '{0}' member count is '{1}', however limit size is 249",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

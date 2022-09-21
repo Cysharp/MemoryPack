@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MemoryPack.Tests;
 
-public class GeneratorDiagnosticsTest
+public partial class GeneratorDiagnosticsTest
 {
     void Compile(int id, string code, bool allowMultipleError = false)
     {
@@ -215,7 +215,7 @@ public partial class MyClass3 : MyClass
     }
 
     [Fact]
-    public void MEMPACK010_015_Union()
+    public void MEMPACK010_016_Union()
     {
         Compile(10, """
 using MemoryPack;

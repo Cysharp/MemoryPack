@@ -251,6 +251,11 @@ public class GeneratorTest
         //set rec
         rec.Rec = rec;
         Assert.Throws<InvalidOperationException>(() => MemoryPackSerializer.Serialize(rec));
+    }
 
+    [Fact]
+    public void ManyMemebrs()
+    {
+        MemoryPackSerializer.Serialize(new ManyMembers());
     }
 }

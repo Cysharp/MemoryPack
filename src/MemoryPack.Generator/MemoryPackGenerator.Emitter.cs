@@ -260,6 +260,13 @@ public class TypeMeta
             }
         }
 
+        // ALl Members
+        if (Members.Length >= 250) // MemoryPackCode.Reserved1
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MembersCountOver250, syntax.Identifier.GetLocation(), Symbol.Name, Members.Length));
+            noError = false;
+        }
+
         // Union validations
         if (IsUnion)
         {
