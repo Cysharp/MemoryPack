@@ -45,6 +45,12 @@ public class OverwriteTest
 
         //// same reference
         //original.Should().BeSameAs(write);
+
+
+        var n = 10;
+        var i = 0;
+        var a = new int[n][];
+
     }
 
     // impl like this
