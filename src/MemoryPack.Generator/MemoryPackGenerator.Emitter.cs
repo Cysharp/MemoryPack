@@ -1,10 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Immutable;
-using System.Reflection;
-using System.Text;
 
 namespace MemoryPack.Generator;
 
@@ -283,6 +279,24 @@ public class TypeMeta
             noError = false;
         }
 
+        // exists can't serialize member
+        foreach (var item in Members)
+        {
+            if (item.Kind == MemberKind.NonSerializable)
+            {
+                if (item.MemberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || item.MemberType.TypeKind == TypeKind.Delegate)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberCantSerializeType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
+                    noError = false;
+                }
+                else
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsNotMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
+                    noError = false;
+                }
+            }
+        }
+
         // Union validations
         if (IsUnion)
         {
@@ -438,7 +452,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         return $$"""
         if (!reader.TryReadObjectHeader(out var count))
         {
-            value = default;
+            value = default!;
             goto END;
         }
 
@@ -457,7 +471,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         }
         else
         {
-{{Members.Select(x => $"            {x.MemberType.FullyQualifiedToString()} __{x.Name} = default;").NewLine()}}
+{{Members.Select(x => $"            {x.MemberType.FullyQualifiedToString()} __{x.Name} = default!;").NewLine()}}
 
             if (count == 0) goto NEW;
 {{Members.Select((x, i) => "            " + x.EmitDeserializeVersionChecked(i)).NewLine()}}
@@ -754,7 +768,13 @@ public class MemberMeta
             throw new Exception("member is not field or property.");
         }
 
-        if (MemberType.IsUnmanagedType)
+        // Setup MemberKind
+
+        if (MemberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || MemberType.TypeKind == TypeKind.Delegate)
+        {
+            Kind = MemberKind.NonSerializable; // object, Array, delegate is not allowed
+        }
+        else if (MemberType.IsUnmanagedType)
         {
             Kind = MemberKind.Unmanaged;
         }
@@ -762,14 +782,61 @@ public class MemberMeta
         {
             Kind = MemberKind.String;
         }
-        else if (MemberType.AllInterfaces.Any(x => x.IsGenericType && SymbolEqualityComparer.Default.Equals(x.ConstructUnboundGenericType(), references.IMemoryPackable)))
+        else if (MemberType.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(references.IMemoryPackable)))
         {
             Kind = MemberKind.MemoryPackable;
         }
+        else if (MemberType.IsWillImplementIMemoryPackable(references))
+        {
+            Kind = MemberKind.MemoryPackable;
+        }
+        //else if (symbol.ContainsAttribute(references.MemoryPackGenerateAttribute))
+        //{
+        //    Kind = MemberKind.MemoryPackGenerate;
+        //}
+        else if (symbol.ContainsAttribute(references.MemoryPackFormatterAttribute))
+        {
+            Kind = MemberKind.MemoryPackFormatter;
+        }
         else
         {
-            // TODO: check Collection / KnownType / NonSerializable
-            Kind = MemberKind.KnownType; // TODO:????
+            if (MemberType.TypeKind == TypeKind.Array)
+            {
+                if (MemberType is IArrayTypeSymbol array && array.IsSZArray)
+                {
+                    var elemType = array.ElementType;
+                    if (elemType.IsUnmanagedType)
+                    {
+                        Kind = MemberKind.UnmanagedArray;
+                        return;
+                    }
+                }
+
+                Kind = MemberKind.Object;
+                return;
+            }
+
+            if (MemberType.TypeKind == TypeKind.TypeParameter) // T
+            {
+                Kind = MemberKind.Object;
+                return;
+            }
+
+            if (references.KnownTypes.Contains(MemberType))
+            {
+                Kind = MemberKind.KnownType;
+                return;
+            }
+
+            var isIterable = MemberType.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(references.KnownTypes.System_Collections_Generic_IEnumerable_T));
+            if (isIterable)
+            {
+                Kind = MemberKind.Object;
+            }
+            else
+            {
+                Kind = MemberKind.NonSerializable; // maybe can't serialize, diagnostics target
+            }
         }
     }
 
@@ -778,64 +845,46 @@ public class MemberMeta
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
+                //case MemberKind.MemoryPackGenerate:
                 return $"writer.WritePackable(value.{Name});";
             case MemberKind.Unmanaged:
                 return $"writer.WriteUnmanaged(value.{Name});";
             case MemberKind.String:
                 return $"writer.WriteString(value.{Name});";
-            case MemberKind.KnownType:
-            case MemberKind.Collection: // TODO: inline optimization.
-            case MemberKind.NonSerializable:
+            case MemberKind.UnmanagedArray:
+                return $"writer.WriteUnmanagedArray(value.{Name});";
             default:
                 return $"writer.WriteObject(value.{Name});";
         }
     }
 
-    public string EmitDeserialize()
+    public string EmitDeserialize(bool declareVar = true)
     {
-        // TODO: MemberTypeName should be full qualified.
         // TODO: pass ref...?
+        var prefix = declareVar ? "var " : "";
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"var __{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                //case MemberKind.MemoryPackGenerate:
+                return $"{prefix}__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged<{MemberType.Name}>(out var __{Name});";
+                return $"reader.ReadUnmanaged<{MemberType.Name}>(out {prefix}__{Name});";
             case MemberKind.String:
-                return $"var __{Name} = reader.ReadString();";
-            case MemberKind.KnownType:
-            case MemberKind.Collection: // TODO: inline optimization.
-            case MemberKind.NonSerializable:
+                return $"{prefix}__{Name} = reader.ReadString();";
+            case MemberKind.UnmanagedArray:
+                return $"{prefix}__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             default:
-                return $"var __{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"{prefix}__{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
     }
 
     public string EmitDeserializeVersionChecked(int i)
     {
-        // TODO: MemberTypeName should be full qualified.
-        // TODO: pass ref...?
-        var ifGoto = $"if (count == {i + 1}) goto NEW;";
-
-        switch (Kind)
-        {
-            case MemberKind.MemoryPackable:
-                return $"__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(); {ifGoto}";
-            case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged<{MemberType.Name}>(out __{Name}); {ifGoto}";
-            case MemberKind.String:
-                return $"__{Name} = reader.ReadString(); {ifGoto}";
-            case MemberKind.KnownType:
-            case MemberKind.Collection: // TODO: inline optimization.
-            case MemberKind.NonSerializable:
-            default:
-                return $"__{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(); {ifGoto}";
-        }
+        return $"{EmitDeserialize(declareVar: false)} if (count == {i + 1}) goto NEW;";
     }
 
     public string EmitConstruction()
     {
-        // TODO:if consructor parameter, don't emit.
         return $"{Name} = __{Name}";
     }
 }
@@ -843,10 +892,16 @@ public class MemberMeta
 
 public enum MemberKind
 {
-    MemoryPackable,
+    MemoryPackable, // IMemoryPackable<> or [MemoryPackable]
     Unmanaged,
     KnownType,
     String,
-    Collection, // TODO: +Array?
-    NonSerializable
+    UnmanagedArray,
+
+    // from attribute
+    // MemoryPackGenerate,
+    MemoryPackFormatter,
+
+    Object, // others allow
+    NonSerializable // not allowed
 }

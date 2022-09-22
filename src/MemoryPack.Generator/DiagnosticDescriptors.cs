@@ -149,5 +149,19 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor MemberCantSerializeType = new(
+        id: "MEMPACK018",
+        title: "Member can't serialize type",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' type is '{2}' that can't serialize",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor MemberIsNotMemoryPackable = new(
+        id: "MEMPACK019",
+        title: "Member is not MemoryPackable object",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' type '{2}' is not MemoryPackable. Annotate [MemoryPackable] to '{2}' or if external type that can serialize, annotate `[MemoryPackFormatter]` to member",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

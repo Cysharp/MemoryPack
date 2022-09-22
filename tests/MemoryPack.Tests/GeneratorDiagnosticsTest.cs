@@ -343,4 +343,56 @@ public partial class MyClass2 : IMyClass
 """, allowMultipleError: true);
 
     }
+
+
+
+    [Fact]
+    public void MEMPACK018_MemberCantSerializeType()
+    {
+        Compile(18, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Hoge
+{
+    public object Foo { get; set;}
+}
+""");
+
+        Compile(18, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Hoge
+{
+    public System.Array Foo { get; set;}
+}
+""");
+
+        Compile(18, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Hoge
+{
+    public System.Action Foo { get; set;}
+}
+""");
+    }
+
+    [Fact]
+    public void MEMPACK019_MemberIsNotMemoryPackable()
+    {
+        Compile(19, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Hoge
+{
+    public Foo Bar { get; set;}
+}
+
+public class Foo { }
+""");
+    }
 }

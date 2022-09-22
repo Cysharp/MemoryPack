@@ -1,6 +1,6 @@
 ﻿namespace MemoryPack;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackableAttribute : Attribute
 {
     public MemoryPackableAttribute()
@@ -19,6 +19,17 @@ public sealed class MemoryPackUnionAttribute : Attribute
         this.Tag = tag;
         this.Type = type;
     }
+}
+
+// initial design, does not provide this.
+//[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+//public sealed class MemoryPackGenerateAttribute : Attribute
+//{
+//}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackFormatterAttribute : Attribute
+{
 }
 
 // similar naming as System.Text.Json attribtues
