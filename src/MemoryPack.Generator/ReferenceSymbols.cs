@@ -5,6 +5,7 @@ namespace MemoryPack.Generator;
 public class ReferenceSymbols
 {
     public Compilation Compilation { get; }
+
     public INamedTypeSymbol MemoryPackableAttribute { get; }
     public INamedTypeSymbol MemoryPackUnionAttribute { get; }
     public INamedTypeSymbol MemoryPackConstructorAttribute { get; }
@@ -17,12 +18,13 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackOnDeserializingAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializedAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
-
+    
     public WellKnownTypes KnownTypes { get; }
 
     public ReferenceSymbols(Compilation compilation)
     {
         Compilation = compilation;
+
         // MemoryPack
         MemoryPackableAttribute = GetTypeByMetadataName(MemoryPackGenerator.MemoryPackableAttributeFullName);
         MemoryPackUnionAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackUnionAttribute");

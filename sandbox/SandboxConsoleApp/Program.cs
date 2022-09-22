@@ -23,6 +23,8 @@ using System.Xml.Linq;
 //writer.WriteUnmanagedArray
 //var reader = new MemoryPackReader();
 
+var t = new Tadano();
+
 var p = new Packable<int>();
 if (p is IMemoryPackable<int>)
 {
@@ -33,9 +35,20 @@ else
     Console.WriteLine("NG");
 }
 
-// [MemoryPackable]
+var tako = 100;
+Foo(out tako);
+
+void Foo(out int value)
+{
+    // Console.WriteLine(value);
+
+    value = 0;
+}
+
+[MemoryPackable]
 public partial class Packable<T>
 {
+    public int TakoyakiX { get; set; }
     [MemoryPackIgnore]
     public object? ObjectObject { get; set; }
     [MemoryPackIgnore]
@@ -65,117 +78,28 @@ public class Nazo2
 
 public class Tadano
 {
-
+    public int MyProperty { get; set; }
 }
 
 
 
-
-partial class Packable<T> : IMemoryPackable<Packable<T>>
+public class C
 {
-    static Packable()
-    {
-        MemoryPackFormatterProvider.Register<Packable<T>>();
-    }
+    public int Foo { get; init; }
+    public required int Bar { get; init; }
 
-    static void IMemoryPackFormatterRegister.RegisterFormatter()
-    {
-        if (!MemoryPackFormatterProvider.IsRegistered<Packable<T>>())
-        {
-            MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<Packable<T>>());
-        }
-    }
 
-    static void IMemoryPackable<Packable<T>>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Packable<T>? value)
-    {
+}
 
-        if (value == null)
-        {
-            writer.WriteNullObjectHeader();
-            goto END;
-        }
 
-        writer.WriteObjectHeader(7);
-        writer.WriteUnmanagedArray(value.Array);
-        writer.WriteObject(value.MoreArray);
-        writer.WriteObject(value.List);
-        writer.WriteObject(value.Version);
-        writer.WriteObject(value.TTTTT);
-        writer.WriteObject(value.MyProperty);
-        writer.WriteObject(value.MyProperty2);
-    END:
+//[MemoryPackable]
+public partial record MyRecord(int foo, int bar, string baz);
 
-        return;
-    }
-
-    static void IMemoryPackable<Packable<T>>.Deserialize(ref MemoryPackReader reader, scoped ref Packable<T>? value)
-    {
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default!;
-            goto END;
-        }
-
-        if (count == 7)
-        {
-            var __Array = reader.ReadUnmanagedArray<int>();
-            var __MoreArray = reader.ReadObject<int[,]>();
-            var __List = reader.ReadObject<global::System.Collections.Generic.List<int>>();
-            var __Version = reader.ReadObject<global::System.Version>();
-            var __TTTTT = reader.ReadObject<T>();
-            var __MyProperty = reader.ReadObject<global::Nazo>();
-            var __MyProperty2 = reader.ReadObject<global::Nazo2>();
-            value = new Packable<T>()
-            {
-                Array = __Array,
-                MoreArray = __MoreArray,
-                List = __List,
-                Version = __Version,
-                TTTTT = __TTTTT,
-                MyProperty = __MyProperty,
-                MyProperty2 = __MyProperty2
-            };
-            goto END;
-        }
-        else if (count > 7)
-        {
-            ThrowHelper.ThrowInvalidPropertyCount(7, count);
-        }
-        else
-        {
-            int[] __Array;
-            int[,] __MoreArray = default!;
-            global::System.Collections.Generic.List<int> __List = default!;
-            global::System.Version __Version = default!;
-            T __TTTTT = default!;
-            global::Nazo __MyProperty = default!;
-            global::Nazo2 __MyProperty2 = default!;
-
-            if (count == 0) goto NEW;
-            __Array = reader.ReadUnmanagedArray<int>(); if (count == 1) goto NEW;
-            __MoreArray = reader.ReadObject<int[,]>(); if (count == 2) goto NEW;
-            __List = reader.ReadObject<global::System.Collections.Generic.List<int>>(); if (count == 3) goto NEW;
-            __Version = reader.ReadObject<global::System.Version>(); if (count == 4) goto NEW;
-            __TTTTT = reader.ReadObject<T>(); if (count == 5) goto NEW;
-            __MyProperty = reader.ReadObject<global::Nazo>(); if (count == 6) goto NEW;
-            __MyProperty2 = reader.ReadObject<global::Nazo2>(); if (count == 7) goto NEW;
-
-            NEW:
-            value = new Packable<T>()
-            {
-                Array = __Array,
-                MoreArray = __MoreArray,
-                List = __List,
-                Version = __Version,
-                TTTTT = __TTTTT,
-                MyProperty = __MyProperty,
-                MyProperty2 = __MyProperty2
-            };
-            goto END;
-        }
-    END:
-
-        return;
-    }
+//[MemoryPackable]
+public partial struct FooA
+{
+    public int Foo { get; set; }
+    public int Bar { get; set; }
+    public int Baz { get; set; }
+    public string Tako { get; set; }
 }

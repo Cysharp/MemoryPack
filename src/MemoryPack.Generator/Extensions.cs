@@ -38,10 +38,10 @@ internal static class Extensions
         }
     }
 
-    public static bool IsWillImplementIMemoryPackable(this ITypeSymbol symbol, ReferenceSymbols reference)
+    public static bool IsWillImplementIMemoryPackable(this ITypeSymbol symbol, ReferenceSymbols references)
     {
         // [MemoryPackable] and not interface/abstract, generator will implmement IMemoryPackable<T>
-        return !symbol.IsAbstract && symbol.ContainsAttribute(reference.MemoryPackableAttribute);
+        return !symbol.IsAbstract && symbol.ContainsAttribute(references.MemoryPackableAttribute);
     }
 
     public static bool HasDuplicate<T>(this IEnumerable<T> source)

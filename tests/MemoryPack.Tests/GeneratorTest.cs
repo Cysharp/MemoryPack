@@ -104,7 +104,7 @@ public class GeneratorTest
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin, ref mc);
-        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing2", "Constructor", "Set", "OnDeserialized1", "OnDeserialized2");
+        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing2", "Get", "Set", "OnDeserialized1", "OnDeserialized2");
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin);
@@ -299,5 +299,69 @@ public class GeneratorTest
 
         a2.Should().BeOfType<GenricUnionA<long>>().Subject.Should().BeEquivalentTo(new { Value = (long)9999999, MyProperty = 10000 });
         b2.Should().BeOfType<GenricUnionB<long>>().Subject.Should().BeEquivalentTo(new { Value = (long)1111111, MyProperty = 99.9932 });
+    }
+
+    [Fact]
+    public void Overwrite()
+    {
+        var v1 = new Overwrite()
+        {
+            MyProperty1 = 10,
+            MyProperty2 = 100,
+            MyProperty3 = "foo",
+            MyProperty4 = "bar"
+        };
+
+        var v2 = new Overwrite2()
+        {
+            MyProperty1 = 11,
+            MyProperty2 = 101,
+            MyProperty3 = "foz",
+            MyProperty4 = "baz"
+        };
+
+        var v3 = new Overwrite3(14, 130)
+        {
+            MyProperty3 = "fzo",
+            MyProperty4 = "bzr"
+        };
+
+        var v4 = new Overwrite4()
+        {
+            MyProperty1 = 19,
+            MyProperty2 = v1
+        };
+
+        var bin = MemoryPackSerializer.Serialize(v1);
+
+        v1.MyProperty1 = 999;
+        v1.MyProperty2 = 100000;
+        v1.MyProperty3 = "foooooo";
+        v1.MyProperty4 = "barrrrrrrrr";
+
+        var v1_original = v1;
+        MemoryPackSerializer.Deserialize(bin, ref v1);
+        Debug.Assert(v1 != null);
+        v1.MyProperty1.Should().Be(10);
+        v1.MyProperty2.Should().Be(100);
+        v1.MyProperty3.Should().Be("foo");
+        v1.MyProperty4.Should().Be("bar");
+
+        v1.Should().BeSameAs(v1_original);
+
+        VerifyEquivalent(v2);
+        VerifyEquivalent(v3).Should().NotBeSameAs(v3);
+
+        var bin2 = MemoryPackSerializer.Serialize(v4);
+        var v4_original = v4;
+        v4.MyProperty1 = 9999;
+
+        MemoryPackSerializer.Deserialize(bin2, ref v4);
+        Debug.Assert(v4 != null);
+        v4.MyProperty1.Should().Be(19);
+        v4.MyProperty2.Should().BeSameAs(v1);
+        
+        v1.Should().BeSameAs(v1_original);
+
     }
 }

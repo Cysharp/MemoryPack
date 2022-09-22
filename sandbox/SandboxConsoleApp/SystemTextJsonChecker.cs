@@ -27,6 +27,9 @@ class SystemTextJsonChecker : ConsoleAppBase
     //[RootCommand]
     public void JsonConstructorSelector()
     {
+#if false
+
+#endif
         var one = JsonSerializer.Serialize(new One());
         var two = JsonSerializer.Serialize(new Two(1, 2));
         var three = JsonSerializer.Serialize(new Three());

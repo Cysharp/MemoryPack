@@ -183,6 +183,12 @@ public ref partial struct MemoryPackReader
         return DangerousReadUnmanagedArray<T>();
     }
 
+    public void ReadUnmanagedArray<T>(scoped ref T[]? value)
+        where T : unmanaged
+    {
+        DangerousReadUnmanagedArray<T>(ref value);
+    }
+
     // T: should be unamanged type
     public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {
@@ -204,7 +210,7 @@ public ref partial struct MemoryPackReader
         return dest;
     }
 
-    public unsafe void DangerousReadUnmanagedArray<T>(ref T[]? value)
+    public unsafe void DangerousReadUnmanagedArray<T>(scoped ref T[]? value)
     {
         if (!TryReadLengthHeader(out var length))
         {
