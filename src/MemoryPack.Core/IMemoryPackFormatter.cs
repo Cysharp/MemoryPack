@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MemoryPack;
 
@@ -10,7 +9,14 @@ public interface IMemoryPackFormatter
     void Deserialize(ref MemoryPackReader reader, scoped ref object? value);
 }
 
-public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter
+public interface IMemoryPackFormatter<T> : IMemoryPackFormatter
+{
+    void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
+        where TBufferWriter : IBufferWriter<byte>;
+    void Deserialize(ref MemoryPackReader reader, scoped ref T? value);
+}
+
+public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter<T>
 {
     public abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;

@@ -44,6 +44,8 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedTypeFormatter<TimeSpan>());
         Register(new UnmanagedTypeArrayFormatter<TimeSpan>());
 
+        Register(new StringFormatter());
+        Register(new ArrayFormatter<String>());
         Register(new VersionFormatter());
         Register(new ArrayFormatter<Version>());
         Register(new UriFormatter());

@@ -71,4 +71,11 @@ internal static class Extensions
     {
         return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
+
+    public static bool EqualsUnconstructedGenericType(this INamedTypeSymbol left, INamedTypeSymbol right)
+    {
+        var l = left.IsGenericType ? left.ConstructUnboundGenericType() : left;
+        var r = right.IsGenericType ? right.ConstructUnboundGenericType() : right;
+        return SymbolEqualityComparer.Default.Equals(l, r);
+    }
 }

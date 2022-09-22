@@ -1,4 +1,5 @@
-﻿using MemoryPack.Tests.Models;
+﻿using MemoryPack.Formatters;
+using MemoryPack.Tests.Models;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -257,5 +258,46 @@ public class GeneratorTest
     public void ManyMemebrs()
     {
         MemoryPackSerializer.Serialize(new ManyMembers());
+    }
+
+    [Fact]
+    public void Generics()
+    {
+        var gt = new GenericsType<string>()
+        {
+            MyProperty1 = 2,
+            MyProperty2 = "hogehoge"
+        };
+
+        VerifyEquivalent(gt);
+
+        MemoryPackFormatterProvider.Register(new DictionaryFormatter<int, GenericsType<string>>());
+        var comp = new MoreComplecsGenerics<int, string>()
+        {
+            Dict = new Dictionary<int, GenericsType<string>>{
+                { 3, new GenericsType<string>{ MyProperty1 = 10, MyProperty2 = "tako" } },
+                { 9, new GenericsType<string>{ MyProperty1 = 99, MyProperty2 = "yaki" } },
+            }
+        };
+
+        var bin = MemoryPackSerializer.Serialize(comp);
+        var two = MemoryPackSerializer.Deserialize<MoreComplecsGenerics<int, string>>(bin);
+
+        Debug.Assert(two != null);
+        (two.Dict![3] is { MyProperty1: 10, MyProperty2: "tako" }).Should().BeTrue();
+        (two.Dict![9] is { MyProperty1: 99, MyProperty2: "yaki" }).Should().BeTrue();
+
+        // union
+        var a = new GenricUnionA<long>() { Value = 9999999, MyProperty = 10000 };
+        var b = new GenricUnionB<long>() { Value = 1111111, MyProperty = 99.9932 };
+
+        var binA = MemoryPackSerializer.Serialize<IGenericUnion<long>>(a);
+        var binB = MemoryPackSerializer.Serialize<IGenericUnion<long>>(b);
+
+        var a2 = MemoryPackSerializer.Deserialize<IGenericUnion<long>>(binA);
+        var b2 = MemoryPackSerializer.Deserialize<IGenericUnion<long>>(binB);
+
+        a2.Should().BeOfType<GenricUnionA<long>>().Subject.Should().BeEquivalentTo(new { Value = (long)9999999, MyProperty = 10000 });
+        b2.Should().BeOfType<GenricUnionB<long>>().Subject.Should().BeEquivalentTo(new { Value = (long)1111111, MyProperty = 99.9932 });
     }
 }

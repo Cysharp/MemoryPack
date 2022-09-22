@@ -15,7 +15,6 @@ using System.Xml.Linq;
 //ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
 ConsoleAppFramework.ConsoleApp.Run<SystemTextJsonChecker>(args);
 
-
 public abstract partial class FooBarBazO
 {
 }

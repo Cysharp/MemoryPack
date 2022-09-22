@@ -30,6 +30,7 @@
 
     var knownTypes = new Type[]
     {
+        typeof(string),
         typeof(Version),
         typeof(Uri),
     };

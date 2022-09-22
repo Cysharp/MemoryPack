@@ -74,7 +74,7 @@ public partial class Test
 
     public Test()
     {
-        _ = new TestFormatter();
+        // _ = new TestFormatter();
     }
 }
 #endif

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
 
 namespace MemoryPack.Generator;
 
@@ -70,7 +71,9 @@ using MemoryPack;
 
         // global::FooBarBaz.MyClass
         var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            .Replace("global::", "");
+            .Replace("global::", "")
+            .Replace("<", "_")
+            .Replace(">", "_");
         context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
     }
 
@@ -88,10 +91,10 @@ using MemoryPack;
 public class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
-    ReferenceSymbols reference;
+    readonly ReferenceSymbols reference;
 
     public INamedTypeSymbol Symbol { get; }
-    public string Name { get; }
+    public string TypeName { get; }
     public MemberMeta[] Members { get; }
     public bool IsValueType { get; set; }
     public bool IsUnmanagedType { get; }
@@ -109,7 +112,7 @@ public class TypeMeta
     {
         this.reference = reference;
         this.Symbol = symbol;
-        this.Name = symbol.Name;
+        this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         this.Consrtuctor = ChooseConstructor(symbol, reference);
 
         this.Members = symbol.GetAllMembers() // iterate includes parent type
@@ -121,6 +124,18 @@ public class TypeMeta
                 if (ignore) return false;
                 if (include) return true;
                 return x.DeclaredAccessibility is Accessibility.Public;
+            })
+            .Where(x =>
+            {
+                if (x is IPropertySymbol p)
+                {
+                    // set only can't be serializable member
+                    if (p.GetMethod == null && p.SetMethod != null)
+                    {
+                        return false;
+                    }
+                }
+                return true;
             })
             .Select(x => new MemberMeta(x, Consrtuctor, reference))
             .ToArray();
@@ -295,7 +310,11 @@ public class TypeMeta
                 if (Symbol.TypeKind == TypeKind.Interface)
                 {
                     // interface, check interfaces.
-                    if (!item.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol)))
+                    var check = item.Type.IsGenericType
+                        ? item.Type.OriginalDefinition.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(Symbol))
+                        : item.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol));
+
+                    if (!check)
                     {
                         context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotImplementBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
                         noError = false;
@@ -304,7 +323,11 @@ public class TypeMeta
                 else
                 {
                     // abstract type, check base.
-                    if (!item.Type.GetAllBaseTypes().Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol)))
+                    var check = item.Type.IsGenericType
+                        ? item.Type.OriginalDefinition.GetAllBaseTypes().Any(x => x.EqualsUnconstructedGenericType(Symbol))
+                        : item.Type.GetAllBaseTypes().Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol));
+
+                    if (!check)
                     {
                         context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotDerivedBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
                         noError = false;
@@ -370,24 +393,22 @@ public class TypeMeta
 
         var code = $$"""
 
-partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
+partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {
-{{EmitUnionTypeToTagField()}}
-
-    static {{Name}}()
+    static {{Symbol.Name}}()
     {
-        MemoryPackFormatterProvider.Register<{{Name}}>();
+        MemoryPackFormatterProvider.Register<{{TypeName}}>();
     }
 
     static void IMemoryPackFormatterRegister.RegisterFormatter()
     {
-        if (!MemoryPackFormatterProvider.IsRegistered<{{Name}}>())
+        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
-            MemoryPackFormatterProvider.Register(new {{Name}}Formatter());
+            MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{{TypeName}}>());
         }
     }
 
-    static void IMemoryPackable<{{Name}}>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{Name}}{{nullable}} value)
+    static void IMemoryPackable<{{TypeName}}>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}{{nullable}} value)
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
@@ -396,26 +417,13 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         return;
     }
 
-    static void IMemoryPackable<{{Name}}>.Deserialize(ref MemoryPackReader reader, scoped ref {{Name}}{{nullable}} value)
+    static void IMemoryPackable<{{TypeName}}>.Deserialize(ref MemoryPackReader reader, scoped ref {{TypeName}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{deserializeBody}}
     END:
 {{OnDeserialized.Select(x => "        " + x.Emit()).NewLine()}}
         return;
-    }
-
-    sealed class {{Name}}Formatter : MemoryPackFormatter<{{Name}}>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{Name}}{{nullable}} value)
-        {
-            writer.WritePackable(value);
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref {{Name}}{{nullable}} value)
-        {
-            reader.ReadPackable(ref value);
-        }
     }
 }
 """;
@@ -485,7 +493,7 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
         // noee need `;` because after using object initializer
         if (this.Consrtuctor == null || this.Consrtuctor.Parameters.Length == 0)
         {
-            return $"new {Name}()";
+            return $"new {TypeName}()";
         }
         else
         {
@@ -501,7 +509,7 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
                 })
                 .Where(x => x != null);
 
-            return $"new {Name}({string.Join(", ", parameters)})";
+            return $"new {TypeName}({string.Join(", ", parameters)})";
         }
     }
 
@@ -518,33 +526,33 @@ partial {{classOrStructOrRecord}} {{Name}} : IMemoryPackable<{{Name}}>
 
         var code = $$"""
 
-partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
+partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 {
-    static {{Name}}()
+    static {{Symbol.Name}}()
     {
-        MemoryPackFormatterProvider.Register<{{Name}}>();
+        MemoryPackFormatterProvider.Register<{{TypeName}}>();
     }
 
     static void IMemoryPackFormatterRegister.RegisterFormatter()
     {
-        if (!MemoryPackFormatterProvider.IsRegistered<{{Name}}>())
+        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
-            MemoryPackFormatterProvider.Register(new {{Name}}Formatter());
+            MemoryPackFormatterProvider.Register(new {{Symbol.Name}}Formatter());
         }
     }
 
-    sealed class {{Name}}Formatter : MemoryPackFormatter<{{Name}}>
+    sealed class {{Symbol.Name}}Formatter : MemoryPackFormatter<{{TypeName}}>
     {
 {{EmitUnionTypeToTagField()}}
 
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{Name}}? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}
 {{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref {{Name}}? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref {{TypeName}}? value)
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}
@@ -557,12 +565,24 @@ partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
         return code;
     }
 
+    string ToUnionTagTypeFullyQualifiedToString(INamedTypeSymbol type)
+    {
+        if (type.IsGenericType && this.Symbol.IsGenericType)
+        {
+            // when generic type, it is unconstructed.( typeof(T<>) ) so construct symbol's T
+            var typeName = string.Join(", ", this.Symbol.TypeArguments.Select(x => x.FullyQualifiedToString()));
+            return type.FullyQualifiedToString().Replace("<>", "<" + typeName + ">");
+        }
+        else
+        {
+            return type.FullyQualifiedToString();
+        }
+    }
+
 
     string EmitUnionTypeToTagField()
     {
-        if (!IsUnion) return "";
-
-        var elements = UnionTags.Select(x => $"            {{ typeof({x.Type.Name}), {x.Tag} }},").NewLine();
+        var elements = UnionTags.Select(x => $"            {{ typeof({ToUnionTagTypeFullyQualifiedToString(x.Type)}), {x.Tag} }},").NewLine();
 
         return $$"""
         static readonly System.Collections.Generic.Dictionary<Type, byte> __typeToTag = new({{UnionTags.Length}})
@@ -580,7 +600,7 @@ partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
                 var method = x.Type.IsWillImplementIMemoryPackable(reference)
                     ? "WritePackable"
                     : "WriteObject";
-                return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{Name}?, {x.Type.Name}>(ref value)); break;";
+                return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{TypeName}?, {ToUnionTagTypeFullyQualifiedToString(x.Type)}>(ref value)); break;";
             })
             .NewLine();
 
@@ -605,7 +625,7 @@ partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
             }
             else
             {
-                ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{Name}}));
+                ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{TypeName}}));
             }
 """;
     }
@@ -619,13 +639,13 @@ partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
                 : "ReadObject";
             return $$"""
                 case {{x.Tag}}:
-                    if (value is {{x.Type.Name}})
+                    if (value is {{ToUnionTagTypeFullyQualifiedToString(x.Type)}})
                     {
-                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{Name}}?, {{x.Type.Name}}>(ref value));
+                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{TypeName}}?, {{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>(ref value));
                     }
                     else
                     {
-                        value = reader.{{method}}<{{x.Type.Name}}>();
+                        value = reader.{{method}}<{{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>();
                     }
                     break;
 """;
@@ -644,7 +664,7 @@ partial {{classOrInterface}} {{Name}} : IMemoryPackFormatterRegister
             {
 {{readBody}}
                 default:
-                    ThrowHelper.ThrowInvalidTag(tag, typeof({{Name}}));
+                    ThrowHelper.ThrowInvalidTag(tag, typeof({{TypeName}}));
                     break;
             }
 """;
