@@ -61,6 +61,15 @@ using MemoryPack;
         {
             sw.WriteLine($"namespace {ns};");
         }
+        sw.WriteLine();
+
+        // If not exists documentation comment, write debug info
+        if (string.IsNullOrWhiteSpace(typeMeta.Symbol.GetDocumentationCommentXml()))
+        {
+            sw.WriteLine("/// <summary>");
+            BuildDebugInfo(sw, typeMeta, true);
+            sw.WriteLine("/// </summary>");
+        }
 
         typeMeta.Emit(sw);
 
@@ -82,6 +91,58 @@ using MemoryPack;
     static bool IsNested(TypeDeclarationSyntax typeDeclaration)
     {
         return typeDeclaration.Parent is TypeDeclarationSyntax;
+    }
+
+    static void BuildDebugInfo(StringWriter sw, TypeMeta type, bool xmlDocument)
+    {
+        string WithEscape(ISymbol symbol)
+        {
+            var str = symbol.FullyQualifiedToString();
+            if (xmlDocument)
+            {
+                return str.Replace("<", "&lt;").Replace(">", "&gt;");
+            }
+            else
+            {
+                return str;
+            }
+        }
+
+        if (!xmlDocument)
+        {
+            sw.WriteLine(WithEscape(type.Symbol));
+            sw.WriteLine("---");
+        }
+        else
+        {
+            sw.WriteLine("/// <para>MemoryPack serialize members</para>");
+        }
+
+        foreach (var item in type.Members)
+        {
+            if (xmlDocument)
+            {
+                sw.Write("/// <br>");
+            }
+
+            if (type.IsUnmanagedType)
+            {
+                sw.Write("unmanaged ");
+            }
+
+            sw.Write(WithEscape(item.MemberType));
+            sw.Write(" ");
+            sw.Write(item.Name);
+
+            if (xmlDocument)
+            {
+                sw.WriteLine("</br>");
+            }
+            else
+            {
+                sw.WriteLine();
+            }
+        }
     }
 }
 
@@ -406,7 +467,6 @@ public class TypeMeta
         // TODO:regsiter member's generics formatters(e.g. list, dict).
 
         var code = $$"""
-
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {
     static {{Symbol.Name}}()
