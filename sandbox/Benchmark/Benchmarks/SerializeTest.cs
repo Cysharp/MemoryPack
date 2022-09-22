@@ -31,8 +31,8 @@ namespace Benchmark.Benchmarks;
 //[GenericTypeArguments(typeof(Vector3[]))]
 //[GenericTypeArguments(typeof(MyClass))]
 
-[GenericTypeArguments(typeof(JsonResponseModel))]
-[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+//[GenericTypeArguments(typeof(JsonResponseModel))]
+//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
@@ -76,7 +76,7 @@ public class SerializeTest<T> : SerializerTestBase<T>
     }
 
     [Benchmark, BenchmarkCategory(Categories.Bytes)]
-    public byte[] NewUnknownSerialize()
+    public byte[] MemoryPackSerialize()
     {
         return MemoryPackSerializer.Serialize(value);
     }
@@ -120,7 +120,7 @@ public class SerializeTest<T> : SerializerTestBase<T>
     }
 
     [Benchmark, BenchmarkCategory(Categories.BufferWriter)]
-    public void NewUnknownBufferWriter()
+    public void MemoryPackBufferWriter()
     {
         MemoryPackSerializer.Serialize(writer, value);
         writer.Clear();

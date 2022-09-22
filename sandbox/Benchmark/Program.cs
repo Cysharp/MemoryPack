@@ -26,7 +26,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<SerializeInt>(config, args);
 //BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
 
-//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+// BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 
@@ -36,10 +36,10 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-BenchmarkSwitcher.FromTypes(new[]{
-    typeof(SerializeTest<>),
-    typeof(DeserializeTest<>) })
-    .RunAllJoined(config);
+//BenchmarkSwitcher.FromTypes(new[]{
+//    typeof(SerializeTest<>),
+//    typeof(DeserializeTest<>) })
+//    .RunAllJoined(config);
 
 
 #if DEBUG
@@ -53,8 +53,8 @@ MemoryPack.MemoryPackFormatterProvider.Register(new UnmanagedTypeArrayFormatter<
 
 
 
-Check<JsonResponseModel>();
-Check<NeuralNetworkLayerModel>();
+ Check<JsonResponseModel>();
+//Check<NeuralNetworkLayerModel>();
 
 void Check<T>()
     where T : IInitializable, IEquatable<T>, new()

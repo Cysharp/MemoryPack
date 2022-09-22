@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Xml.Linq;
+using System.Text;
 
 namespace MemoryPack.Generator;
 
@@ -403,9 +403,7 @@ public class TypeMeta
         var nullable = IsValueType ? "" : "?";
 
         // TODO:Optimize pattern
-        // TODO:register self array formatter(Unamanged or Array Formatter)
         // TODO:regsiter member's generics formatters(e.g. list, dict).
-        // TODO:ctor
 
         var code = $$"""
 
@@ -464,7 +462,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         {
             {{(IsValueType ? "" : "if (value == null)")}}
             {
-{{Members.Select(x => "                " + x.EmitReadToDeserialize()).NewLine()}}
+{{EmitDeserializeMembers(Members, "                ")}}
 
                 goto NEW;
             }
@@ -512,7 +510,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
-{{Members.Where(x => x.IsAssignable).Select(x => $"        value.{x.Name} = __{x.Name};").NewLine()}}
+{{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.{x.Name} = __{x.Name};").NewLine()}}
         goto END;
 
     NEW:
@@ -534,9 +532,131 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         }
 """ : "")}}
 
-        writer.WriteObjectHeader({{Members.Length}});
-{{Members.Select(x => "        " + x.EmitSerialize()).NewLine()}}
+{{EmitSerializeMembers(Members, "        ")}}
 """;
+    }
+
+    public string EmitSerializeMembers(MemberMeta[] members, string indent)
+    {
+        // members is guranteed writable.
+        if (members.Length == 0)
+        {
+            return $"{indent}writer.WriteObjectHeader(0);";
+        }
+
+        var sb = new StringBuilder();
+        for (int i = 0; i < members.Length; i++)
+        {
+            if (!members[i].MemberType.IsUnmanagedType)
+            {
+                sb.Append(indent);
+                if (i == 0)
+                {
+                    sb.AppendLine($"writer.WriteObjectHeader({Members.Length});");
+                    sb.Append(indent);
+                }
+
+                sb.AppendLine(members[i].EmitSerialize());
+                continue;
+            }
+
+            // search optimization
+            var optimizeFrom = i;
+            var optimizeTo = i;
+            var limit = Math.Min(members.Length, i + 15);
+            for (int j = i; j < limit; j++)
+            {
+                if (members[j].MemberType.IsUnmanagedType)
+                {
+                    optimizeTo = j;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // write method
+            sb.Append(indent);
+            if (optimizeFrom == 0)
+            {
+                sb.Append("writer.WriteUnmanagedWithObjectHeader(");
+                sb.Append(members.Length);
+                sb.Append(", ");
+            }
+            else
+            {
+                sb.Append("writer.WriteUnmanaged(");
+            }
+
+            for (int index = optimizeFrom; index <= optimizeTo; index++)
+            {
+                if (index != i)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append("value.");
+                sb.Append(members[index].Name);
+            }
+            sb.AppendLine(");");
+
+            i = optimizeTo;
+        }
+
+        return sb.ToString();
+    }
+
+    // for optimize, can use same count, value == null.
+    public string EmitDeserializeMembers(MemberMeta[] members, string indent)
+    {
+        // {{Members.Select(x => "                " + x.EmitReadToDeserialize()).NewLine()}}
+        var sb = new StringBuilder();
+        for (int i = 0; i < members.Length; i++)
+        {
+            if (!members[i].MemberType.IsUnmanagedType)
+            {
+                sb.Append(indent);
+                sb.AppendLine(members[i].EmitReadToDeserialize());
+                continue;
+            }
+
+            // search optimization
+            var optimizeFrom = i;
+            var optimizeTo = i;
+            var limit = Math.Min(members.Length, i + 15);
+            for (int j = i; j < limit; j++)
+            {
+                if (members[j].MemberType.IsUnmanagedType)
+                {
+                    optimizeTo = j;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // write read method
+            sb.Append(indent);
+            sb.Append("reader.ReadUnmanaged(");
+
+            for (int index = optimizeFrom; index <= optimizeTo; index++)
+            {
+                if (index != i)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append("out __");
+                sb.Append(members[index].Name);
+            }
+            sb.AppendLine(");");
+
+            i = optimizeTo;
+        }
+
+        return sb.ToString();
     }
 
     string EmitConstructor()
@@ -906,7 +1026,7 @@ public class MemberMeta
             case MemberKind.MemoryPackable:
                 return $"__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged<{MemberType.Name}>(out __{Name});";
+                return $"reader.ReadUnmanaged(out __{Name});";
             case MemberKind.String:
                 return $"__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
@@ -923,7 +1043,7 @@ public class MemberMeta
             case MemberKind.MemoryPackable:
                 return $"reader.ReadPackable(ref __{Name});";
             case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged<{MemberType.Name}>(out __{Name});";
+                return $"reader.ReadUnmanaged(out __{Name});";
             case MemberKind.String:
                 return $"__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:

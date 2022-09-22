@@ -36,7 +36,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
         <#= MakeWhere(i) #>
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = <#= MakeSize(i) #> + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);

@@ -27,7 +27,7 @@ internal static class ReusableLinkedArrayBufferWriterPool
 // This class has large buffer so should cache [ThreadStatic] or Pool.
 internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 {
-    const int InitialBufferSize = 65536; // 64K
+    const int InitialBufferSize = 262144; // 256K(32768, 65536, 131072, 262144)
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];
 
     List<BufferSegment> buffers; // add freezed buffer.
@@ -77,7 +77,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         else
         {
             var buffer = current.FreeBuffer;
-            if (buffer.Length < sizeHint)
+            if (buffer.Length > sizeHint)
             {
                 return buffer;
             }
@@ -94,7 +94,10 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             next = new BufferSegment(sizeHint);
         }
 
-        buffers.Add(current);
+        if (current.WrittenCount != 0)
+        {
+            buffers.Add(current);
+        }
         current = next;
         return next.FreeBuffer;
     }
@@ -122,11 +125,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         if (UseFirstBuffer)
         {
             firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
+            dest = dest.Slice(firstBufferWritten);
         }
 
         if (buffers.Count > 0)
         {
-            dest = dest.Slice(firstBufferWritten);
             foreach (var item in CollectionsMarshal.AsSpan(buffers))
             {
                 item.WrittenBuffer.CopyTo(dest);

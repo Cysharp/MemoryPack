@@ -23,27 +23,12 @@ using System.Xml.Linq;
 //writer.WriteUnmanagedArray
 //var reader = new MemoryPackReader();
 
-var t = new Tadano();
+Console.WriteLine(ArrayPool<byte>.Shared.Rent(30000).Length);
+Console.WriteLine(ArrayPool<byte>.Shared.Rent(60000).Length);
+Console.WriteLine(ArrayPool<byte>.Shared.Rent(120000).Length);
+Console.WriteLine(ArrayPool<byte>.Shared.Rent(150000).Length);
+return;
 
-var p = new Packable<int>();
-if (p is IMemoryPackable<int>)
-{
-    Console.WriteLine("OK");
-}
-else
-{
-    Console.WriteLine("NG");
-}
-
-var tako = 100;
-Foo(out tako);
-
-void Foo(out int value)
-{
-    // Console.WriteLine(value);
-
-    value = 0;
-}
 
 [MemoryPackable]
 public partial class Packable<T>
@@ -92,10 +77,10 @@ public class C
 }
 
 
-//[MemoryPackable]
+[MemoryPackable]
 public partial record MyRecord(int foo, int bar, string baz);
 
-//[MemoryPackable]
+[MemoryPackable]
 public partial struct FooA
 {
     public int Foo { get; set; }
@@ -103,3 +88,5 @@ public partial struct FooA
     public int Baz { get; set; }
     public string Tako { get; set; }
 }
+
+

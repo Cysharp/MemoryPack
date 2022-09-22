@@ -44,7 +44,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T1 : unmanaged
         where T2 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -72,7 +72,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T2 : unmanaged
         where T3 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -104,7 +104,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T3 : unmanaged
         where T4 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -140,7 +140,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T4 : unmanaged
         where T5 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -180,7 +180,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T5 : unmanaged
         where T6 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -224,7 +224,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T6 : unmanaged
         where T7 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -272,7 +272,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T7 : unmanaged
         where T8 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -324,7 +324,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T8 : unmanaged
         where T9 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -380,7 +380,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T9 : unmanaged
         where T10 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -440,7 +440,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T10 : unmanaged
         where T11 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + Unsafe.SizeOf<T11>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -504,7 +504,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T11 : unmanaged
         where T12 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + Unsafe.SizeOf<T11>() + Unsafe.SizeOf<T12>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -572,7 +572,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T12 : unmanaged
         where T13 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + Unsafe.SizeOf<T11>() + Unsafe.SizeOf<T12>() + Unsafe.SizeOf<T13>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -644,7 +644,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T13 : unmanaged
         where T14 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + Unsafe.SizeOf<T11>() + Unsafe.SizeOf<T12>() + Unsafe.SizeOf<T13>() + Unsafe.SizeOf<T14>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
@@ -720,7 +720,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T14 : unmanaged
         where T15 : unmanaged
     {
-        var size = Unsafe.SizeOf<T1>() + 1;
+        var size = Unsafe.SizeOf<T1>() + Unsafe.SizeOf<T2>() + Unsafe.SizeOf<T3>() + Unsafe.SizeOf<T4>() + Unsafe.SizeOf<T5>() + Unsafe.SizeOf<T6>() + Unsafe.SizeOf<T7>() + Unsafe.SizeOf<T8>() + Unsafe.SizeOf<T9>() + Unsafe.SizeOf<T10>() + Unsafe.SizeOf<T11>() + Unsafe.SizeOf<T12>() + Unsafe.SizeOf<T13>() + Unsafe.SizeOf<T14>() + Unsafe.SizeOf<T15>() + 1;
         ref var spanRef = ref GetSpanReference(size);
         Unsafe.WriteUnaligned(ref spanRef, propertyCount);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), value1);
