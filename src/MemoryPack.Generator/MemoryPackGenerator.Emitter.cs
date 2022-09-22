@@ -115,7 +115,7 @@ using MemoryPack;
         }
         else
         {
-            sw.WriteLine("/// <para>MemoryPack serialize members</para>");
+            sw.WriteLine("/// <para>MemoryPack Serialize Members</para>");
         }
 
         foreach (var item in type.Members)
