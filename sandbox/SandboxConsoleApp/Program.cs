@@ -23,70 +23,67 @@ using System.Xml.Linq;
 //writer.WriteUnmanagedArray
 //var reader = new MemoryPackReader();
 
-Console.WriteLine(ArrayPool<byte>.Shared.Rent(30000).Length);
-Console.WriteLine(ArrayPool<byte>.Shared.Rent(60000).Length);
-Console.WriteLine(ArrayPool<byte>.Shared.Rent(120000).Length);
-Console.WriteLine(ArrayPool<byte>.Shared.Rent(150000).Length);
+//if (!RuntimeHelpers.IsReferenceOrContainsReferences<Span<byte>>())
+{
+}
+
+// var span = new Span<byte>();
+// MemoryPackSerializer.Serialize(span);
+
 return;
 
-
 [MemoryPackable]
-public partial class Packable<T>
+public partial class Foo
 {
-    public int TakoyakiX { get; set; }
-    [MemoryPackIgnore]
-    public object? ObjectObject { get; set; }
-    [MemoryPackIgnore]
-    public Array? StandardArray { get; set; }
-    public int[]? Array { get; set; }
-    public int[,]? MoreArray { get; set; }
-    public List<int>? List { get; set; }
-    public Version? Version { get; set; }
-
-    public T? TTTTT { get; set; }
-
-    [MemoryPackFormatter]
-    public Nazo? MyProperty { get; set; }
-
-    [MemoryPackFormatter]
-    public Nazo2? MyProperty2 { get; set; }
-}
-
-public class Nazo
-{
-
-}
-public class Nazo2
-{
-
-}
-
-public class Tadano
-{
-    public int MyProperty { get; set; }
+    public byte[] B;
+    //[MemoryPackFormatter]
+    //public Span<byte> SPAN => B.AsSpan();
 }
 
 
 
-public class C
-{
-    public int Foo { get; init; }
-    public required int Bar { get; init; }
+
+//[MemoryPackable]
+//public partial class Packable<T>
+//{
+//    public int TakoyakiX { get; set; }
+//    [MemoryPackIgnore]
+//    public object? ObjectObject { get; set; }
+//    [MemoryPackIgnore]
+//    public Array? StandardArray { get; set; }
+//    public int[]? Array { get; set; }
+//    public int[,]? MoreArray { get; set; }
+//    public List<int>? List { get; set; }
+//    public Version? Version { get; set; }
+
+//    public T? TTTTT { get; set; }
+
+//    [MemoryPackFormatter]
+//    public Nazo? MyProperty { get; set; }
+
+//    [MemoryPackFormatter]
+//    public Nazo2? MyProperty2 { get; set; }
+//}
+
+//public class Nazo
+//{
+
+//}
+//public class Nazo2
+//{
+
+//}
+
+//public class Tadano
+//{
+//    public int MyProperty { get; set; }
+//}
 
 
-}
 
-
-[MemoryPackable]
-public partial record MyRecord(int foo, int bar, string baz);
-
-[MemoryPackable]
-public partial struct FooA
-{
-    public int Foo { get; set; }
-    public int Bar { get; set; }
-    public int Baz { get; set; }
-    public string Tako { get; set; }
-}
+//public class C
+//{
+//    public int Foo { get; init; }
+//    public required int Bar { get; init; }
 
 

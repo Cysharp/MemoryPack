@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Text;
@@ -38,6 +39,8 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // no need RegisterPostInitializationOutput
+
+        // TODO:get option and generate debug-info
 
         var typeDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
                 MemoryPackableAttributeFullName,

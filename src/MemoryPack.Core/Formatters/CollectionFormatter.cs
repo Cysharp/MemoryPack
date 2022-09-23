@@ -328,7 +328,7 @@ public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
 }
 
 
-public class UnmanagedTypeArrayFormatter<T> : MemoryPackFormatter<T[]>
+public class UnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
     where T : unmanaged
 {
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)

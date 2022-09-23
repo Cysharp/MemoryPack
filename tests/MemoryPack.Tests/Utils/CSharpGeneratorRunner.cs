@@ -1,18 +1,19 @@
 ﻿using MemoryPack.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Tests.Utils;
 
 public static class CSharpGeneratorRunner
 {
-    public static Diagnostic[] RunGenerator(string source)
-    {
-        var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator());
+    static Compilation baseCompilation = default!;
 
+    [ModuleInitializer]
+    public static void InitializeCompilation()
+    {
         // running .NET Core system assemblies dir path
         var baseAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         var systemAssemblies = Directory.GetFiles(baseAssemblyPath)
@@ -29,12 +30,20 @@ public static class CSharpGeneratorRunner
             .ToArray();
 
         var compilation = CSharpCompilation.Create("generatortest",
-            syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp11)) }, // use C#11
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
+        baseCompilation = compilation;
+    }
+
+    public static Diagnostic[] RunGenerator(string source)
+    {
+        var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator());
+
+        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp11))); // use C#11
+
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
-        
+
         // combine diagnostics as result.
         var compilationDiagnostics = newCompilation.GetDiagnostics();
         return diagnostics.Concat(compilationDiagnostics).ToArray();

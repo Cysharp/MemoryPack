@@ -45,8 +45,8 @@ public static partial class MemoryPackFormatterProvider
     internal static void RegisterWellKnownTypesFormatters()
     {
 <# foreach(var item in unmanagedTypes) { #>
-        Register(new UnmanagedTypeFormatter<<#= item.Name #>>());
-        Register(new UnmanagedTypeArrayFormatter<<#= item.Name #>>());
+        Register(new UnmanagedFormatter<<#= item.Name #>>());
+        Register(new UnmanagedArrayFormatter<<#= item.Name #>>());
 <# } #>
 
 <# foreach(var item in knownTypes) { #>

@@ -146,7 +146,7 @@ using MemoryPack;
     }
 }
 
-public class TypeMeta
+public partial class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
     readonly ReferenceSymbols reference;
@@ -268,164 +268,6 @@ public class TypeMeta
             .Where(x => x.ContainsAttribute(attribute))
             .Select(x => new MethodMeta(x, isValueType))
             .ToArray();
-    }
-
-    public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
-    {
-        var noError = true;
-
-        // interface/abstract but not union
-        if (IsInterfaceOrAbstract && !IsUnion)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AbstractMustUnion, syntax.Identifier.GetLocation(), Symbol.Name));
-            noError = false;
-        }
-
-        if (ctorInvalid != null)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(ctorInvalid, syntax.Identifier.GetLocation(), Symbol.Name));
-            noError = false;
-        }
-
-        // check ctor members
-        if (this.Constructor != null)
-        {
-            var nameDict = new HashSet<string>(Members.Where(x => x.IsConstructorParameter).Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
-            var allParameterExists = this.Constructor.Parameters.All(x => nameDict.Contains(x.Name));
-            if (!allParameterExists)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, syntax.Identifier.GetLocation(), Symbol.Name));
-                noError = false;
-            }
-        }
-
-        // methods
-        foreach (var item in OnSerializing.Concat(OnSerialized).Concat(OnDeserializing).Concat(OnDeserialized))
-        {
-            if (item.Symbol.Parameters.Length != 0)
-            {
-                // diagnostics location should be method identifier
-                // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
-                noError = false;
-            }
-            if (IsUnmanagedType)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
-                noError = false;
-            }
-        }
-
-        // Member override member can't annotate[Ignore][Include]
-        if (Symbol.BaseType != null)
-        {
-            foreach (var item in Symbol.GetAllMembers(withoutOverride: false))
-            {
-                if (item.IsOverride)
-                {
-                    var include = item.ContainsAttribute(reference.MemoryPackIncludeAttribute);
-                    var ignore = item.ContainsAttribute(reference.MemoryPackIgnoreAttribute);
-                    if (include || ignore)
-                    {
-                        var attr = include ? "MemoryPackInclude" : "MemoryPackIgnore";
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OverrideMemberCantAddAnnotation, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, attr));
-                        noError = false;
-                    }
-                }
-            }
-        }
-
-        // ALl Members
-        if (Members.Length >= 250) // MemoryPackCode.Reserved1
-        {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MembersCountOver250, syntax.Identifier.GetLocation(), Symbol.Name, Members.Length));
-            noError = false;
-        }
-
-        // exists can't serialize member
-        foreach (var item in Members)
-        {
-            if (item.Kind == MemberKind.NonSerializable)
-            {
-                if (item.MemberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || item.MemberType.TypeKind == TypeKind.Delegate)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberCantSerializeType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
-                    noError = false;
-                }
-                else
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsNotMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
-                    noError = false;
-                }
-            }
-        }
-
-        // Union validations
-        if (IsUnion)
-        {
-            if (Symbol.IsSealed)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SealedTypeCantBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
-                noError = false;
-            }
-
-            if (!Symbol.IsAbstract)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConcreteTypeCantBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
-                noError = false;
-            }
-
-            if (UnionTags.Select(x => x.Tag).HasDuplicate())
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTagDuplicate, syntax.Identifier.GetLocation(), Symbol.Name));
-                noError = false;
-            }
-
-            foreach (var item in UnionTags)
-            {
-                // type does not derived target symbol
-                if (Symbol.TypeKind == TypeKind.Interface)
-                {
-                    // interface, check interfaces.
-                    var check = item.Type.IsGenericType
-                        ? item.Type.OriginalDefinition.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(Symbol))
-                        : item.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol));
-
-                    if (!check)
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotImplementBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
-                        noError = false;
-                    }
-                }
-                else
-                {
-                    // abstract type, check base.
-                    var check = item.Type.IsGenericType
-                        ? item.Type.OriginalDefinition.GetAllBaseTypes().Any(x => x.EqualsUnconstructedGenericType(Symbol))
-                        : item.Type.GetAllBaseTypes().Any(x => SymbolEqualityComparer.Default.Equals(x, Symbol));
-
-                    if (!check)
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberTypeNotDerivedBaseType, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
-                        noError = false;
-                    }
-                }
-
-                if (item.Type.IsValueType)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberNotAllowStruct, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
-                    noError = false;
-                }
-
-                if (!item.Type.ContainsAttribute(reference.MemoryPackableAttribute))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberMustBeMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
-                    noError = false;
-                }
-            }
-        }
-
-        return noError;
     }
 
     public void Emit(StringWriter writer)
@@ -938,7 +780,7 @@ public class MethodMeta
     }
 }
 
-public class MemberMeta
+public partial class MemberMeta
 {
     public ISymbol Symbol { get; }
     public string Name { get; }
@@ -955,7 +797,7 @@ public class MemberMeta
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
-        this.MemberType = symbol.ContainingType;
+
         if (constructor != null)
         {
             this.IsConstructorParameter = constructor.Parameters.Any(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
@@ -989,76 +831,7 @@ public class MemberMeta
             throw new Exception("member is not field or property.");
         }
 
-        // Setup MemberKind
-
-        if (MemberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || MemberType.TypeKind == TypeKind.Delegate)
-        {
-            Kind = MemberKind.NonSerializable; // object, Array, delegate is not allowed
-        }
-        else if (MemberType.IsUnmanagedType)
-        {
-            Kind = MemberKind.Unmanaged;
-        }
-        else if (MemberType.SpecialType == SpecialType.System_String)
-        {
-            Kind = MemberKind.String;
-        }
-        else if (MemberType.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(references.IMemoryPackable)))
-        {
-            Kind = MemberKind.MemoryPackable;
-        }
-        else if (MemberType.IsWillImplementIMemoryPackable(references))
-        {
-            Kind = MemberKind.MemoryPackable;
-        }
-        //else if (symbol.ContainsAttribute(references.MemoryPackGenerateAttribute))
-        //{
-        //    Kind = MemberKind.MemoryPackGenerate;
-        //}
-        else if (symbol.ContainsAttribute(references.MemoryPackFormatterAttribute))
-        {
-            Kind = MemberKind.MemoryPackFormatter;
-        }
-        else
-        {
-            if (MemberType.TypeKind == TypeKind.Array)
-            {
-                if (MemberType is IArrayTypeSymbol array && array.IsSZArray)
-                {
-                    var elemType = array.ElementType;
-                    if (elemType.IsUnmanagedType)
-                    {
-                        Kind = MemberKind.UnmanagedArray;
-                        return;
-                    }
-                }
-
-                Kind = MemberKind.Object;
-                return;
-            }
-
-            if (MemberType.TypeKind == TypeKind.TypeParameter) // T
-            {
-                Kind = MemberKind.Object;
-                return;
-            }
-
-            if (references.KnownTypes.Contains(MemberType))
-            {
-                Kind = MemberKind.KnownType;
-                return;
-            }
-
-            var isIterable = MemberType.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(references.KnownTypes.System_Collections_Generic_IEnumerable_T));
-            if (isIterable)
-            {
-                Kind = MemberKind.Object;
-            }
-            else
-            {
-                Kind = MemberKind.NonSerializable; // maybe can't serialize, diagnostics target
-            }
-        }
+        Kind = ParseMemberKind(symbol, MemberType, references);
     }
 
     public string EmitSerialize()
@@ -1128,5 +901,6 @@ public enum MemberKind
     MemoryPackFormatter,
 
     Object, // others allow
+    RefLike, // not allowed
     NonSerializable // not allowed
 }

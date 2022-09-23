@@ -1,8 +1,4 @@
-﻿using System.Buffers;
-using System.ComponentModel.DataAnnotations;
-using System.Globalization;
-
-namespace MemoryPack.Formatters;
+﻿namespace MemoryPack.Formatters;
 
 public sealed class VersionFormatter : MemoryPackFormatter<Version>
 {
@@ -31,16 +27,5 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
 
         reader.ReadUnmanaged(out int major, out int minor, out int build, out int revision);
         value = new Version(major, minor, build, revision);
-
-
-
-        //var __value;
-        var __major = reader.ReadString();
-        var __minor = reader.ReadObject<int>();
-        var __build = reader.ReadObject<int>();
-        var __revision = reader.ReadObject<int>();
-
-        // reader.ReadPackable<int>(ref var    v);
-
     }
 }

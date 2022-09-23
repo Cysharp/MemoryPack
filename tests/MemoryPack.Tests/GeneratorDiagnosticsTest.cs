@@ -395,4 +395,34 @@ public partial class Hoge
 public class Foo { }
 """);
     }
+
+    [Fact]
+    public void MEMPACK020_TypeIsRefStruct()
+    {
+        Compile(20, """
+using MemoryPack;
+
+[MemoryPackable]
+public ref partial struct Hoge
+{
+    public int Bar { get; set;}
+}
+""");
+    }
+
+    [Fact]
+    public void MEMPACK021_MemberIsRefStruct()
+    {
+        Compile(21, """
+using System;
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Hoge
+{
+    byte[] b = default!;
+    public ReadOnlySpan<byte> SpanProp => b;
+}
+""");
+    }
 }

@@ -164,4 +164,20 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor TypeIsRefStruct = new(
+        id: "MEMPACK020",
+        title: "Type is ref struct",
+        messageFormat: "The MemoryPackable object '{0}' is ref struct, it can not serialize",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MemberIsRefStruct = new(
+        id: "MEMPACK021",
+        title: "Member is ref struct",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' type '{2}' is ref struct, it can not serialize",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

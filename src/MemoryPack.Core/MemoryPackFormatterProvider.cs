@@ -90,7 +90,7 @@ public static partial class MemoryPackFormatterProvider
         {
             if (typeIsReferenceOrContainsReferences)
             {
-                instanceType = typeof(UnmanagedTypeArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                instanceType = typeof(UnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
             }
         }
 

@@ -9,7 +9,7 @@ namespace MemoryPack.Formatters;
 // * Any enum type
 // * Any pointer type
 // * Any user-defined struct type that contains fields of unmanaged types only
-public sealed class UnmanagedTypeFormatter<T> : MemoryPackFormatter<T>
+public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
     where T : unmanaged
 {
     static readonly int size = Unsafe.SizeOf<T>(); // TODO:which faster? load from field or Unsafe.SizeOf<T> directly
