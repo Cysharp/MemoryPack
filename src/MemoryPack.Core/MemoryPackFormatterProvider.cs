@@ -14,6 +14,14 @@ public static partial class MemoryPackFormatterProvider
     // for nongenerics methods
     static readonly ConcurrentDictionary<Type, IMemoryPackFormatter> formatters = new ConcurrentDictionary<Type, IMemoryPackFormatter>();
 
+    // generics known types
+    static readonly Dictionary<Type, Type> KnownGenericTypeFormatters = new Dictionary<Type, Type>()
+    {
+        { typeof(KeyValuePair<,>), typeof(KeyValuePairFormatter<,>) },
+        { typeof(Lazy<>), typeof(LazyFormatter<>) },
+        { typeof(Nullable<>), typeof(NullableFormatter<>) },
+    };
+
     public static bool IsRegistered<T>() => Check<T>.registered;
 
     public static void Register<T>(MemoryPackFormatter<T> formatter)
@@ -134,6 +142,9 @@ public static partial class MemoryPackFormatterProvider
         }
 
         formatterType = TryCreateGenericFormatterType(type, TupleFormatterTypes.TupleFormatters);
+        if (formatterType != null) goto CREATE;
+
+        formatterType = TryCreateGenericFormatterType(type, KnownGenericTypeFormatters);
         if (formatterType != null) goto CREATE;
 
         formatterType = TryCreateGenericFormatterType(type, ArrayLikeFormatters);

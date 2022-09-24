@@ -63,19 +63,14 @@ using MemoryPack;
         }
         sw.WriteLine();
 
-        // If not exists documentation comment, write debug info
-        if (string.IsNullOrWhiteSpace(typeMeta.Symbol.GetDocumentationCommentXml()))
-        {
-            sw.WriteLine("/// <summary>");
-            BuildDebugInfo(sw, typeMeta, true);
-            sw.WriteLine("/// </summary>");
-        }
+        // Write document comment as remarks
+        BuildDebugInfo(sw, typeMeta, true);
 
+        // emit type info
         typeMeta.Emit(sw);
 
         var code = sw.ToString();
 
-        // global::FooBarBaz.MyClass
         var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
             .Replace("global::", "")
             .Replace("<", "_")
@@ -97,7 +92,7 @@ using MemoryPack;
     {
         string WithEscape(ISymbol symbol)
         {
-            var str = symbol.FullyQualifiedToString();
+            var str = symbol.FullyQualifiedToString().Replace("global::", "");
             if (xmlDocument)
             {
                 return str.Replace("<", "&lt;").Replace(">", "&gt;");
@@ -115,14 +110,16 @@ using MemoryPack;
         }
         else
         {
-            sw.WriteLine("/// <para>MemoryPack Serialize Members</para>");
+            sw.WriteLine("/// <remarks>");
+            sw.WriteLine("/// MemoryPack serialize members:<br/>");
+            sw.WriteLine("/// <code>");
         }
 
         foreach (var item in type.Members)
         {
             if (xmlDocument)
             {
-                sw.Write("/// <br>");
+                sw.Write("/// <b>");
             }
 
             if (type.IsUnmanagedType)
@@ -131,17 +128,27 @@ using MemoryPack;
             }
 
             sw.Write(WithEscape(item.MemberType));
+            if (xmlDocument)
+            {
+                sw.Write("</b>");
+            }
+
             sw.Write(" ");
             sw.Write(item.Name);
 
             if (xmlDocument)
             {
-                sw.WriteLine("</br>");
+                sw.WriteLine("<br/>");
             }
             else
             {
                 sw.WriteLine();
             }
+        }
+        if (xmlDocument)
+        {
+            sw.WriteLine("/// </code>");
+            sw.WriteLine("/// </remarks>");
         }
     }
 }

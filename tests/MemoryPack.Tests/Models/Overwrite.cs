@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MemoryPack.Tests.Models;
 
@@ -41,8 +42,5 @@ public partial class Overwrite4
 {
     public int MyProperty1 { get; set; }
     public Overwrite? MyProperty2 { get; set; }
+    public List<int>? MyProperty3 { get; set; }
 }
-
-
-
-// TODO: test List, Array, etc...

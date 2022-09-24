@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Models;
 
+/// <summary>
+/// My serialize class.
+/// </summary>
 [MessagePackObject]
 [ProtoContract]
 [MemoryPackable]

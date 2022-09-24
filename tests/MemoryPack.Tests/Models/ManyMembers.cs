@@ -258,5 +258,6 @@ public partial class ManyMembers
     public int MyProperty247;
     public int MyProperty248;
     public int MyProperty249;
-    // public int MyProperty250;
+    //public int MyProperty250;
+    //public int MyProperty251;
 }

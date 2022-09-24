@@ -45,6 +45,6 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
 
         if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
 
-        reader.ReadObject(ref value);
+        value = reader.ReadObject<T>();
     }
 }
