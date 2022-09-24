@@ -12,11 +12,14 @@ using System.Runtime.InteropServices;
 // ConcurrentQueue, ConcurrentStack, ConcurrentBag
 // Dictionary, SortedDictionary, SortedList, ConcurrentDictionary
 
+// Not supported clear
+// ReadOnlyCollection, ReadOnlyObservableCollection, BlockingCollection
+
 namespace MemoryPack
 {
     public static partial class MemoryPackFormatterProvider
     {
-        static readonly Dictionary<Type, Type> ClearSupportCollectionFormatters = new Dictionary<Type, Type>()
+        static readonly Dictionary<Type, Type> CollectionFormatters = new Dictionary<Type, Type>(18)
         {
             { typeof(List<>), typeof(ListFormatter<>) },
             { typeof(Stack<>), typeof(StackFormatter<>) },
@@ -33,6 +36,9 @@ namespace MemoryPack
             { typeof(SortedDictionary<,>), typeof(SortedDictionaryFormatter<,>) },
             { typeof(SortedList<,>), typeof(SortedListFormatter<,>) },
             { typeof(ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },
+            { typeof(ReadOnlyCollection<>), typeof(ReadOnlyCollectionFormatter<>) },
+            { typeof(ReadOnlyObservableCollection<>), typeof(ReadOnlyObservableCollectionFormatter<>) },
+            { typeof(BlockingCollection<>), typeof(BlockingCollectionFormatter<>) },
         };
     }
 }
@@ -789,6 +795,113 @@ namespace MemoryPack.Formatters
                 KeyValuePair<TKey, TValue?> v = default;
                 formatter.Deserialize(ref reader, ref v);
                 value.TryAdd(v.Key, v.Value);
+            }
+        }
+    }
+
+    public sealed class ReadOnlyCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyCollection<T?>>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullLengthHeader();
+                return;
+            }
+
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            writer.WriteLengthHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyCollection<T?>? value)
+        {
+            var array = reader.ReadArray<T?>();
+
+            if (array == null)
+            {
+                value = null;
+            }
+            else
+            {
+                value = new ReadOnlyCollection<T?>(array);
+            }
+        }
+    }
+
+    public sealed class ReadOnlyObservableCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyObservableCollection<T?>>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyObservableCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullLengthHeader();
+                return;
+            }
+
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            writer.WriteLengthHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyObservableCollection<T?>? value)
+        {
+            var array = reader.ReadArray<T?>();
+
+            if (array == null)
+            {
+                value = null;
+            }
+            else
+            {
+                value = new ReadOnlyObservableCollection<T?>(new ObservableCollection<T?>(array));
+            }
+        }
+    }
+
+    public sealed class BlockingCollectionFormatter<T> : MemoryPackFormatter<BlockingCollection<T?>>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BlockingCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullLengthHeader();
+                return;
+            }
+
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            writer.WriteLengthHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref BlockingCollection<T?>? value)
+        {
+            if (!reader.TryReadLengthHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            value = new BlockingCollection<T?>();
+
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            for (int i = 0; i < length; i++)
+            {
+                T? v = default;
+                formatter.Deserialize(ref reader, ref v);
+                value.Add(v);
             }
         }
     }

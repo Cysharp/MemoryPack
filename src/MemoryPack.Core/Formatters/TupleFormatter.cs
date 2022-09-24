@@ -1,6 +1,29 @@
 ﻿
 namespace MemoryPack.Formatters;
 
+internal static class TupleFormatterTypes
+{
+    public static readonly Dictionary<Type, Type> TupleFormatters = new Dictionary<Type, Type>(16)
+    {
+        { typeof(Tuple<>), typeof(TupleFormatter<>) },
+        { typeof(ValueTuple<>), typeof(ValueTupleFormatter<>) },
+        { typeof(Tuple<,>), typeof(TupleFormatter<,>) },
+        { typeof(ValueTuple<,>), typeof(ValueTupleFormatter<,>) },
+        { typeof(Tuple<,,>), typeof(TupleFormatter<,,>) },
+        { typeof(ValueTuple<,,>), typeof(ValueTupleFormatter<,,>) },
+        { typeof(Tuple<,,,>), typeof(TupleFormatter<,,,>) },
+        { typeof(ValueTuple<,,,>), typeof(ValueTupleFormatter<,,,>) },
+        { typeof(Tuple<,,,,>), typeof(TupleFormatter<,,,,>) },
+        { typeof(ValueTuple<,,,,>), typeof(ValueTupleFormatter<,,,,>) },
+        { typeof(Tuple<,,,,,>), typeof(TupleFormatter<,,,,,>) },
+        { typeof(ValueTuple<,,,,,>), typeof(ValueTupleFormatter<,,,,,>) },
+        { typeof(Tuple<,,,,,,>), typeof(TupleFormatter<,,,,,,>) },
+        { typeof(ValueTuple<,,,,,,>), typeof(ValueTupleFormatter<,,,,,,>) },
+        { typeof(Tuple<,,,,,,,>), typeof(TupleFormatter<,,,,,,,>) },
+        { typeof(ValueTuple<,,,,,,,>), typeof(ValueTupleFormatter<,,,,,,,>) },
+    };
+}
+
 public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
 {
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?>? value)

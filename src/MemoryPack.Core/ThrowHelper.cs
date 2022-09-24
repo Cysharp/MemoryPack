@@ -5,6 +5,8 @@ namespace MemoryPack;
 // Throw helpers is sometimes called from generated code so public.
 public static class ThrowHelper
 {
+    // TODO:use class MemoryPackSerializationException : Exception
+
     [DoesNotReturn]
     public static void ThrowInvalidPropertyCount(byte expected, byte actual)
     {
@@ -81,5 +83,11 @@ public static class ThrowHelper
     public static void ThrowInvalidConcurrrentCollectionOperation()
     {
         throw new InvalidOperationException($"ConcurrentCollection is Added/Removed in serializing, however serialize concurrent collection is not thread-safe.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowDeserializeObjectIsNull(string target)
+    {
+        throw new InvalidOperationException($"Deserialized {target} is null.");
     }
 }

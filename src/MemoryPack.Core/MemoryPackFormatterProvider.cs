@@ -89,8 +89,7 @@ public static partial class MemoryPackFormatterProvider
 
     internal static object? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
-        // TODO: collections
-
+        // TODO: Array move to TryCreate...
         Type? instanceType = null;
         if (type.IsArray)
         {
@@ -100,13 +99,16 @@ public static partial class MemoryPackFormatterProvider
             }
         }
 
-        instanceType = TryCreateTupleFormatterType(type);
+        instanceType = TryCreateGenericFormatterType(type, TupleFormatterTypes.TupleFormatters);
         if (instanceType != null) goto CREATE;
 
-        instanceType = TryCreateValueTupleFormatterType(type);
+        instanceType = TryCreateGenericFormatterType(type, CollectionFormatters);
         if (instanceType != null) goto CREATE;
 
-        instanceType = TryCreateCollectionType(type);
+        instanceType = TryCreateGenericFormatterType(type, ImmutableCollectionFormatters);
+        if (instanceType != null) goto CREATE;
+
+        instanceType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
         if (instanceType != null) goto CREATE;
 
         // Can't resolve formatter, return null(will create ErrorMemoryPackFormatter<T>).
@@ -114,6 +116,21 @@ public static partial class MemoryPackFormatterProvider
 
     CREATE:
         return Activator.CreateInstance(instanceType);
+    }
+
+    static Type? TryCreateGenericFormatterType(Type type, Dictionary<Type, Type> knownTypes)
+    {
+        if (type.IsGenericType)
+        {
+            var genericDefinition = type.GetGenericTypeDefinition();
+
+            if (knownTypes.TryGetValue(genericDefinition, out var formatterType))
+            {
+                return formatterType.MakeGenericType(type.GetGenericArguments());
+            }
+        }
+
+        return null;
     }
 }
 

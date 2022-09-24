@@ -188,6 +188,18 @@ public class CollectionFormatterTest
             // not gurantees order
             MemoryPackSerializer.Deserialize<Stack<int>>(bin).Should().BeEquivalentTo(collection);
         }
+        {
+            var collection = new ReadOnlyCollection<int>(new[] { 1, 2, 3, 4, 5 });
+            CollectionEqual(collection);
+        }
+        {
+            var collection = new ReadOnlyObservableCollection<int>(new ObservableCollection<int> { 1, 2, 3, 4, 5 });
+            CollectionEqual(collection);
+        }
+        {
+            var collection = new BlockingCollection<int>() { 1, 2, 3, 4, 5 };
+            CollectionEqual(collection);
+        }
     }
 
     [Fact]
