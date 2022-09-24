@@ -1,4 +1,6 @@
-﻿namespace MemoryPack.Formatters;
+﻿using System.Linq;
+
+namespace MemoryPack.Formatters;
 
 public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
     where T : IMemoryPackable<T>

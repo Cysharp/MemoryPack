@@ -1,0 +1,101 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    // T8 = TRest where TRest : notnull
+    string TOrRest(int i) => (i == 8) ? "TRest" : $"T{i}";
+    string ItemOrRest(int i) => (i == 8) ? $"Rest" : $"Item{i}";
+    string CreateT(int i) => string.Join(", ", Enumerable.Range(1, i).Select(x => (x == 8) ? "TRest" : $"T{x}"));
+    string CreateTNull(int i) => string.Join(", ", Enumerable.Range(1, i).Select(x => (x == 8) ? "TRest" : $"T{x}?"));
+#>
+
+namespace MemoryPack.Formatters;
+
+<# for (var i = 1; i <= 8; i++ ) { #>
+public sealed class TupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter<Tuple<<#= CreateTNull(i) #>>>
+<# if (i == 8) { #>
+    where TRest : notnull
+<# } #>
+{
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<<#= CreateTNull(i) #>>? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            return;
+        }
+
+        writer.WriteObjectHeader(<#= i #>);
+<# for ( var j = 1; j <= i; j++ ) { #>
+        writer.WriteObject(value.<#= ItemOrRest(j) #>);
+<# } #>
+    }
+
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<<#= CreateTNull(i) #>>? value)
+    {
+        if (!reader.TryReadObjectHeader(out var count))
+        {
+            value = null;
+            return;
+        }
+
+        if (count != <#= i #>) ThrowHelper.ThrowInvalidPropertyCount(<#= i #>, count);
+
+        value = new Tuple<<#= CreateTNull(i) #>>(
+<# for ( var j = 1; j <= i; j++ ) { #>
+            reader.ReadObject<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
+<# } #>
+        );
+    }
+}
+
+<# } #>
+
+<# for (var i = 1; i <= 8; i++ ) { #>
+public sealed class ValueTupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter<ValueTuple<<#= CreateTNull(i) #>>>
+<# if (i == 8) { #>
+    where TRest : struct
+<# } #>
+{
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<<#= CreateTNull(i) #>> value)
+    {
+        if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<<#= CreateTNull(i) #>>>())
+        {
+            writer.DangerousWriteUnmanaged(value);
+            return;
+        }
+
+        writer.WriteObjectHeader(<#= i #>);
+<# for ( var j = 1; j <= i; j++ ) { #>
+        writer.WriteObject(value.<#= ItemOrRest(j) #>);
+<# } #>
+    }
+
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<<#= CreateTNull(i) #>> value)
+    {
+        if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<<#= CreateTNull(i) #>>>())
+        {
+            reader.DangerousReadUnmanaged(out value);
+            return;
+        }
+
+        if (!reader.TryReadObjectHeader(out var count))
+        {
+            value = default;
+            return;
+        }
+
+        if (count != <#= i #>) ThrowHelper.ThrowInvalidPropertyCount(<#= i #>, count);
+
+        value = new ValueTuple<<#= CreateTNull(i) #>>(
+<# for ( var j = 1; j <= i; j++ ) { #>
+            reader.ReadObject<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
+<# } #>
+        );
+    }
+}
+
+<# } #>

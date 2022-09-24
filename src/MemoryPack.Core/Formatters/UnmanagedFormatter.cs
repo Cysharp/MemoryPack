@@ -1,6 +1,4 @@
-﻿using System.Buffers;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
@@ -24,22 +22,5 @@ public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
     {
         value = Unsafe.ReadUnaligned<T>(ref reader.GetSpanReference(size));
         reader.Advance(size);
-    }
-}
-
-// TODO:not yet.
-public sealed class NullableUnmanagedTypeFormatter<T> : MemoryPackFormatter<T?>
-    where T : unmanaged
-{
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
-    {
-
-
-        throw new NotImplementedException();
-    }
-
-    public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
-    {
-        throw new NotImplementedException();
     }
 }

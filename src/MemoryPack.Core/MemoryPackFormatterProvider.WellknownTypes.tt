@@ -2,6 +2,7 @@
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.Numerics" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 <#
@@ -26,7 +27,29 @@
         typeof(DateTime),
         typeof(DateTimeOffset),
         typeof(TimeSpan),
+        typeof(Guid),
     };
+    var unmanagedTypeNames = unmanagedTypes
+        .Select(x => x.Name)
+        .Concat(new []
+        {
+            "Rune",
+            "DateOnly",
+            "TimeOnly",
+            "Half",
+            "Int128",
+            "UInt128",
+
+            // System.Numerics(BigInteger is not unmanaged type)
+            "Complex",
+            "Plane",
+            "Quaternion",
+            "Matrix3x2",
+            "Matrix4x4",
+            "Vector2",
+            "Vector3",
+            "Vector4",
+        });
 
     var knownTypes = new Type[]
     {
@@ -34,24 +57,37 @@
         typeof(Version),
         typeof(Uri),
     };
+
+    var knownTypesNames = knownTypes
+        .Select(x => x.Name)
+        .Concat(new []
+        {
+            "TimeZoneInfo",
+            "BigInteger",
+            "BitArray",
+            "StringBuilder",
+            "Type",
+        });
 #>
 using MemoryPack.Formatters;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using System.Collections;
+using System.Text;
+using System.Numerics;
+
 namespace MemoryPack;
 
 public static partial class MemoryPackFormatterProvider
 {
     internal static void RegisterWellKnownTypesFormatters()
     {
-<# foreach(var item in unmanagedTypes) { #>
-        Register(new UnmanagedFormatter<<#= item.Name #>>());
-        Register(new UnmanagedArrayFormatter<<#= item.Name #>>());
+<# foreach(var item in unmanagedTypeNames) { #>
+        Register(new UnmanagedFormatter<<#= item #>>());
+        Register(new UnmanagedArrayFormatter<<#= item #>>());
 <# } #>
 
-<# foreach(var item in knownTypes) { #>
-        Register(new <#= item.Name #>Formatter());
-        Register(new ArrayFormatter<<#= item.Name #>>());
+<# foreach(var item in knownTypesNames) { #>
+        Register(new <#= item #>Formatter());
+        Register(new ArrayFormatter<<#= item #>>());
 <# } #>
     }
 }

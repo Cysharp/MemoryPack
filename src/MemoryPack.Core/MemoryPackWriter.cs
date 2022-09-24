@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace MemoryPack;
 
@@ -150,56 +151,6 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedArray<T>(T[]? value)
-        where T : unmanaged
-    {
-        if (value == null)
-        {
-            WriteNullLengthHeader();
-            return;
-        }
-
-        var span = new ReadOnlySpan<T>(value);
-        WriteUnmanagedSpan(span);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DangerousWriteUnmanagedArray<T>(T[]? value)
-    {
-        if (value == null)
-        {
-            WriteNullLengthHeader();
-            return;
-        }
-
-        var span = new ReadOnlySpan<T>(value);
-        DangerousWriteUnmanagedSpan(span);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedSpan<T>(ReadOnlySpan<T> value)
-        where T : unmanaged
-    {
-        DangerousWriteUnmanagedSpan(value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DangerousWriteUnmanagedSpan<T>(ReadOnlySpan<T> value)
-    {
-        // MemoryMarshal.AsBytes(value);
-        var src = MemoryMarshal.CreateReadOnlySpan<byte>(
-            ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)),
-            checked(value.Length * Unsafe.SizeOf<T>()));
-
-        ref var spanRef = ref GetSpanReference(src.Length + 4);
-
-        Unsafe.WriteUnaligned(ref spanRef, value.Length);
-        src.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), src.Length));
-
-        Advance(src.Length + 4);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackable<T>(scoped in T? value)
         where T : IMemoryPackable<T>
     {
@@ -217,5 +168,186 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
         MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
         depth--;
+    }
+
+    #region WriteArray/Span
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteArray<T>(T?[]? value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedArray(value);
+            return;
+        }
+
+        if (value == null)
+        {
+            WriteNullLengthHeader();
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        WriteLengthHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            formatter.Serialize(ref this, ref value[i]);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSpan<T>(scoped Span<T?> value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedSpan(value);
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        WriteLengthHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            formatter.Serialize(ref this, ref value[i]);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSpan<T>(scoped ReadOnlySpan<T?> value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedSpan(value);
+            return;
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        WriteLengthHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+        }
+    }
+
+    #endregion
+
+    #region WriteUnmanagedArray/Span
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanagedArray<T>(T[]? value)
+        where T : unmanaged
+    {
+        DangerousWriteUnmanagedArray(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanagedSpan<T>(scoped Span<T> value)
+        where T : unmanaged
+    {
+        DangerousWriteUnmanagedSpan(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUnmanagedSpan<T>(scoped ReadOnlySpan<T> value)
+        where T : unmanaged
+    {
+        DangerousWriteUnmanagedSpan(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DangerousWriteUnmanagedArray<T>(T[]? value)
+    {
+        if (value == null)
+        {
+            WriteNullLengthHeader();
+            return;
+        }
+        if (value.Length == 0)
+        {
+            WriteLengthHeader(0);
+            return;
+        }
+
+        var srcLength = Unsafe.SizeOf<T>() * value.Length;
+        var allocSize = srcLength + 4;
+
+        ref var dest = ref GetSpanReference(allocSize);
+        ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetArrayDataReference(value));
+
+        Unsafe.WriteUnaligned(ref dest, value.Length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
+
+        Advance(allocSize);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DangerousWriteUnmanagedSpan<T>(scoped Span<T> value)
+    {
+        if (value.Length == 0)
+        {
+            WriteLengthHeader(0);
+            return;
+        }
+
+        var srcLength = Unsafe.SizeOf<T>() * value.Length;
+        var allocSize = srcLength + 4;
+
+        ref var dest = ref GetSpanReference(allocSize);
+        ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value));
+
+        Unsafe.WriteUnaligned(ref dest, value.Length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
+
+        Advance(allocSize);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DangerousWriteUnmanagedSpan<T>(scoped ReadOnlySpan<T> value)
+    {
+        if (value.Length == 0)
+        {
+            WriteLengthHeader(0);
+            return;
+        }
+
+        var srcLength = Unsafe.SizeOf<T>() * value.Length;
+        var allocSize = srcLength + 4;
+
+        ref var dest = ref GetSpanReference(allocSize);
+        ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value));
+
+        Unsafe.WriteUnaligned(ref dest, value.Length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
+
+        Advance(allocSize);
+    }
+
+    #endregion
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSpanWithoutLengthHeader<T>(scoped ReadOnlySpan<T?> value)
+    {
+        if (value.Length == 0) return;
+
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            var srcLength = Unsafe.SizeOf<T>() * value.Length;
+            ref var dest = ref GetSpanReference(srcLength);
+            ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
+
+            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
+
+            Advance(srcLength);
+            return;
+        }
+        else
+        {
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            for (int i = 0; i < value.Length; i++)
+            {
+                formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+            }
+        }
     }
 }

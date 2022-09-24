@@ -159,6 +159,7 @@ public ref partial struct MemoryPackReader
         return length != MemoryPackCode.NullLength;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string? ReadString()
     {
         if (!TryReadUnmanagedSpan<char>(out var view, out var advanceLength))
@@ -176,6 +177,147 @@ public ref partial struct MemoryPackReader
 
         return str;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackable<T>(scoped ref T? value)
+        where T : IMemoryPackable<T>
+    {
+        T.Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadPackable<T>()
+        where T : IMemoryPackable<T>
+    {
+        T? value = default;
+        T.Deserialize(ref this, ref value);
+        return value;
+    }
+
+    // non packable, get formatter dynamically.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadObject<T>(scoped ref T? value)
+    {
+        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadObject<T>()
+    {
+        T? value = default;
+        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+        return value;
+    }
+
+    #region ReadArray/Span(view)
+
+    public T?[]? ReadArray<T>()
+    {
+        T?[]? value = default;
+        ReadArray(ref value);
+        return value;
+    }
+
+    public void ReadArray<T>(scoped ref T?[]? value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousReadUnmanagedArray(ref value);
+            return;
+        }
+
+        if (!TryReadLengthHeader(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        // T[] support overwrite
+        if (value == null || value.Length != length)
+        {
+            value = new T[length];
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        for (int i = 0; i < length; i++)
+        {
+            formatter.Deserialize(ref this, ref value[i]);
+        }
+    }
+
+    public void ReadSpan<T>(scoped ref Span<T?> value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousReadUnmanagedSpan(ref value);
+            return;
+        }
+
+        if (!TryReadLengthHeader(out var length))
+        {
+            value = default;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        if (value.Length != length)
+        {
+            value = new T[length];
+        }
+
+        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        for (int i = 0; i < length; i++)
+        {
+            formatter.Deserialize(ref this, ref value[i]);
+        }
+    }
+
+    //public void ReadSpan<T>(scoped ref Span<T?> value)
+    //{
+    //    if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+    //    {
+    //        // DangerousReadUnmanaged(ref value);
+    //        // TODO:...?
+    //        throw new NotImplementedException();
+    //    }
+
+    //    if (!TryReadLengthHeader(out var length))
+    //    {
+    //        value = null;
+    //        return;
+    //    }
+
+    //    if (length == 0)
+    //    {
+    //        value = Array.Empty<T>();
+    //        return;
+    //    }
+
+    //    // T[] support overwrite
+    //    if (value == null || value.Length != length)
+    //    {
+    //        value = new T[length];
+    //    }
+
+    //    var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+    //    for (int i = 0; i < length; i++)
+    //    {
+    //        formatter.Deserialize(ref this, ref value[i]);
+    //    }
+    //}
+
+    #endregion
 
     public T[]? ReadUnmanagedArray<T>()
         where T : unmanaged
@@ -220,7 +362,6 @@ public ref partial struct MemoryPackReader
 
         if (length == 0)
         {
-            if (value != null && value.Length == 0) return;
             value = Array.Empty<T>();
             return;
         }
@@ -228,20 +369,48 @@ public ref partial struct MemoryPackReader
         var size = length * Unsafe.SizeOf<T>();
         ref var src = ref GetSpanReference(size);
 
-        if (value != null && value.Length == length)
+        if (value == null || value.Length != length)
         {
-            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
-            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(value)), size, size);
+            value = GC.AllocateUninitializedArray<T>(length);
         }
-        else
-        {
-            var dest = GC.AllocateUninitializedArray<T>(length);
-            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
-            Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
-            value = dest;
-        }
+
+        ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetArrayDataReference(value));
+        Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)size);
+
         Advance(size);
     }
+
+    public unsafe void DangerousReadUnmanagedSpan<T>(scoped ref Span<T> value)
+    {
+        if (!TryReadLengthHeader(out var length))
+        {
+            value = default;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        var size = length * Unsafe.SizeOf<T>();
+        ref var src = ref GetSpanReference(size);
+
+        if (value == null || value.Length != length)
+        {
+            value = GC.AllocateUninitializedArray<T>(length);
+        }
+
+        ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value));
+        Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)size);
+
+        Advance(size);
+    }
+
+
+
+    // TODO:this?
 
     public bool TryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
         where T : unmanaged
@@ -262,36 +431,5 @@ public ref partial struct MemoryPackReader
         view = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, T>(ref GetSpanReference(length)), length);
         advanceLength = view.Length * Unsafe.SizeOf<T>();
         return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ReadPackable<T>(scoped ref T? value)
-        where T : IMemoryPackable<T>
-    {
-        T.Deserialize(ref this, ref value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadPackable<T>()
-        where T : IMemoryPackable<T>
-    {
-        T? value = default;
-        T.Deserialize(ref this, ref value);
-        return value;
-    }
-
-    // non packable, get formatter dynamically.
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ReadObject<T>(scoped ref T? value)
-    {
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadObject<T>()
-    {
-        T? value = default;
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
-        return value;
     }
 }

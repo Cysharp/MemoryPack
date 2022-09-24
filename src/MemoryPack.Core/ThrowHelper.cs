@@ -12,6 +12,12 @@ public static class ThrowHelper
     }
 
     [DoesNotReturn]
+    public static void ThrowInvalidCollection()
+    {
+        throw new InvalidOperationException($"Current read to collection, the buffer header is not collection.");
+    }
+
+    [DoesNotReturn]
     public static void ThrowInvalidRange(int expected, int actual)
     {
         throw new InvalidOperationException($"Requires size is {expected} but buffer length is {actual}.");
@@ -45,6 +51,12 @@ public static class ThrowHelper
     public static void ThrowNotRegisteredInProvider(Type type)
     {
         throw new InvalidOperationException($"{type.FullName} is not registered in this provider.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowRegisterInProviderFailed(Type type, Exception innerException)
+    {
+        throw new InvalidOperationException($"{type.FullName} is failed in provider at creating formatter.", innerException);
     }
 
     [DoesNotReturn]

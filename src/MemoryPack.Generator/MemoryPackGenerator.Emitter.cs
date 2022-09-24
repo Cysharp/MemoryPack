@@ -894,6 +894,7 @@ public enum MemberKind
     Unmanaged,
     KnownType,
     String,
+    // TODO:array
     UnmanagedArray,
 
     // from attribute

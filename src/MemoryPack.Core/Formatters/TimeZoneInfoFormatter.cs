@@ -2,7 +2,7 @@
 
 namespace MemoryPack.Formatters;
 
-public sealed class TimeZoneFormatter : MemoryPackFormatter<TimeZoneInfo>
+public sealed class TimeZoneInfoFormatter : MemoryPackFormatter<TimeZoneInfo>
 {
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TimeZoneInfo? value)
     {

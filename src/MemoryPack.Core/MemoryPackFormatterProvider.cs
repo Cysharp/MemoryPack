@@ -1,7 +1,5 @@
 ﻿using MemoryPack.Formatters;
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -29,6 +27,8 @@ public static partial class MemoryPackFormatterProvider
     {
         T.RegisterFormatter();
     }
+
+    // TODO: RegisterGenericFactory
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MemoryPackFormatter<T> GetFormatter<T>()
@@ -61,30 +61,37 @@ public static partial class MemoryPackFormatterProvider
         {
             if (Check<T>.registered) return;
 
-            var type = typeof(T);
-            if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+            try
             {
-                var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                m!.Invoke(null, null);
-                return;
+                var type = typeof(T);
+                if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+                {
+                    // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
+                    var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                    m!.Invoke(null, null);
+                    return;
+                }
+
+                var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+                var f = CreateFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
+
+                formatter = f ?? new ErrorMemoryPackFormatter<T>();
+            }
+            catch (Exception ex)
+            {
+                formatter = new ErrorMemoryPackFormatter<T>(ex);
             }
 
-
-            var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-            var f = CreateFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
-
-
-
-
-
-            formatter = f ?? new ErrorMemoryPackFormatter<T>();
-
+            formatters[typeof(T)] = formatter;
             Check<T>.registered = true;
         }
     }
 
     internal static object? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
+        // TODO: collections
+        // TODO: error as error-formatter
+
         Type? instanceType = null;
         if (type.IsArray)
         {
@@ -94,21 +101,54 @@ public static partial class MemoryPackFormatterProvider
             }
         }
 
-        return (instanceType != null)
-             ? Activator.CreateInstance(instanceType)
-            : null;
+        instanceType = TryCreateTupleFormatterType(type);
+        if (instanceType != null) goto CREATE;
+
+        instanceType = TryCreateValueTupleFormatterType(type);
+        if (instanceType != null) goto CREATE;
+
+        return null;
+
+    CREATE:
+        return Activator.CreateInstance(instanceType);
     }
 }
 
 internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
 {
+    readonly Exception? exception;
+
+    public ErrorMemoryPackFormatter()
+    {
+        this.exception = null;
+    }
+
+    public ErrorMemoryPackFormatter(Exception exception)
+    {
+        this.exception = exception;
+    }
+
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {
-        ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+        if (exception == null)
+        {
+            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+        }
+        else
+        {
+            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
+        }
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
     {
-        ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+        if (exception == null)
+        {
+            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+        }
+        else
+        {
+            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
+        }
     }
 }

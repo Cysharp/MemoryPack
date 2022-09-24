@@ -18,10 +18,13 @@ namespace MemoryPack;
 
 public ref partial struct MemoryPackWriter<TBufferWriter>
 {
+<# foreach(var dangerous in new[] { false, true }) { #>
 <# for(var i = 1; i < 16; i++ ) { #>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
+    public void <#= dangerous ? "Dangerous" : "" #>WriteUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
+<# if(!dangerous) { #>
         <#= MakeWhere(i) #>
+<# } #>
     {
         var size = <#= MakeSize(i) #>;
         ref var spanRef = ref GetSpanReference(size);
@@ -33,8 +36,10 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
+    public void <#= dangerous ? "Dangerous" : "" #>WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
+<# if(!dangerous) { #>
         <#= MakeWhere(i) #>
+<# } #>
     {
         var size = <#= MakeSize(i) #> + 1;
         ref var spanRef = ref GetSpanReference(size);
@@ -46,5 +51,5 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(size);
     }
 
-<# } #>
+<# } } #>
 }

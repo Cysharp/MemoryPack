@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SandboxConsoleApp;
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
@@ -30,7 +31,27 @@ using System.Xml.Linq;
 // var span = new Span<byte>();
 // MemoryPackSerializer.Serialize(span);
 
-return;
+
+ReadOnlySpan<byte> span = new byte[] { 1, 2, 3, 4 };
+
+for (int i = 0; i < span.Length; i++)
+{
+    m(ref Unsafe.AsRef(span[i]));
+}
+
+foreach (var item in span)
+{
+    Console.WriteLine(item);
+}
+
+void m(ref byte x)
+{
+    //x *= 2;
+    // Console.WriteLine(x);
+}
+
+
+
 
 [MemoryPackable]
 public partial class Foo
