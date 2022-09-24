@@ -5,7 +5,8 @@ using System.Runtime.CompilerServices;
 
 namespace MemoryPack;
 
-// This provider is not extension point, fallback if can't resolve in compile time(like generics).
+// This service provider is not extension point, for wellknown types
+// and fallback if can't resolve in compile time(like generics).
 // Therefore, unlike MessagePack for C#, it is static and not extensible.
 
 public static partial class MemoryPackFormatterProvider
@@ -68,12 +69,12 @@ public static partial class MemoryPackFormatterProvider
                 {
                     // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
                     var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                    m!.Invoke(null, null);
+                    m!.Invoke(null, null); // Cache<T>.formatter will set from method
                     return;
                 }
 
                 var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-                var f = CreateFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
+                var f = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
 
                 formatter = f ?? new ErrorMemoryPackFormatter<T>();
             }
@@ -87,35 +88,71 @@ public static partial class MemoryPackFormatterProvider
         }
     }
 
-    internal static object? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
+    internal static object? CreateGenericFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
-        // TODO: Array move to TryCreate...
-        Type? instanceType = null;
+        Type? formatterType = null;
+
         if (type.IsArray)
         {
-            if (typeIsReferenceOrContainsReferences)
+            if (type.IsSZArray)
             {
-                instanceType = typeof(UnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                if (!typeIsReferenceOrContainsReferences)
+                {
+                    formatterType = typeof(UnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                    goto CREATE;
+                }
+                else
+                {
+                    formatterType = typeof(ArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                    goto CREATE;
+                }
+            }
+            else
+            {
+                var rank = type.GetArrayRank();
+                switch (rank)
+                {
+                    case 2:
+                        formatterType = typeof(TwoDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        goto CREATE;
+                    case 3:
+                        formatterType = typeof(ThreeDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        goto CREATE;
+                    case 4:
+                        formatterType = typeof(FourDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        goto CREATE;
+                    default:
+                        return null; // not supported
+                }
             }
         }
 
-        instanceType = TryCreateGenericFormatterType(type, TupleFormatterTypes.TupleFormatters);
-        if (instanceType != null) goto CREATE;
+        if (type.IsEnum || !typeIsReferenceOrContainsReferences)
+        {
+            formatterType = typeof(UnmanagedFormatter<>).MakeGenericType(type);
+            goto CREATE;
+        }
 
-        instanceType = TryCreateGenericFormatterType(type, CollectionFormatters);
-        if (instanceType != null) goto CREATE;
+        formatterType = TryCreateGenericFormatterType(type, TupleFormatterTypes.TupleFormatters);
+        if (formatterType != null) goto CREATE;
 
-        instanceType = TryCreateGenericFormatterType(type, ImmutableCollectionFormatters);
-        if (instanceType != null) goto CREATE;
+        formatterType = TryCreateGenericFormatterType(type, ArrayLikeFormatters);
+        if (formatterType != null) goto CREATE;
 
-        instanceType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
-        if (instanceType != null) goto CREATE;
+        formatterType = TryCreateGenericFormatterType(type, CollectionFormatters);
+        if (formatterType != null) goto CREATE;
+
+        formatterType = TryCreateGenericFormatterType(type, ImmutableCollectionFormatters);
+        if (formatterType != null) goto CREATE;
+
+        formatterType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
+        if (formatterType != null) goto CREATE;
 
         // Can't resolve formatter, return null(will create ErrorMemoryPackFormatter<T>).
         return null;
 
     CREATE:
-        return Activator.CreateInstance(instanceType);
+        return Activator.CreateInstance(formatterType);
     }
 
     static Type? TryCreateGenericFormatterType(Type type, Dictionary<Type, Type> knownTypes)
