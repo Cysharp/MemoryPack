@@ -20,9 +20,9 @@ namespace MemoryPack
         {
             // If T[], choose UnmanagedArrayFormatter or DangerousUnmanagedTypeArrayFormatter or ArrayFormatter
             { typeof(ArraySegment<>), typeof(ArraySegmentFormatter<>) },
-            { typeof(Memory<>), typeof(StackFormatter<>) },
-            { typeof(ReadOnlyMemory<>), typeof(QueueFormatter<>) },
-            { typeof(ReadOnlySequence<>), typeof(LinkedListFormatter<>) },
+            { typeof(Memory<>), typeof(MemoryFormatter<>) },
+            { typeof(ReadOnlyMemory<>), typeof(ReadOnlyMemoryFormatter<>) },
+            { typeof(ReadOnlySequence<>), typeof(ReadOnlySequenceFormatter<>) },
         };
     }
 }

@@ -336,7 +336,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             ref var dest = ref GetSpanReference(srcLength);
             ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
+            Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)srcLength);
 
             Advance(srcLength);
             return;

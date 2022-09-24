@@ -1,6 +1,4 @@
 ﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,7 +11,7 @@ public ref partial struct MemoryPackReader
     int bufferLength;
     byte[]? rentBuffer;
     int advancedCount;
-    long restSequenceLength; // TODO:used for malformed length check
+    long restSequenceLength; // used for malformed length check
 
     public MemoryPackReader(in ReadOnlySequence<byte> sequence)
     {

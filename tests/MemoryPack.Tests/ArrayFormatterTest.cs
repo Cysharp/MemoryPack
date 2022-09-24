@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +13,44 @@ public class ArrayFormatterTest
     private T Convert<T>(T value)
     {
         return MemoryPackSerializer.Deserialize<T>(MemoryPackSerializer.Serialize(value))!;
+    }
+
+    [Fact]
+    public void ArrayTes()
+    {
+        {
+            var xs = new int[] { 1, 10, 100 };
+            Convert(xs).Should().Equal(xs);
+        }
+        {
+            var xs = new string[] { "foo", "bar", "baz" };
+            Convert(xs).Should().Equal(xs);
+        }
+        {
+            var xs = new ArraySegment<int>(new int[] { 1, 10, 100 });
+            Convert(xs).Should().Equal(xs);
+        }
+        {
+            var xs = new int[] { 1, 10, 100 }.AsMemory();
+            Convert(xs).ToArray().Should().Equal(xs.ToArray());
+        }
+        {
+            var xs =new ReadOnlyMemory<int>(new int[] { 1, 10, 100 });
+            Convert(xs).ToArray().Should().Equal(xs.ToArray());
+        }
+        //{
+        //    var xs = new ReadOnlySequence<int>(new int[] { 1, 10, 100 });
+        //    Convert(xs).ToArray().Should().Equal(xs.ToArray());
+        //}
+        {
+            var xs = ReadOnlySequenceBuilder.Create(
+                new byte[] { 1, 2, 3 },
+                new byte[] { 4, 5, 6, 7, 8 },
+                new byte[] { 9, 10 });
+            var bin = MemoryPackSerializer.Serialize(xs);
+            var xs2 = MemoryPackSerializer.Deserialize<ReadOnlySequence<byte>>(bin);
+            Convert(xs2).ToArray().Should().Equal(xs.ToArray());
+        }
     }
 
     [Theory]
