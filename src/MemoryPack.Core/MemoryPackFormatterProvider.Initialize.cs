@@ -98,4 +98,19 @@ public static partial class MemoryPackFormatterProvider
 
         return null;
     }
+
+    internal static Type? TryCreateCollectionType(Type type)
+    {
+        if (type.IsGenericType)
+        {
+            var genericDefiinition = type.GetGenericTypeDefinition();
+
+            if (ClearSupportCollectionFormatters.TryGetValue(genericDefiinition, out var formatterType))
+            {
+                return formatterType.MakeGenericType(type.GetGenericArguments());
+            }
+        }
+
+        return null;
+    }
 }

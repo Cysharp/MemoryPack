@@ -76,4 +76,10 @@ public static class ThrowHelper
     {
         throw new InvalidOperationException($"Serializing Type '{type}' reached depth limit, maybe detect circular reference.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowInvalidConcurrrentCollectionOperation()
+    {
+        throw new InvalidOperationException($"ConcurrentCollection is Added/Removed in serializing, however serialize concurrent collection is not thread-safe.");
+    }
 }

@@ -41,9 +41,5 @@ public abstract class SerializerTestBase<T>
         {
             throw new InvalidOperationException($"Type {typeof(T)} is not registered create value.");
         }
-
-        // TODO:prepare
-        MemoryPack.MemoryPackFormatterProvider.Register(new ListFormatter<ApiModelContainer>());
-        MemoryPack.MemoryPackFormatterProvider.Register(new ListFormatter<ImageModel>());
     }
 }

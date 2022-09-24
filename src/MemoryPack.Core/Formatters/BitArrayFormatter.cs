@@ -33,7 +33,7 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
 
         reader.ReadUnmanaged(out int length);
 
-        var bitArray = new BitArray(length, false);
+        var bitArray = new BitArray(length, false); // create internal int[] and set m_length to length
 
         ref var view = ref Unsafe.As<BitArray, BitArrayView>(ref bitArray);
         reader.ReadUnmanagedArray(ref view.m_array!);

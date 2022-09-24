@@ -270,8 +270,7 @@ public class GeneratorTest
         };
 
         VerifyEquivalent(gt);
-
-        MemoryPackFormatterProvider.Register(new DictionaryFormatter<int, GenericsType<string>>());
+        
         var comp = new MoreComplecsGenerics<int, string>()
         {
             Dict = new Dictionary<int, GenericsType<string>>{

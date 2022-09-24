@@ -432,4 +432,45 @@ public ref partial struct MemoryPackReader
         advanceLength = view.Length * Unsafe.SizeOf<T>();
         return true;
     }
+
+
+
+
+
+    public void ReadSpanWithoutReadLengthHeader<T>(int length, scoped ref Span<T?> value)
+    {
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            if (value.Length != length)
+            {
+                value = GC.AllocateUninitializedArray<T>(length);
+            }
+
+            var size = length * Unsafe.SizeOf<T>();
+            ref var src = ref GetSpanReference(size);
+            ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
+            Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)size);
+
+            Advance(size);
+        }
+        else
+        {
+            if (value.Length != length)
+            {
+                value = new T[length];
+            }
+
+            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            for (int i = 0; i < length; i++)
+            {
+                formatter.Deserialize(ref this, ref value[i]);
+            }
+        }
+    }
 }

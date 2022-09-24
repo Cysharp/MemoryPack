@@ -26,7 +26,9 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<SerializeInt>(config, args);
 //BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
 
-// BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+// BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
+
+//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 

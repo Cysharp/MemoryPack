@@ -90,7 +90,6 @@ public static partial class MemoryPackFormatterProvider
     internal static object? CreateFormatter(Type type, bool typeIsReferenceOrContainsReferences)
     {
         // TODO: collections
-        // TODO: error as error-formatter
 
         Type? instanceType = null;
         if (type.IsArray)
@@ -107,6 +106,10 @@ public static partial class MemoryPackFormatterProvider
         instanceType = TryCreateValueTupleFormatterType(type);
         if (instanceType != null) goto CREATE;
 
+        instanceType = TryCreateCollectionType(type);
+        if (instanceType != null) goto CREATE;
+
+        // Can't resolve formatter, return null(will create ErrorMemoryPackFormatter<T>).
         return null;
 
     CREATE:
