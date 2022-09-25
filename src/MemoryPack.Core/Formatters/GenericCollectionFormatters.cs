@@ -7,13 +7,13 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
     {
         if (value == null)
         {
-            writer.WriteNullLengthHeader();
+            writer.WriteNullCollectionHeader();
             return;
         }
 
         var formatter = writer.GetFormatter<TElement?>();
 
-        writer.WriteLengthHeader(value.Count);
+        writer.WriteCollectionHeader(value.Count);
         foreach (var item in value)
         {
             var v = item;
@@ -23,7 +23,7 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref TCollection? value)
     {
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             value = default;
             return;
@@ -50,13 +50,13 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
     {
         if (value == null)
         {
-            writer.WriteNullLengthHeader();
+            writer.WriteNullCollectionHeader();
             return;
         }
 
         var formatter = writer.GetFormatter<TElement?>();
 
-        writer.WriteLengthHeader(value.Count);
+        writer.WriteCollectionHeader(value.Count);
         foreach (var item in value)
         {
             var v = item;
@@ -66,7 +66,7 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref TSet? value)
     {
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             value = default;
             return;
@@ -102,13 +102,13 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
     {
         if (value == null)
         {
-            writer.WriteNullLengthHeader();
+            writer.WriteNullCollectionHeader();
             return;
         }
 
         var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
-        writer.WriteLengthHeader(value.Count);
+        writer.WriteCollectionHeader(value.Count);
         foreach (var item in value)
         {
             var v = item;
@@ -118,7 +118,7 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref TDictionary? value)
     {
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             value = default;
             return;

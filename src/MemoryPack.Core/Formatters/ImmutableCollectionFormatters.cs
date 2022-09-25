@@ -40,7 +40,7 @@ namespace MemoryPack.Formatters
         {
             if (value.IsDefault)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
             }
             else
             {
@@ -81,12 +81,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T?>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -96,7 +96,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableList<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -135,7 +135,7 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
@@ -158,7 +158,7 @@ namespace MemoryPack.Formatters
                 tempWriter.Flush();
 
                 // write to parameter writer.
-                writer.WriteLengthHeader(count);
+                writer.WriteCollectionHeader(count);
                 tempBuffer.WriteToAndReset(ref writer);
             }
             finally
@@ -169,7 +169,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableQueue<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -224,7 +224,7 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace MemoryPack.Formatters
                 tempWriter.Flush();
 
                 // write to parameter writer.
-                writer.WriteLengthHeader(count);
+                writer.WriteCollectionHeader(count);
                 tempBuffer.WriteToAndReset(ref writer);
             }
             finally
@@ -258,7 +258,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableStack<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -322,12 +322,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -337,7 +337,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableDictionary<TKey, TValue?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -369,12 +369,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T?>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -384,7 +384,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableHashSet<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -432,12 +432,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -447,7 +447,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableSortedDictionary<TKey, TValue?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -479,12 +479,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T?>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -494,7 +494,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableSortedSet<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -533,12 +533,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T?>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -548,7 +548,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableList<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -587,7 +587,7 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
@@ -610,7 +610,7 @@ namespace MemoryPack.Formatters
                 tempWriter.Flush();
 
                 // write to parameter writer.
-                writer.WriteLengthHeader(count);
+                writer.WriteCollectionHeader(count);
                 tempBuffer.WriteToAndReset(ref writer);
             }
             finally
@@ -621,7 +621,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableQueue<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -676,7 +676,7 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
@@ -699,7 +699,7 @@ namespace MemoryPack.Formatters
                 tempWriter.Flush();
 
                 // write to parameter writer.
-                writer.WriteLengthHeader(count);
+                writer.WriteCollectionHeader(count);
                 tempBuffer.WriteToAndReset(ref writer);
             }
             finally
@@ -710,7 +710,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableStack<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -774,12 +774,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -789,7 +789,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableDictionary<TKey, TValue?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -821,12 +821,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T?>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -836,7 +836,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableSet<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;

@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 
 namespace MemoryPack;
 
@@ -136,14 +135,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteLengthHeader(int length)
+    public void WriteCollectionHeader(int length)
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(4), length);
         Advance(4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteNullLengthHeader()
+    public void WriteNullCollectionHeader()
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullLength);
         Advance(4);
@@ -154,7 +153,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (value == null)
         {
-            WriteNullLengthHeader();
+            WriteNullCollectionHeader();
             return;
         }
 
@@ -195,12 +194,12 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
         if (value == null)
         {
-            WriteNullLengthHeader();
+            WriteNullCollectionHeader();
             return;
         }
 
         var formatter = GetFormatter<T>();
-        WriteLengthHeader(value.Length);
+        WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
             formatter.Serialize(ref this, ref value[i]);
@@ -217,7 +216,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var formatter = GetFormatter<T>();
-        WriteLengthHeader(value.Length);
+        WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
             formatter.Serialize(ref this, ref value[i]);
@@ -234,7 +233,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var formatter = GetFormatter<T>();
-        WriteLengthHeader(value.Length);
+        WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
             formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));
@@ -271,12 +270,12 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (value == null)
         {
-            WriteNullLengthHeader();
+            WriteNullCollectionHeader();
             return;
         }
         if (value.Length == 0)
         {
-            WriteLengthHeader(0);
+            WriteCollectionHeader(0);
             return;
         }
 
@@ -297,7 +296,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (value.Length == 0)
         {
-            WriteLengthHeader(0);
+            WriteCollectionHeader(0);
             return;
         }
 
@@ -318,7 +317,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (value.Length == 0)
         {
-            WriteLengthHeader(0);
+            WriteCollectionHeader(0);
             return;
         }
 

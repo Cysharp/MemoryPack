@@ -119,7 +119,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            writer.WriteLengthHeader(checked((int)value.Length));
+            writer.WriteCollectionHeader(checked((int)value.Length));
             foreach (var memory in value)
             {
                 writer.WriteSpanWithoutLengthHeader(memory.Span);

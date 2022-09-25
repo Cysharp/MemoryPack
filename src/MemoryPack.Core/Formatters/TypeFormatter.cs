@@ -17,7 +17,7 @@ public sealed partial class TypeFormatter : MemoryPackFormatter<Type>
         var full = value?.AssemblyQualifiedName;
         if (full == null)
         {
-            writer.WriteNullLengthHeader();
+            writer.WriteNullCollectionHeader();
             return;
         }
 

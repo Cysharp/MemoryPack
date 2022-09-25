@@ -155,7 +155,7 @@ public ref partial struct MemoryPackReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryReadLengthHeader(out int length)
+    public bool TryReadCollectionHeader(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
         Advance(4);
@@ -236,7 +236,7 @@ public ref partial struct MemoryPackReader
             return;
         }
 
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             value = null;
             return;
@@ -269,7 +269,7 @@ public ref partial struct MemoryPackReader
             return;
         }
 
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             value = default;
             return;
@@ -344,7 +344,7 @@ public ref partial struct MemoryPackReader
     // T: should be unamanged type
     public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             return null;
         }
@@ -362,7 +362,7 @@ public ref partial struct MemoryPackReader
 
     public unsafe void DangerousReadUnmanagedArray<T>(scoped ref T[]? value)
     {
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             value = null;
             return;
@@ -390,7 +390,7 @@ public ref partial struct MemoryPackReader
 
     public unsafe void DangerousReadUnmanagedSpan<T>(scoped ref Span<T> value)
     {
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             value = default;
             return;
@@ -429,7 +429,7 @@ public ref partial struct MemoryPackReader
     // T: should be unamanged type
     public bool DangerousTryReadUnmanagedSpan<T>(out ReadOnlySpan<T> view, out int advanceLength)
     {
-        if (!TryReadLengthHeader(out var length))
+        if (!TryReadCollectionHeader(out var length))
         {
             view = default;
             advanceLength = 0;

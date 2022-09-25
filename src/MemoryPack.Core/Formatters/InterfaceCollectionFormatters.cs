@@ -44,7 +44,7 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return true;
             }
 
@@ -72,7 +72,7 @@ namespace MemoryPack.Formatters
             if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
 
             var formatter = writer.GetFormatter<TElement>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -87,7 +87,7 @@ namespace MemoryPack.Formatters
             if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
 
             var formatter = writer.GetFormatter<TElement>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -113,7 +113,7 @@ namespace MemoryPack.Formatters
             if (value.TryGetNonEnumeratedCountEx(out var count))
             {
                 var formatter = writer.GetFormatter<T?>();
-                writer.WriteLengthHeader(count);
+                writer.WriteCollectionHeader(count);
                 foreach (var item in value)
                 {
                     var v = item;
@@ -140,7 +140,7 @@ namespace MemoryPack.Formatters
                     tempWriter.Flush();
 
                     // write to parameter writer.
-                    writer.WriteLengthHeader(count);
+                    writer.WriteCollectionHeader(count);
                     tempBuffer.WriteToAndReset(ref writer);
                 }
                 finally
@@ -255,12 +255,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -270,7 +270,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IDictionary<TKey, TValue>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -305,12 +305,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -320,7 +320,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyDictionary<TKey, TValue>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -355,12 +355,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<IGrouping<TKey, TElement>>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -370,7 +370,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ILookup<TKey, TElement>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -453,12 +453,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -468,7 +468,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ISet<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;
@@ -502,12 +502,12 @@ namespace MemoryPack.Formatters
         {
             if (value == null)
             {
-                writer.WriteNullLengthHeader();
+                writer.WriteNullCollectionHeader();
                 return;
             }
 
             var formatter = writer.GetFormatter<T>();
-            writer.WriteLengthHeader(value.Count);
+            writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
                 var v = item;
@@ -517,7 +517,7 @@ namespace MemoryPack.Formatters
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlySet<T?>? value)
         {
-            if (!reader.TryReadLengthHeader(out var length))
+            if (!reader.TryReadCollectionHeader(out var length))
             {
                 value = null;
                 return;

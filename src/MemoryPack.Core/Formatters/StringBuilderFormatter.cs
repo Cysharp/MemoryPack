@@ -15,7 +15,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
         }
 
         // strign is same as collection, [length, char[]]
-        writer.WriteLengthHeader(value.Length);
+        writer.WriteCollectionHeader(value.Length);
         foreach (var chunk in value.GetChunks())
         {
             ref var p = ref writer.GetSpanReference(chunk.Length * 2);
@@ -28,7 +28,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref StringBuilder? value)
     {
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             value = null;
             return;

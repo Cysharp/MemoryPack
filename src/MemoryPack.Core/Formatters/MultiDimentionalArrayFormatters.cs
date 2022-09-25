@@ -35,7 +35,7 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
         }
         else
         {
-            writer.WriteLengthHeader(value.Length);
+            writer.WriteCollectionHeader(value.Length);
             var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
@@ -60,7 +60,7 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 
         reader.ReadUnmanaged(out int iLength, out int jLength);
 
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             MemoryPackSerializationException.ThrowInvalidCollection();
         }
@@ -141,7 +141,7 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         }
         else
         {
-            writer.WriteLengthHeader(value.Length);
+            writer.WriteCollectionHeader(value.Length);
             var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
@@ -166,7 +166,7 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
 
         reader.ReadUnmanaged(out int iLength, out int jLength, out int kLength);
 
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             MemoryPackSerializationException.ThrowInvalidCollection();
         }
@@ -256,7 +256,7 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         }
         else
         {
-            writer.WriteLengthHeader(value.Length);
+            writer.WriteCollectionHeader(value.Length);
             var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
@@ -281,7 +281,7 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
 
         reader.ReadUnmanaged(out int iLength, out int jLength, out int kLength, out int lLength);
 
-        if (!reader.TryReadLengthHeader(out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
             MemoryPackSerializationException.ThrowInvalidCollection();
         }

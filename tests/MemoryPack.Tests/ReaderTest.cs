@@ -109,7 +109,7 @@ public class ReaderTest
 
         var reader = new MemoryPackReader(bytes);
 
-        reader.TryReadLengthHeader(out var len).Should().BeTrue();
+        reader.TryReadCollectionHeader(out var len).Should().BeTrue();
         len.Should().Be(2);
 
         reader.ReadUnmanaged(out int v1, out int v2);
@@ -122,7 +122,7 @@ public class ReaderTest
 
         try
         {
-            reader.TryReadLengthHeader(out var len2);
+            reader.TryReadCollectionHeader(out var len2);
             Assert.Fail("should throw");
         }
         catch (MemoryPackSerializationException) { }
@@ -130,7 +130,7 @@ public class ReaderTest
         // just
         bytes = MemoryPackSerializer.Serialize(new byte[] { 99 });
         reader = new MemoryPackReader(bytes);
-        reader.TryReadLengthHeader(out var len3);
+        reader.TryReadCollectionHeader(out var len3);
         len3.Should().Be(1);
 
         BinaryPrimitives.WriteInt32LittleEndian(bytes, 2);
@@ -138,7 +138,7 @@ public class ReaderTest
 
         try
         {
-            reader.TryReadLengthHeader(out var len4);
+            reader.TryReadCollectionHeader(out var len4);
             Assert.Fail("should throw");
         }
         catch (MemoryPackSerializationException) { }
