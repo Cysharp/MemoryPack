@@ -1,74 +1,18 @@
-﻿#pragma warning disable CS8600
-
-using MemoryPack;
-using MemoryPack.Formatters;
-using System;
+﻿using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 
+namespace MemoryPack.Tests.Models;
 
-
-
-
-Console.WriteLine("ok");
-
-[MemoryPackable]
-public partial class Nu
-{
-    public UnionType? XXX;
-}
-
-[MemoryPackable]
-[MemoryPackUnion(0, typeof(A))]
-public partial interface UnionType
-{
-
-}
-
-[MemoryPackable]
-public partial class A : UnionType
-{
-
-}
-
-[MemoryPackable]
-public partial class Foo
-{
-
-    //Foo(int x)
-    //{
-
-    //}
-
-    //public Foo()
-    //{
-
-    //}
-}
-
-
-[MemoryPackable]
-public partial class MonoMono
-{
-    public FooBarFruit Yey { get; set; } = default!;
-}
-
-
-public enum FooBarFruit
-{
-    APple, orange, grape
-}
-
-
-
+// no error generatable.
 #pragma warning disable CS8618
 [MemoryPackable]
 public partial class HogeHoge
@@ -83,9 +27,6 @@ public partial class HogeHoge
     public int[,] P8;
     public int[,,] P9;
     public int[,,,] P10;
-    // ng
-    // public int[,,,,] A5;
-
     // generics
     public KeyValuePair<int, int> P11;
     public Lazy<int> P12;
@@ -146,6 +87,8 @@ public partial class HogeHoge
     // more
     public Nullable<MyStruct> N1;
     public KeyValuePair<string, string> N2;
+
+    public IUnionType? U1;
 }
 
 
@@ -155,99 +98,16 @@ public partial struct MyStruct
     public string? V;
 }
 
-
-[MemoryPackable(GenerateType.Collection)]
-public partial class ListInt : List<int>
+[MemoryPackUnion(0, typeof(AUnion))]
+public partial interface IUnionType
 {
 
 }
 
-[MemoryPackable(GenerateType.Collection)]
-public partial class SetInt : HashSet<int>
+
+
+[MemoryPackable]
+public partial class AUnion : IUnionType
 {
+
 }
-
-[MemoryPackable(GenerateType.Collection)]
-public partial class DictionaryIntInt : Dictionary<int, int>
-{
-}
-
-
-[MemoryPackable(GenerateType.Collection)]
-public partial class ListGenerics<T> : List<T>
-{
-}
-
-[MemoryPackable(GenerateType.Collection)]
-public partial class SetGenerics<T> : HashSet<T>
-{
-}
-
-[MemoryPackable(GenerateType.Collection)]
-public partial class DictionaryGenerics<TK, TV> : Dictionary<TK, TV>
-    where TK : notnull
-{
-}
-
-
-//public class MyCollection<T> : List<T>, IMemoryPackFormatterRegister
-//{
-//    static MyCollection()
-//    {
-//        if (!MemoryPackFormatterProvider.IsRegistered<MyCollection<T>>())
-//        {
-//            MemoryPackFormatterProvider.Register<MyCollection<T>>();
-//        }
-//    }
-
-//    static void IMemoryPackFormatterRegister.RegisterFormatter()
-//    {
-//        MemoryPackFormatterProvider.RegisterCollection<MyCollection<T?>, T>();
-//    }
-//}
-
-
-//[MemoryPackable]
-//public partial class Packable<T>
-//{
-//    public int TakoyakiX { get; set; }
-//    [MemoryPackIgnore]
-//    public object? ObjectObject { get; set; }
-//    [MemoryPackIgnore]
-//    public Array? StandardArray { get; set; }
-//    public int[]? Array { get; set; }
-//    public int[,]? MoreArray { get; set; }
-//    public List<int>? List { get; set; }
-//    public Version? Version { get; set; }
-
-//    public T? TTTTT { get; set; }
-
-//    [MemoryPackFormatter]
-//    public Nazo? MyProperty { get; set; }
-
-//    [MemoryPackFormatter]
-//    public Nazo2? MyProperty2 { get; set; }
-//}
-
-//public class Nazo
-//{
-
-//}
-//public class Nazo2
-//{
-
-//}
-
-//public class Tadano
-//{
-//    public int MyProperty { get; set; }
-//}
-
-
-
-//public class C
-//{
-//    public int Foo { get; init; }
-//    public required int Bar { get; init; }
-
-

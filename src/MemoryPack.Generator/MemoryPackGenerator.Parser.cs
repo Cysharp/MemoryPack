@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace MemoryPack.Generator;
@@ -18,12 +19,25 @@ partial class MemberMeta
         {
             return MemberKind.NonSerializable; // object, Array, delegate is not allowed
         }
-        else if (memberType is INamedTypeSymbol nts && nts.IsRefLikeType)
+        else if (memberType.TypeKind == TypeKind.Enum)
         {
-            return MemberKind.RefLike;
+            return MemberKind.Enum;
         }
         else if (memberType.IsUnmanagedType)
         {
+            if (memberType is INamedTypeSymbol unmanagedNts)
+            {
+                if (unmanagedNts.IsRefLikeType)
+                {
+                    return MemberKind.RefLike;
+                }
+                if (unmanagedNts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
+                {
+                    // unamanged nullable<T> can not pass to where T:unmanaged constraint
+                    return MemberKind.Nullable;
+                }
+            }
+
             return MemberKind.Unmanaged;
         }
         else if (memberType.SpecialType == SpecialType.System_String)
@@ -38,25 +52,55 @@ partial class MemberMeta
         {
             return MemberKind.MemoryPackable;
         }
-        else
+        else if (memberType.IsWillImplementMemoryPackUnion(references))
         {
-            if (memberType.TypeKind == TypeKind.Array)
+            return MemberKind.MemoryPackUnion;
+        }
+        else if (memberType.TypeKind == TypeKind.Array)
+        {
+            if (memberType is IArrayTypeSymbol array)
             {
-                if (memberType is IArrayTypeSymbol array && array.IsSZArray)
+                if (array.IsSZArray)
                 {
                     var elemType = array.ElementType;
                     if (elemType.IsUnmanagedType)
                     {
                         return MemberKind.UnmanagedArray;
                     }
+                    else
+                    {
+                        return MemberKind.Array;
+                    }
                 }
-
-                return MemberKind.Object;
+                else
+                {
+                    // allows 2, 3, 4
+                    if (array.Rank <= 4)
+                    {
+                        return MemberKind.Object;
+                    }
+                }
             }
 
-            if (memberType.TypeKind == TypeKind.TypeParameter) // T
+            return MemberKind.NonSerializable;
+        }
+        else if (memberType.TypeKind == TypeKind.TypeParameter) // T
+        {
+            return MemberKind.Object;
+        }
+        else
+        {
+            // or non unmanaged type
+            if (memberType is INamedTypeSymbol nts)
             {
-                return MemberKind.Object;
+                if (nts.IsRefLikeType)
+                {
+                    return MemberKind.RefLike;
+                }
+                if (nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
+                {
+                    return MemberKind.Nullable;
+                }
             }
 
             if (references.KnownTypes.Contains(memberType))
@@ -64,23 +108,15 @@ partial class MemberMeta
                 return MemberKind.KnownType;
             }
 
-            var isIterable = memberType.AllInterfaces.Any(x => x.EqualsUnconstructedGenericType(references.KnownTypes.System_Collections_Generic_IEnumerable_T));
-            if (isIterable)
+            if (memberSymbol != null)
             {
-                return MemberKind.Object;
-            }
-            else
-            {
-                if (memberSymbol != null)
+                if (memberSymbol.ContainsAttribute(references.MemoryPackFormatterAttribute))
                 {
-                    if (memberSymbol.ContainsAttribute(references.MemoryPackFormatterAttribute))
-                    {
-                        return MemberKind.MemoryPackFormatter;
-                    }
+                    return MemberKind.MemoryPackFormatter;
                 }
-
-                return MemberKind.NonSerializable; // maybe can't serialize, diagnostics target
             }
+
+            return MemberKind.NonSerializable; // maybe can't serialize, diagnostics target
         }
     }
 }

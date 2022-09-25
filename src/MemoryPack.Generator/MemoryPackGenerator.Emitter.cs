@@ -344,6 +344,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         {
             MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{{TypeName}}>());
         }
+{{EmitAdditionalRegisterFormatter("        ")}}
     }
 
     static void IMemoryPackable<{{TypeName}}>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}{{nullable}} value)
@@ -445,6 +446,28 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 """;
     }
 
+    string EmitAdditionalRegisterFormatter(string indent)
+    {
+        // NOTE: analyze and add more formatters
+        var enums = Members.Where(x => x.Kind == MemberKind.Enum)
+            .Select(x => x.MemberType.FullyQualifiedToString())
+            .Distinct()
+            .ToArray();
+
+        if (enums.Length == 0) return "";
+
+        var sb = new StringBuilder();
+        foreach (var item in enums)
+        {
+            sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<{item}>())");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.UnmanagedFormatter<{item}>());");
+            sb.AppendLine($"{indent}}}");
+        }
+
+        return sb.ToString();
+    }
+
     string EmitSerializeBody()
     {
         return $$"""
@@ -471,7 +494,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (!members[i].MemberType.IsUnmanagedType)
+            if (members[i].Kind != MemberKind.Unmanaged)
             {
                 sb.Append(indent);
                 if (i == 0)
@@ -490,7 +513,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
             var limit = Math.Min(members.Length, i + 15);
             for (int j = i; j < limit; j++)
             {
-                if (members[j].MemberType.IsUnmanagedType)
+                if (members[j].Kind == MemberKind.Unmanaged)
                 {
                     optimizeTo = j;
                     continue;
@@ -538,7 +561,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (!members[i].MemberType.IsUnmanagedType)
+            if (members[i].Kind != MemberKind.Unmanaged)
             {
                 sb.Append(indent);
                 sb.AppendLine(members[i].EmitReadToDeserialize());
@@ -551,7 +574,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
             var limit = Math.Min(members.Length, i + 15);
             for (int j = i; j < limit; j++)
             {
-                if (members[j].MemberType.IsUnmanagedType)
+                if (members[j].Kind == MemberKind.Unmanaged)
                 {
                     optimizeTo = j;
                     continue;
@@ -902,6 +925,8 @@ public partial class MemberMeta
                 return $"writer.WriteString(value.{Name});";
             case MemberKind.UnmanagedArray:
                 return $"writer.WriteUnmanagedArray(value.{Name});";
+            case MemberKind.Array:
+                return $"writer.WritedArray(value.{Name});";
             default:
                 return $"writer.WriteObject(value.{Name});";
         }
@@ -919,6 +944,8 @@ public partial class MemberMeta
                 return $"__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
                 return $"__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+            case MemberKind.Array:
+                return $"__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             default:
                 return $"__{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
@@ -936,6 +963,8 @@ public partial class MemberMeta
                 return $"__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
                 return $"reader.ReadUnmanagedArray(ref __{Name});";
+            case MemberKind.Array:
+                return $"reader.ReadArray(ref __{Name});";
             default:
                 return $"reader.ReadObject(ref __{Name});";
         }
@@ -947,14 +976,16 @@ public enum MemberKind
 {
     MemoryPackable, // IMemoryPackable<> or [MemoryPackable]
     Unmanaged,
+    Nullable, // Nullable<int> is like unmanage but can not write to unmanaged constraint
     KnownType,
     String,
-    // TODO:array
+    Array,
     UnmanagedArray,
+    Enum,
 
     // from attribute
-    // MemoryPackGenerate,
     MemoryPackFormatter,
+    MemoryPackUnion,
 
     Object, // others allow
     RefLike, // not allowed

@@ -49,6 +49,11 @@ internal static class Extensions
         return !symbol.IsAbstract && symbol.ContainsAttribute(references.MemoryPackableAttribute);
     }
 
+    public static bool IsWillImplementMemoryPackUnion(this ITypeSymbol symbol, ReferenceSymbols references)
+    {
+        return symbol.IsAbstract && symbol.ContainsAttribute(references.MemoryPackUnionAttribute);
+    }
+
     public static bool HasDuplicate<T>(this IEnumerable<T> source)
     {
         var set = new HashSet<T>();

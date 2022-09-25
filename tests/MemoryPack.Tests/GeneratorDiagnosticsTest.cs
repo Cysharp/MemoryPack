@@ -16,8 +16,6 @@ public partial class GeneratorDiagnosticsTest
 {
     void Compile(int id, string code, bool allowMultipleError = false)
     {
-        // note: when doesn't detect code-generator error(succeeded code generation)
-        // compiler will show many errors(because compilation does not reference dependent assemblies(System.Memory.dll, etc...)
         var diagnostics = CSharpGeneratorRunner.RunGenerator(code);
         if (!allowMultipleError)
         {
