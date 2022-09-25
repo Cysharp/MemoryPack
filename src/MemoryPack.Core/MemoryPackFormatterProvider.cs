@@ -1,5 +1,6 @@
 ﻿using MemoryPack.Formatters;
 using MemoryPack.Internal;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -53,7 +54,7 @@ public static partial class MemoryPackFormatterProvider
         }
         else
         {
-            ThrowHelper.ThrowMessage($"Registered type is not generic type. genericType:{genericType.FullName}, formatterType:{genericFormatterType.FullName}");
+            MemoryPackSerializationException.ThrowMessage($"Registered type is not generic type. genericType:{genericType.FullName}, formatterType:{genericFormatterType.FullName}");
         }
     }
 
@@ -71,7 +72,7 @@ public static partial class MemoryPackFormatterProvider
         }
         else
         {
-            ThrowHelper.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericCollectionType.FullName}");
+            MemoryPackSerializationException.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericCollectionType.FullName}");
         }
     }
 
@@ -89,7 +90,7 @@ public static partial class MemoryPackFormatterProvider
         }
         else
         {
-            ThrowHelper.ThrowMessage($"Registered generic set is not filled generic formatter constraint. type: {genericSetType.FullName}");
+            MemoryPackSerializationException.ThrowMessage($"Registered generic set is not filled generic formatter constraint. type: {genericSetType.FullName}");
         }
     }
 
@@ -108,7 +109,7 @@ public static partial class MemoryPackFormatterProvider
         }
         else
         {
-            ThrowHelper.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericDictionaryType.FullName}");
+            MemoryPackSerializationException.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericDictionaryType.FullName}");
         }
     }
 
@@ -129,8 +130,17 @@ public static partial class MemoryPackFormatterProvider
             return formatter;
         }
 
-        ThrowHelper.ThrowNotRegisteredInProvider(type);
-        return default;
+        // non registered, try to create generic formatter
+        // can not detect IsReferenceOrContainsReference but it only uses array type select so safe).
+        var formatter2 = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences: true) as IMemoryPackFormatter;
+        if (formatter2 == null)
+        {
+            formatter2 = new ErrorMemoryPackFormatter(type);
+        }
+        formatter = formatter2;
+
+        formatters[type] = formatter;
+        return formatter;
     }
 
     static class Check<T>
@@ -287,6 +297,33 @@ public static partial class MemoryPackFormatterProvider
     }
 }
 
+internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
+{
+    readonly Type type;
+
+    public ErrorMemoryPackFormatter(Type type)
+    {
+        this.type = type;
+    }
+
+    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        Throw();
+    }
+
+    public void Deserialize(ref MemoryPackReader reader, scoped ref object? value)
+    {
+        Throw();
+    }
+
+    [DoesNotReturn]
+    void Throw()
+    {
+        MemoryPackSerializationException.ThrowNotRegisteredInProvider(type);
+    }
+}
+
 internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
 {
     readonly Exception? exception;
@@ -325,15 +362,15 @@ internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
     {
         if (exception != null)
         {
-            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
+            MemoryPackSerializationException.ThrowRegisterInProviderFailed(typeof(T), exception);
         }
         else if (message != null)
         {
-            ThrowHelper.ThrowMessage(message);
+            MemoryPackSerializationException.ThrowMessage(message);
         }
         else
         {
-            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+            MemoryPackSerializationException.ThrowNotRegisteredInProvider(typeof(T));
         }
     }
 }

@@ -21,7 +21,7 @@ public static partial class MemoryPackSerializer
         {
             if (buffer.Length < Unsafe.SizeOf<T>())
             {
-                ThrowHelper.ThrowInvalidRange(Unsafe.SizeOf<T>(), buffer.Length);
+                MemoryPackSerializationException.ThrowInvalidRange(Unsafe.SizeOf<T>(), buffer.Length);
             }
             value = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(buffer));
             return;

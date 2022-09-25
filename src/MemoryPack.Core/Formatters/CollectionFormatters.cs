@@ -427,7 +427,7 @@ namespace MemoryPack.Formatters
                 formatter.Serialize(ref writer, ref v);
             }
 
-            if (i != count) ThrowHelper.ThrowInvalidConcurrrentCollectionOperation();
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentQueue<T?>? value)
@@ -477,7 +477,7 @@ namespace MemoryPack.Formatters
                 {
                     rentArray[i++] = item;
                 }
-                if (i != count) ThrowHelper.ThrowInvalidConcurrrentCollectionOperation();
+                if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
 
                 var formatter = writer.GetFormatter<T?>();
                 writer.WriteLengthHeader(count);
@@ -540,7 +540,7 @@ namespace MemoryPack.Formatters
                 formatter.Serialize(ref writer, ref v);
             }
 
-            if (i != count) ThrowHelper.ThrowInvalidConcurrrentCollectionOperation();
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentBag<T?>? value)
@@ -769,7 +769,7 @@ namespace MemoryPack.Formatters
                 formatter.Serialize(ref writer, ref v);
             }
 
-            if (i != count) ThrowHelper.ThrowInvalidConcurrrentCollectionOperation();
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentDictionary<TKey, TValue?>? value)

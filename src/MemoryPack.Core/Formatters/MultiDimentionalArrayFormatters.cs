@@ -55,14 +55,14 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 
         if (propertyCount != 3)
         {
-            ThrowHelper.ThrowInvalidPropertyCount(3, propertyCount);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount(3, propertyCount);
         }
 
         reader.ReadUnmanaged(out int iLength, out int jLength);
 
         if (!reader.TryReadLengthHeader(out var length))
         {
-            ThrowHelper.ThrowInvalidCollection();
+            MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.Length == length)
@@ -161,14 +161,14 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
 
         if (propertyCount != 4)
         {
-            ThrowHelper.ThrowInvalidPropertyCount(4, propertyCount);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount(4, propertyCount);
         }
 
         reader.ReadUnmanaged(out int iLength, out int jLength, out int kLength);
 
         if (!reader.TryReadLengthHeader(out var length))
         {
-            ThrowHelper.ThrowInvalidCollection();
+            MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.GetLength(2) == kLength && value.Length == length)
@@ -276,14 +276,14 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
 
         if (propertyCount != 5)
         {
-            ThrowHelper.ThrowInvalidPropertyCount(5, propertyCount);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount(5, propertyCount);
         }
 
         reader.ReadUnmanaged(out int iLength, out int jLength, out int kLength, out int lLength);
 
         if (!reader.TryReadLengthHeader(out var length))
         {
-            ThrowHelper.ThrowInvalidCollection();
+            MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.GetLength(2) == kLength && value.GetLength(3) == lLength && value.Length == length)

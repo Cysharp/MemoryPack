@@ -34,15 +34,11 @@ public static partial class MemoryPackSerializer
 
             var dataSize = elementSize * length;
             var destArray = GC.AllocateUninitializedArray<byte>(dataSize + 4);
-
             ref var head = ref MemoryMarshal.GetArrayDataReference(destArray);
+
             Unsafe.WriteUnaligned(ref head, length);
-            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
-            Buffer.MemoryCopy(
-                source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(srcArray)),
-                destination: Unsafe.AsPointer(ref Unsafe.Add(ref head, 4)),
-                destinationSizeInBytes: dataSize,
-                sourceBytesToCopy: dataSize);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
+
             return destArray;
         }
 
@@ -96,13 +92,10 @@ public static partial class MemoryPackSerializer
             var dataSize = elementSize * length;
             var destSpan = bufferWriter.GetSpan(dataSize + 4);
             ref var head = ref MemoryMarshal.GetReference(destSpan);
+
             Unsafe.WriteUnaligned(ref head, length);
-            // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
-            Buffer.MemoryCopy(
-                source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(srcArray)),
-                destination: Unsafe.AsPointer(ref Unsafe.Add(ref head, 4)),
-                destinationSizeInBytes: dataSize,
-                sourceBytesToCopy: dataSize);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
+
             bufferWriter.Advance(dataSize + 4);
             return;
         }
@@ -120,7 +113,6 @@ public static partial class MemoryPackSerializer
     }
 
     public static async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
-        where T : unmanaged
     {
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try

@@ -426,13 +426,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            if (count != 2) ThrowHelper.ThrowInvalidPropertyCount(2, count);
+            if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
             var key = reader.ReadObject<TKey>();
             var values = reader.ReadArray<TElement>() as IEnumerable<TElement>;
 
-            if (key == null) ThrowHelper.ThrowDeserializeObjectIsNull(nameof(key));
-            if (values == null) ThrowHelper.ThrowDeserializeObjectIsNull(nameof(values));
+            if (key == null) MemoryPackSerializationException.ThrowDeserializeObjectIsNull(nameof(key));
+            if (values == null) MemoryPackSerializationException.ThrowDeserializeObjectIsNull(nameof(values));
 
             value = new Grouping<TKey, TElement>(key, values);
 

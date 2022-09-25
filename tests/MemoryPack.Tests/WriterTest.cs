@@ -37,7 +37,7 @@ public class WriterTest
         {
             writer.Advance(9999);
         }
-        catch (InvalidOperationException)
+        catch (MemoryPackSerializationException)
         {
             error = true;
         }
@@ -77,7 +77,7 @@ public class WriterTest
             {
                 writer.WriteObjectHeader((byte)i);
             }
-            catch (InvalidOperationException)
+            catch (MemoryPackSerializationException)
             {
                 error = true;
             }

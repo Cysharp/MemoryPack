@@ -217,7 +217,7 @@ public class GeneratorTest
         v4Tov4.Should().BeEquivalentTo(v4);
 
         // large -> small is ng
-        Assert.Throws<InvalidOperationException>(() => MemoryPackSerializer.Deserialize<Versioning2>(bin3));
+        Assert.Throws<MemoryPackSerializationException>(() => MemoryPackSerializer.Deserialize<Versioning2>(bin3));
 
         // check wrapped
         var w2 = new WrappedVersioning2 { Before = "BF", V2 = v2, After = "AF" };
@@ -251,7 +251,7 @@ public class GeneratorTest
 
         //set rec
         rec.Rec = rec;
-        Assert.Throws<InvalidOperationException>(() => MemoryPackSerializer.Serialize(rec));
+        Assert.Throws<MemoryPackSerializationException>(() => MemoryPackSerializer.Serialize(rec));
     }
 
     [Fact]

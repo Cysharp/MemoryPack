@@ -43,7 +43,7 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
             return;
         }
 
-        if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
+        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = reader.ReadObject<T>();
     }

@@ -403,7 +403,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         }
         else if (count > {{count}})
         {
-            ThrowHelper.ThrowInvalidPropertyCount({{count}}, count);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount({{count}}, count);
             goto END;
         }
         else
@@ -744,7 +744,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             }
             else
             {
-                ThrowHelper.ThrowNotFoundInUnionType(value.GetType(), typeof({{TypeName}}));
+                MemoryPackSerializationException.ThrowNotFoundInUnionType(value.GetType(), typeof({{TypeName}}));
             }
 """;
     }
@@ -783,7 +783,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             {
 {{readBody}}
                 default:
-                    ThrowHelper.ThrowInvalidTag(tag, typeof({{TypeName}}));
+                    MemoryPackSerializationException.ThrowInvalidTag(tag, typeof({{TypeName}}));
                     break;
             }
 """;

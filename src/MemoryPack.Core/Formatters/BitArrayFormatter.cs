@@ -29,7 +29,7 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
             return;
         }
 
-        if (count != 2) ThrowHelper.ThrowInvalidPropertyCount(2, count);
+        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         reader.ReadUnmanaged(out int length);
 

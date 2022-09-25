@@ -28,6 +28,6 @@ public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
             reader.Advance(length);
         }
 
-        ThrowHelper.ThrowInvalidCollection();
+        MemoryPackSerializationException.ThrowInvalidCollection();
     }
 }

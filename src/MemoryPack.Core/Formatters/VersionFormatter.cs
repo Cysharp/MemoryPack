@@ -23,7 +23,7 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
             return;
         }
 
-        if (count != 4) ThrowHelper.ThrowInvalidPropertyCount(4, count);
+        if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         reader.ReadUnmanaged(out int major, out int minor, out int build, out int revision);
         value = new Version(major, minor, build, revision);

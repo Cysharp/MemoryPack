@@ -58,7 +58,7 @@ public ref partial struct MemoryPackReader
 
         if (restSequenceLength == 0)
         {
-            ThrowHelper.ThrowSequenceReachedEnd();
+            MemoryPackSerializationException.ThrowSequenceReachedEnd();
         }
 
         try
@@ -67,7 +67,7 @@ public ref partial struct MemoryPackReader
         }
         catch (ArgumentOutOfRangeException)
         {
-            ThrowHelper.ThrowSequenceReachedEnd();
+            MemoryPackSerializationException.ThrowSequenceReachedEnd();
         }
 
         advancedCount = 0;
@@ -89,7 +89,7 @@ public ref partial struct MemoryPackReader
             return ref bufferReference;
         }
 
-        ThrowHelper.ThrowSequenceReachedEnd();
+        MemoryPackSerializationException.ThrowSequenceReachedEnd();
         return ref bufferReference; // dummy.
     }
 
@@ -99,7 +99,7 @@ public ref partial struct MemoryPackReader
         var rest = bufferLength - count;
         if (rest < 0)
         {
-            ThrowHelper.ThrowInvalidAdvance();
+            MemoryPackSerializationException.ThrowInvalidAdvance();
         }
 
         bufferLength = rest;
@@ -163,7 +163,7 @@ public ref partial struct MemoryPackReader
         // If collection-length is larger than buffer-length, it is invalid data.
         if (restSequenceLength < length)
         {
-            ThrowHelper.ThrowInsufficientBufferUnless(length);
+            MemoryPackSerializationException.ThrowInsufficientBufferUnless(length);
         }
 
         return length != MemoryPackCode.NullLength;
@@ -351,13 +351,11 @@ public ref partial struct MemoryPackReader
 
         if (length == 0) return Array.Empty<T>();
 
-        var size = length * Unsafe.SizeOf<T>();
-        ref var src = ref GetSpanReference(size);
+        var byteCount = length * Unsafe.SizeOf<T>();
+        ref var src = ref GetSpanReference(byteCount);
         var dest = GC.AllocateUninitializedArray<T>(length);
-
-        // TODO:this operation is maybe invalid, CreateSpan and CopyTo.
-        Buffer.MemoryCopy(Unsafe.AsPointer(ref src), Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dest)), size, size);
-        Advance(size);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetArrayDataReference(dest)), ref src, (uint)byteCount);
+        Advance(byteCount);
 
         return dest;
     }

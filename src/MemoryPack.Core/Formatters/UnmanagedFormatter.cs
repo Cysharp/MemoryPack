@@ -10,17 +10,15 @@ namespace MemoryPack.Formatters;
 public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
     where T : unmanaged
 {
-    static readonly int size = Unsafe.SizeOf<T>(); // TODO:which faster? load from field or Unsafe.SizeOf<T> directly
-
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T value)
     {
-        Unsafe.WriteUnaligned(ref writer.GetSpanReference(size), value);
-        writer.Advance(size);
+        Unsafe.WriteUnaligned(ref writer.GetSpanReference(Unsafe.SizeOf<T>()), value);
+        writer.Advance(Unsafe.SizeOf<T>());
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref T value)
     {
-        value = Unsafe.ReadUnaligned<T>(ref reader.GetSpanReference(size));
-        reader.Advance(size);
+        value = Unsafe.ReadUnaligned<T>(ref reader.GetSpanReference(Unsafe.SizeOf<T>()));
+        reader.Advance(Unsafe.SizeOf<T>());
     }
 }

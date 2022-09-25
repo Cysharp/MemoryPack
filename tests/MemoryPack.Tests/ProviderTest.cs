@@ -11,7 +11,7 @@ public class ProviderTest
     [Fact]
     public void AnonymousType()
     {
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<MemoryPackSerializationException>(() =>
         MemoryPackSerializer.Serialize(new { foo = 10, bar = "tako" })).Message.Should().Contain("anonymous type");
     }
 
@@ -67,7 +67,7 @@ public class CustomTypeFormatter<T> : MemoryPackFormatter<CustomType<T?>>
             value = null;
             return;
         }
-        if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
+        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new CustomType<T?> { Value = reader.ReadObject<T>() };
     }

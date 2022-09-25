@@ -74,7 +74,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         var rest = bufferLength - count;
         if (rest < 0)
         {
-            ThrowHelper.ThrowInvalidAdvance();
+            MemoryPackSerializationException.ThrowInvalidAdvance();
         }
 
         bufferLength = rest;
@@ -120,7 +120,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         if (propertyCount >= MemoryPackCode.Reserved1)
         {
-            ThrowHelper.ThrowWriteInvalidPropertyCount(propertyCount);
+            MemoryPackSerializationException.ThrowWriteInvalidPropertyCount(propertyCount);
         }
         GetSpanReference(1) = propertyCount;
         Advance(1);
@@ -167,7 +167,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where T : IMemoryPackable<T>
     {
         depth++;
-        if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
+        if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));
         T.Serialize(ref this, ref Unsafe.AsRef(value));
         depth--;
     }
@@ -177,7 +177,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WriteObject<T>(scoped in T? value)
     {
         depth++;
-        if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
+        if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));
         GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
         depth--;
     }

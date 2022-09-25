@@ -22,7 +22,7 @@ public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
             return;
         }
 
-        if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
+        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         var v = reader.ReadObject<T>();
         value = new Lazy<T?>(v);

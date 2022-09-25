@@ -42,7 +42,7 @@ public class ReaderTest
         {
             reader.GetSpanReference(1);
         }
-        catch (InvalidOperationException)
+        catch (MemoryPackSerializationException)
         {
             error = true;
         }
@@ -75,7 +75,7 @@ public class ReaderTest
         {
             reader.GetSpanReference(1);
         }
-        catch (InvalidOperationException)
+        catch (MemoryPackSerializationException)
         {
             error = true;
         }
@@ -93,7 +93,7 @@ public class ReaderTest
         {
             reader.Advance(10); // ng
         }
-        catch (InvalidOperationException)
+        catch (MemoryPackSerializationException)
         {
             error = true;
         }
@@ -125,7 +125,7 @@ public class ReaderTest
             reader.TryReadLengthHeader(out var len2);
             Assert.Fail("should throw");
         }
-        catch (InvalidOperationException) { }
+        catch (MemoryPackSerializationException) { }
 
         // just
         bytes = MemoryPackSerializer.Serialize(new byte[] { 99 });
@@ -141,7 +141,7 @@ public class ReaderTest
             reader.TryReadLengthHeader(out var len4);
             Assert.Fail("should throw");
         }
-        catch (InvalidOperationException) { }
+        catch (MemoryPackSerializationException) { }
     }
 
 }

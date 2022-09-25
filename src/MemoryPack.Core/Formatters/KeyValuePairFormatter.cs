@@ -29,7 +29,7 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
             return;
         }
 
-        if (count != 2) ThrowHelper.ThrowInvalidPropertyCount(2, count);
+        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new KeyValuePair<TKey?, TValue?>(
             reader.ReadObject<TKey>(),

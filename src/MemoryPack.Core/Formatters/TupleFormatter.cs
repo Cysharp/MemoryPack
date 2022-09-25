@@ -46,7 +46,7 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
             return;
         }
 
-        if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
+        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new Tuple<T1?>(
             reader.ReadObject<T1>()
@@ -77,7 +77,7 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
             return;
         }
 
-        if (count != 2) ThrowHelper.ThrowInvalidPropertyCount(2, count);
+        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new Tuple<T1?, T2?>(
             reader.ReadObject<T1>(),
@@ -110,7 +110,7 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
             return;
         }
 
-        if (count != 3) ThrowHelper.ThrowInvalidPropertyCount(3, count);
+        if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
         value = new Tuple<T1?, T2?, T3?>(
             reader.ReadObject<T1>(),
@@ -145,7 +145,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
             return;
         }
 
-        if (count != 4) ThrowHelper.ThrowInvalidPropertyCount(4, count);
+        if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?>(
             reader.ReadObject<T1>(),
@@ -182,7 +182,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
             return;
         }
 
-        if (count != 5) ThrowHelper.ThrowInvalidPropertyCount(5, count);
+        if (count != 5) MemoryPackSerializationException.ThrowInvalidPropertyCount(5, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?>(
             reader.ReadObject<T1>(),
@@ -221,7 +221,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
             return;
         }
 
-        if (count != 6) ThrowHelper.ThrowInvalidPropertyCount(6, count);
+        if (count != 6) MemoryPackSerializationException.ThrowInvalidPropertyCount(6, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?>(
             reader.ReadObject<T1>(),
@@ -262,7 +262,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
             return;
         }
 
-        if (count != 7) ThrowHelper.ThrowInvalidPropertyCount(7, count);
+        if (count != 7) MemoryPackSerializationException.ThrowInvalidPropertyCount(7, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>(
             reader.ReadObject<T1>(),
@@ -306,7 +306,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
             return;
         }
 
-        if (count != 8) ThrowHelper.ThrowInvalidPropertyCount(8, count);
+        if (count != 8) MemoryPackSerializationException.ThrowInvalidPropertyCount(8, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>(
             reader.ReadObject<T1>(),
@@ -350,7 +350,7 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
             return;
         }
 
-        if (count != 1) ThrowHelper.ThrowInvalidPropertyCount(1, count);
+        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new ValueTuple<T1?>(
             reader.ReadObject<T1>()
@@ -387,7 +387,7 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
             return;
         }
 
-        if (count != 2) ThrowHelper.ThrowInvalidPropertyCount(2, count);
+        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new ValueTuple<T1?, T2?>(
             reader.ReadObject<T1>(),
@@ -426,7 +426,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
             return;
         }
 
-        if (count != 3) ThrowHelper.ThrowInvalidPropertyCount(3, count);
+        if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
         value = new ValueTuple<T1?, T2?, T3?>(
             reader.ReadObject<T1>(),
@@ -467,7 +467,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
             return;
         }
 
-        if (count != 4) ThrowHelper.ThrowInvalidPropertyCount(4, count);
+        if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?>(
             reader.ReadObject<T1>(),
@@ -510,7 +510,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
             return;
         }
 
-        if (count != 5) ThrowHelper.ThrowInvalidPropertyCount(5, count);
+        if (count != 5) MemoryPackSerializationException.ThrowInvalidPropertyCount(5, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?>(
             reader.ReadObject<T1>(),
@@ -555,7 +555,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
             return;
         }
 
-        if (count != 6) ThrowHelper.ThrowInvalidPropertyCount(6, count);
+        if (count != 6) MemoryPackSerializationException.ThrowInvalidPropertyCount(6, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>(
             reader.ReadObject<T1>(),
@@ -602,7 +602,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
             return;
         }
 
-        if (count != 7) ThrowHelper.ThrowInvalidPropertyCount(7, count);
+        if (count != 7) MemoryPackSerializationException.ThrowInvalidPropertyCount(7, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>(
             reader.ReadObject<T1>(),
@@ -652,7 +652,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
             return;
         }
 
-        if (count != 8) ThrowHelper.ThrowInvalidPropertyCount(8, count);
+        if (count != 8) MemoryPackSerializationException.ThrowInvalidPropertyCount(8, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>(
             reader.ReadObject<T1>(),
