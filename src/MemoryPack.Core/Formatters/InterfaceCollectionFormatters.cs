@@ -71,7 +71,7 @@ namespace MemoryPack.Formatters
         {
             if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<TElement>();
+            var formatter = writer.GetFormatter<TElement>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -86,7 +86,7 @@ namespace MemoryPack.Formatters
         {
             if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<TElement>();
+            var formatter = writer.GetFormatter<TElement>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -97,7 +97,7 @@ namespace MemoryPack.Formatters
 
         public static List<T?>? ReadList<T>(ref MemoryPackReader reader)
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<List<T?>>();
+            var formatter = reader.GetFormatter<List<T?>>();
             List<T?>? v = default;
             formatter.Deserialize(ref reader, ref v);
             return v;
@@ -112,7 +112,7 @@ namespace MemoryPack.Formatters
 
             if (value.TryGetNonEnumeratedCountEx(out var count))
             {
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 writer.WriteLengthHeader(count);
                 foreach (var item in value)
                 {
@@ -129,7 +129,7 @@ namespace MemoryPack.Formatters
                     var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
 
                     count = 0;
-                    var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                    var formatter = writer.GetFormatter<T?>();
                     foreach (var item in value)
                     {
                         count++;
@@ -259,7 +259,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -278,7 +278,7 @@ namespace MemoryPack.Formatters
 
             var dict = new Dictionary<TKey, TValue>();
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue> item = default;
@@ -309,7 +309,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -328,7 +328,7 @@ namespace MemoryPack.Formatters
 
             var dict = new Dictionary<TKey, TValue>();
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue> item = default;
@@ -359,7 +359,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<IGrouping<TKey, TElement>>();
+            var formatter = writer.GetFormatter<IGrouping<TKey, TElement>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -378,7 +378,7 @@ namespace MemoryPack.Formatters
 
             var dict = new Dictionary<TKey, IGrouping<TKey, TElement>>();
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<IGrouping<TKey, TElement>>();
+            var formatter = reader.GetFormatter<IGrouping<TKey, TElement>>();
             for (int i = 0; i < length; i++)
             {
                 IGrouping<TKey, TElement>? item = default;
@@ -457,7 +457,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = writer.GetFormatter<T>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -476,7 +476,7 @@ namespace MemoryPack.Formatters
 
             var set = new HashSet<T?>(length);
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = reader.GetFormatter<T>();
             for (int i = 0; i < length; i++)
             {
                 T? item = default;
@@ -506,7 +506,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = writer.GetFormatter<T>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -525,7 +525,7 @@ namespace MemoryPack.Formatters
 
             var set = new HashSet<T?>(length);
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = reader.GetFormatter<T>();
             for (int i = 0; i < length; i++)
             {
                 T? item = default;

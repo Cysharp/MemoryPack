@@ -36,7 +36,7 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
         else
         {
             writer.WriteLengthHeader(value.Length);
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
                 var v = item;
@@ -85,7 +85,7 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
         }
         else
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var i = 0;
             var j = -1;
@@ -142,7 +142,7 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         else
         {
             writer.WriteLengthHeader(value.Length);
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
                 var v = item;
@@ -191,7 +191,7 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         }
         else
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var i = 0;
             var j = 0;
@@ -257,7 +257,7 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         else
         {
             writer.WriteLengthHeader(value.Length);
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             foreach (var item in value)
             {
                 var v = item;
@@ -306,7 +306,7 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         }
         else
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var i = 0;
             var j = 0;

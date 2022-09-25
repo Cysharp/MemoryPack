@@ -40,7 +40,7 @@ public static partial class MemoryPackSerializer
     public static void Serialize<TBufferWriter>(Type type, ref MemoryPackWriter<TBufferWriter> writer, object? value)
     where TBufferWriter : IBufferWriter<byte>
     {
-        MemoryPackFormatterProvider.GetFormatter(type).Serialize(ref writer, ref value);
+        writer.GetFormatter(type).Serialize(ref writer, ref value);
         writer.Flush();
     }
 

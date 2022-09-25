@@ -116,6 +116,18 @@ public ref partial struct MemoryPackReader
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IMemoryPackFormatter GetFormatter(Type type)
+    {
+        return MemoryPackFormatterProvider.GetFormatter(type);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IMemoryPackFormatter<T> GetFormatter<T>()
+    {
+        return MemoryPackFormatterProvider.GetFormatter<T>();
+    }
+
     // read methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -196,14 +208,14 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadObject<T>(scoped ref T? value)
     {
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+        GetFormatter<T>().Deserialize(ref this, ref value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T? ReadObject<T>()
     {
         T? value = default;
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref this, ref value);
+        GetFormatter<T>().Deserialize(ref this, ref value);
         return value;
     }
 
@@ -242,7 +254,7 @@ public ref partial struct MemoryPackReader
             value = new T[length];
         }
 
-        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        var formatter = GetFormatter<T>();
         for (int i = 0; i < length; i++)
         {
             formatter.Deserialize(ref this, ref value[i]);
@@ -274,7 +286,7 @@ public ref partial struct MemoryPackReader
             value = new T[length];
         }
 
-        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        var formatter = GetFormatter<T>();
         for (int i = 0; i < length; i++)
         {
             formatter.Deserialize(ref this, ref value[i]);
@@ -464,7 +476,7 @@ public ref partial struct MemoryPackReader
                 value = new T[length];
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = GetFormatter<T>();
             for (int i = 0; i < length; i++)
             {
                 formatter.Deserialize(ref this, ref value[i]);

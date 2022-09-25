@@ -30,8 +30,7 @@ public static partial class MemoryPackSerializer
         var reader = new MemoryPackReader(buffer);
         try
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
-            formatter.Deserialize(ref reader, ref value);
+            reader.ReadObject(ref value);
         }
         finally
         {
@@ -51,8 +50,7 @@ public static partial class MemoryPackSerializer
         var reader = new MemoryPackReader(buffer);
         try
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
-            formatter.Deserialize(ref reader, ref value);
+            reader.ReadObject(ref value);
         }
         finally
         {
@@ -114,17 +112,5 @@ public static partial class MemoryPackSerializer
         {
             builder.Reset();
         }
-    }
-
-    public static T? Deserialize<T>(ref MemoryPackReader reader)
-    {
-        T? value = default;
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref reader, ref value);
-        return value;
-    }
-
-    public static void Deserialize<T>(ref MemoryPackReader reader, ref T? value)
-    {
-        MemoryPackFormatterProvider.GetFormatter<T>().Deserialize(ref reader, ref value);
     }
 }

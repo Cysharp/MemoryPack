@@ -8,6 +8,12 @@ public static class ThrowHelper
     // TODO:use class MemoryPackSerializationException : Exception
 
     [DoesNotReturn]
+    public static void ThrowMessage(string message)
+    {
+        throw new InvalidOperationException(message);
+    }
+
+    [DoesNotReturn]
     public static void ThrowInvalidPropertyCount(byte expected, byte actual)
     {
         throw new InvalidOperationException($"Current object's property count is {expected} but binary's header maked as {actual}, can't deserialize about versioning.");

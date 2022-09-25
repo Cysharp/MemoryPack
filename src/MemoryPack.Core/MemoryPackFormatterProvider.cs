@@ -1,5 +1,7 @@
 ﻿using MemoryPack.Formatters;
+using MemoryPack.Internal;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -13,6 +15,9 @@ public static partial class MemoryPackFormatterProvider
 {
     // for nongenerics methods
     static readonly ConcurrentDictionary<Type, IMemoryPackFormatter> formatters = new ConcurrentDictionary<Type, IMemoryPackFormatter>();
+
+    // custom generic formatters
+    static readonly ConcurrentDictionary<Type, Type> genericFormatterFactory = new ConcurrentDictionary<Type, Type>();
 
     // generics known types
     static readonly Dictionary<Type, Type> KnownGenericTypeFormatters = new Dictionary<Type, Type>()
@@ -37,16 +42,29 @@ public static partial class MemoryPackFormatterProvider
         T.RegisterFormatter();
     }
 
-    // TODO: RegisterGenericFactory
+    public static void RegisterGeneric(Type genericType, Type formatterType)
+    {
+        if (genericType.IsGenericType && formatterType.IsGenericType)
+        {
+            genericFormatterFactory[genericType] = formatterType;
+        }
+        else
+        {
+            ThrowHelper.ThrowMessage($"Registered type is not generic type. genericType:{genericType.FullName}, formatterType:{formatterType.FullName}");
+        }
+    }
+
+    // almostly get from Writer/Reader
+    // in future, will change static provider to instance provider.
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MemoryPackFormatter<T> GetFormatter<T>()
+    internal static MemoryPackFormatter<T> GetFormatter<T>()
     {
         return Cache<T>.formatter;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IMemoryPackFormatter GetFormatter(Type type)
+    internal static IMemoryPackFormatter GetFormatter(Type type)
     {
         if (formatters.TryGetValue(type, out var formatter))
         {
@@ -81,6 +99,12 @@ public static partial class MemoryPackFormatterProvider
                     return;
                 }
 
+                if (TypeHelpers.IsAnonymous(type))
+                {
+                    formatter = new ErrorMemoryPackFormatter<T>("Serialize anonymous type is not supported, use record or tuple instead.");
+                    goto END;
+                }
+
                 var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
                 var f = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
 
@@ -91,6 +115,7 @@ public static partial class MemoryPackFormatterProvider
                 formatter = new ErrorMemoryPackFormatter<T>(ex);
             }
 
+        END:
             formatters[typeof(T)] = formatter;
             Check<T>.registered = true;
         }
@@ -159,6 +184,10 @@ public static partial class MemoryPackFormatterProvider
         formatterType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
         if (formatterType != null) goto CREATE;
 
+        // finally custom geenrated
+        formatterType = TryCreateGenericFormatterType(type, genericFormatterFactory);
+        if (formatterType != null) goto CREATE;
+
         // Can't resolve formatter, return null(will create ErrorMemoryPackFormatter<T>).
         return null;
 
@@ -166,7 +195,7 @@ public static partial class MemoryPackFormatterProvider
         return Activator.CreateInstance(formatterType);
     }
 
-    static Type? TryCreateGenericFormatterType(Type type, Dictionary<Type, Type> knownTypes)
+    static Type? TryCreateGenericFormatterType(Type type, IDictionary<Type, Type> knownTypes)
     {
         if (type.IsGenericType)
         {
@@ -185,38 +214,50 @@ public static partial class MemoryPackFormatterProvider
 internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
 {
     readonly Exception? exception;
+    readonly string? message;
 
     public ErrorMemoryPackFormatter()
     {
         this.exception = null;
+        this.message = null;
     }
 
     public ErrorMemoryPackFormatter(Exception exception)
     {
         this.exception = exception;
+        this.message = null;
+    }
+
+    public ErrorMemoryPackFormatter(string message)
+    {
+        this.exception = null;
+        this.message = message;
     }
 
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {
-        if (exception == null)
-        {
-            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
-        }
-        else
-        {
-            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
-        }
+        Throw();
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
     {
-        if (exception == null)
+        Throw();
+    }
+
+    [DoesNotReturn]
+    void Throw()
+    {
+        if (exception != null)
         {
-            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
+            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
+        }
+        else if (message != null)
+        {
+            ThrowHelper.ThrowMessage(message);
         }
         else
         {
-            ThrowHelper.ThrowRegisterInProviderFailed(typeof(T), exception);
+            ThrowHelper.ThrowNotRegisteredInProvider(typeof(T));
         }
     }
 }

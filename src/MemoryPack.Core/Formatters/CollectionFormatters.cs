@@ -127,7 +127,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -154,7 +154,7 @@ namespace MemoryPack.Formatters
                 value.EnsureCapacity(length);
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -174,7 +174,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -200,7 +200,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -220,7 +220,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -246,7 +246,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -274,7 +274,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<(TElement?, TPriority?)>();
+            var formatter = writer.GetFormatter<(TElement?, TPriority?)>();
 
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value.UnorderedItems)
@@ -301,7 +301,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<(TElement?, TPriority?)>();
+            var formatter = reader.GetFormatter<(TElement?, TPriority?)>();
             for (int i = 0; i < length; i++)
             {
                 (TElement?, TPriority?) v = default;
@@ -321,7 +321,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -347,7 +347,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -367,7 +367,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -393,7 +393,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -416,7 +416,7 @@ namespace MemoryPack.Formatters
             // note: serializing ConcurretnCollection(Queue/Stack/Bag/Dictionary) is not thread-safe.
             // operate Add/Remove in iterating in other thread, not guranteed correct result
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             var count = value.Count;
             writer.WriteLengthHeader(count);
             var i = 0;
@@ -447,7 +447,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -479,7 +479,7 @@ namespace MemoryPack.Formatters
                 }
                 if (i != count) ThrowHelper.ThrowInvalidConcurrrentCollectionOperation();
 
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 writer.WriteLengthHeader(count);
                 for (i = i - 1; i >= 0; i--)
                 {
@@ -509,7 +509,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -529,7 +529,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             var count = value.Count;
             writer.WriteLengthHeader(count);
             var i = 0;
@@ -560,7 +560,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;
@@ -589,7 +589,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
@@ -616,7 +616,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -645,7 +645,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
@@ -672,7 +672,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -701,7 +701,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
@@ -728,7 +728,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -757,7 +757,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             var count = value.Count;
             writer.WriteLengthHeader(count);
@@ -789,7 +789,7 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -809,7 +809,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -843,7 +843,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -877,7 +877,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -896,7 +896,7 @@ namespace MemoryPack.Formatters
 
             value = new BlockingCollection<T?>();
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
                 T? v = default;

@@ -94,6 +94,18 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         bufferLength = 0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IMemoryPackFormatter GetFormatter(Type type)
+    {
+        return MemoryPackFormatterProvider.GetFormatter(type);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IMemoryPackFormatter<T> GetFormatter<T>()
+    {
+        return MemoryPackFormatterProvider.GetFormatter<T>();
+    }
+
     // Write methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -166,7 +178,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         depth++;
         if (depth == DepthLimit) ThrowHelper.ThrowReachedDepthLimit(typeof(T));
-        MemoryPackFormatterProvider.GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
+        GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
         depth--;
     }
 
@@ -187,7 +199,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             return;
         }
 
-        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        var formatter = GetFormatter<T>();
         WriteLengthHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
@@ -204,7 +216,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             return;
         }
 
-        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        var formatter = GetFormatter<T>();
         WriteLengthHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
@@ -221,7 +233,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             return;
         }
 
-        var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+        var formatter = GetFormatter<T>();
         WriteLengthHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
@@ -343,7 +355,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
         else
         {
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T>();
+            var formatter = GetFormatter<T>();
             for (int i = 0; i < value.Length; i++)
             {
                 formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));

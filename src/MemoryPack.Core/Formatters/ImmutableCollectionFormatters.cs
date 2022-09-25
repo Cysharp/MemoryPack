@@ -85,7 +85,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -115,7 +115,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var builder = ImmutableList.CreateBuilder<T?>();
             for (int i = 0; i < length; i++)
@@ -147,7 +147,7 @@ namespace MemoryPack.Formatters
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
 
                 var count = 0;
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 foreach (var item in value)
                 {
                     count++;
@@ -193,7 +193,7 @@ namespace MemoryPack.Formatters
             var rentArray = ArrayPool<T?>.Shared.Rent(length);
             try
             {
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = reader.GetFormatter<T?>();
                 for (int i = 0; i < length; i++)
                 {
                     formatter.Deserialize(ref reader, ref rentArray[i]);
@@ -236,7 +236,7 @@ namespace MemoryPack.Formatters
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
 
                 var count = 0;
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 foreach (var item in value.AsEnumerable().Reverse()) // serialize reverse order
                 {
                     count++;
@@ -282,7 +282,7 @@ namespace MemoryPack.Formatters
             var rentArray = ArrayPool<T?>.Shared.Rent(length);
             try
             {
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = reader.GetFormatter<T?>();
                 for (int i = 0; i < length; i++)
                 {
                     formatter.Deserialize(ref reader, ref rentArray[i]);
@@ -326,7 +326,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -349,7 +349,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>();
             for (int i = 0; i < length; i++)
@@ -373,7 +373,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -403,7 +403,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var builder = ImmutableHashSet.CreateBuilder<T?>();
             for (int i = 0; i < length; i++)
@@ -436,7 +436,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -459,7 +459,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue?>();
             for (int i = 0; i < length; i++)
@@ -483,7 +483,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -513,7 +513,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var builder = ImmutableSortedSet.CreateBuilder<T?>();
             for (int i = 0; i < length; i++)
@@ -537,7 +537,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -567,7 +567,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var builder = ImmutableList.CreateBuilder<T?>();
             for (int i = 0; i < length; i++)
@@ -599,7 +599,7 @@ namespace MemoryPack.Formatters
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
 
                 var count = 0;
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 foreach (var item in value)
                 {
                     count++;
@@ -645,7 +645,7 @@ namespace MemoryPack.Formatters
             var rentArray = ArrayPool<T?>.Shared.Rent(length);
             try
             {
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = reader.GetFormatter<T?>();
                 for (int i = 0; i < length; i++)
                 {
                     formatter.Deserialize(ref reader, ref rentArray[i]);
@@ -688,7 +688,7 @@ namespace MemoryPack.Formatters
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
 
                 var count = 0;
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = writer.GetFormatter<T?>();
                 foreach (var item in value.AsEnumerable().Reverse()) // serialize reverse order
                 {
                     count++;
@@ -734,7 +734,7 @@ namespace MemoryPack.Formatters
             var rentArray = ArrayPool<T?>.Shared.Rent(length);
             try
             {
-                var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+                var formatter = reader.GetFormatter<T?>();
                 for (int i = 0; i < length; i++)
                 {
                     formatter.Deserialize(ref reader, ref rentArray[i]);
@@ -778,7 +778,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -801,7 +801,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
             var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>();
             for (int i = 0; i < length; i++)
@@ -825,7 +825,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = writer.GetFormatter<T?>();
             writer.WriteLengthHeader(value.Count);
             foreach (var item in value)
             {
@@ -855,7 +855,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = MemoryPackFormatterProvider.GetFormatter<T?>();
+            var formatter = reader.GetFormatter<T?>();
 
             var builder = ImmutableHashSet.CreateBuilder<T?>();
             for (int i = 0; i < length; i++)

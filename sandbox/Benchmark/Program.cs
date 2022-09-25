@@ -46,12 +46,6 @@ var config = ManualConfig.CreateMinimumViable()
 
 #if DEBUG
 
-var iii = MemoryPackFormatterProvider.GetFormatter<int>();
-
-// TODO:prepare
-MemoryPack.MemoryPackFormatterProvider.Register(new ListFormatter<ApiModelContainer>());
-MemoryPack.MemoryPackFormatterProvider.Register(new ListFormatter<ImageModel>());
-MemoryPack.MemoryPackFormatterProvider.Register(new UnmanagedArrayFormatter<float>());
 
 
 

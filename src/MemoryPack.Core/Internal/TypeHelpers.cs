@@ -4,8 +4,6 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack.Internal;
 
-// TODO: use or remove this?
-
 internal static class TypeHelpers
 {
     static readonly MethodInfo isReferenceOrContainsReferences = typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences")!;
@@ -30,6 +28,16 @@ internal static class TypeHelpers
             size = 0;
             return false;
         }
+    }
+
+    public static bool IsAnonymous(Type type)
+    {
+        return type.Namespace == null
+               && type.IsSealed
+               && (type.Name.StartsWith("<>f__AnonymousType", StringComparison.Ordinal)
+                   || type.Name.StartsWith("<>__AnonType", StringComparison.Ordinal)
+                   || type.Name.StartsWith("VB$AnonymousType_", StringComparison.Ordinal))
+               && type.IsDefined(typeof(CompilerGeneratedAttribute), false);
     }
 
     static class Cache<T>
