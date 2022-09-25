@@ -116,3 +116,5 @@ nuget/*.unitypackage
 .idea/
 
 # Unity
+
+__packages/

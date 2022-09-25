@@ -11,6 +11,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Update="Formatters\TupleFormatter.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>TupleFormatter.cs</LastGenOutput>

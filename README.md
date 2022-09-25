@@ -3,6 +3,19 @@
 
 Ideally fast no encoding binary serializer for .NET.
 
+
+
+`<EnablePreviewFeatures>True</EnablePreviewFeatures>`
+
+
+
+wire format
+---
+* unmanaged struct
+* object
+* collection
+* union
+
 License
 ---
 This library is licensed under the MIT License.

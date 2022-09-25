@@ -1,10 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Text;
 
 namespace MemoryPack.Generator;
 

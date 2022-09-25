@@ -4,11 +4,12 @@
         <TargetFramework>net7.0</TargetFramework>
         <!-- This project is meta package -->
         <IncludeBuildOutput>false</IncludeBuildOutput>
-        <IncludeContentInPack>false</IncludeContentInPack>
+        <IncludeContentInPack>true</IncludeContentInPack>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
         <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
         <ProjectReference Include="..\MemoryPack.Generator\MemoryPack.Generator.csproj" />
     </ItemGroup>
