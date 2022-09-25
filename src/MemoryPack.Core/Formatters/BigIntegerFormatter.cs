@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MemoryPack.Formatters;
@@ -22,12 +24,15 @@ public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref BigInteger value)
     {
-        if (reader.TryReadUnmanagedSpan<byte>(out var view, out var length))
+        if (!reader.TryReadCollectionHeader(out var length))
         {
-            value = new BigInteger(view);
-            reader.Advance(length);
+            value = default;
+            return;
         }
 
-        MemoryPackSerializationException.ThrowInvalidCollection();
+        ref var src = ref reader.GetSpanReference(length);
+        value = new BigInteger(MemoryMarshal.CreateReadOnlySpan(ref src, length));
+
+        reader.Advance(length);
     }
 }
