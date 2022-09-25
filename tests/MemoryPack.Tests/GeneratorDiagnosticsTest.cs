@@ -425,4 +425,49 @@ public partial class Hoge
 }
 """);
     }
+
+    [Fact]
+    public void MEMPACK022_CollectionGenerateIsAbstract()
+    {
+        Compile(22, """
+using System.Collections.Generic;
+using MemoryPack;
+
+[MemoryPackable(GenerateType.Collection)]
+public abstract partial class MyList : List<int>
+{
+}
+""");
+    }
+
+    [Fact]
+    public void MEMPACK023_CollectionGenerateNotImplementedInterface()
+    {
+        Compile(23, """
+using MemoryPack;
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class Hoge
+{
+}
+""");
+    }
+
+    [Fact]
+    public void MEMPACK024_CollectionGenerateNoParameterlessConstructor()
+    {
+        Compile(24, """
+using System.Collections.Generic;
+using MemoryPack;
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class Hoge : List<int>
+{
+    public Hoge(int x)
+    {
+        Add(x);
+    }
+}
+""");
+    }
 }

@@ -5,6 +5,11 @@ using System.Text;
 
 namespace MemoryPack.Generator;
 
+public enum CollectionKind
+{
+    None, Collection, Set, Dictionary
+}
+
 partial class MemberMeta
 {
     static MemberKind ParseMemberKind(ISymbol? memberSymbol, ITypeSymbol memberType, ReferenceSymbols references)
@@ -82,8 +87,75 @@ partial class MemberMeta
 
 partial class TypeMeta
 {
+    (CollectionKind, INamedTypeSymbol?) ParseCollectionKind()
+    {
+        INamedTypeSymbol? dictionary = default;
+        INamedTypeSymbol? set = default;
+        INamedTypeSymbol? collection = default;
+        foreach (var item in this.Symbol.AllInterfaces)
+        {
+            if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_IDictionary_T))
+            {
+                dictionary = item;
+            }
+            else if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_ISet_T))
+            {
+                set = item;
+            }
+            else if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_ICollection_T))
+            {
+                collection = item;
+            }
+        }
+
+        if (dictionary != null)
+        {
+            return (CollectionKind.Dictionary, dictionary);
+        }
+        if (set != null)
+        {
+            return (CollectionKind.Set, set);
+        }
+        if (collection != null)
+        {
+            return (CollectionKind.Collection, collection);
+        }
+
+        return (CollectionKind.None, null);
+    }
+
     public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
     {
+        if (GenerateType == GenerateType.NoGenerate) return true;
+        if (GenerateType is GenerateType.Collection)
+        {
+            if (Symbol.IsAbstract)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CollectionGenerateIsAbstract, syntax.Identifier.GetLocation(), Symbol.Name));
+                return false;
+            }
+
+            var (kind, symbol) = ParseCollectionKind();
+            if (kind == CollectionKind.None)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CollectionGenerateNotImplementedInterface, syntax.Identifier.GetLocation(), Symbol.Name));
+                return false;
+            }
+
+            var hasParameterlessConstructor = Symbol.InstanceConstructors
+                .Where(x => x.DeclaredAccessibility == Accessibility.Public)
+                .Any(x => x.Parameters.Length == 0);
+            if (!hasParameterlessConstructor)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CollectionGenerateNoParameterlessConstructor, syntax.Identifier.GetLocation(), Symbol.Name));
+                return false;
+            }
+
+            return true;
+        }
+
+        // GenerateType.Object validation
+
         var noError = true;
 
         // ref strcut

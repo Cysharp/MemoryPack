@@ -34,6 +34,11 @@ partial class MemoryPackGenerator
         var reference = new ReferenceSymbols(compilation);
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
+        if (typeMeta.GenerateType == GenerateType.NoGenerate)
+        {
+            return;
+        }
+
         // ReportDiagnostic when validate failed.
         if (!typeMeta.Validate(syntax, context))
         {
@@ -64,7 +69,10 @@ using MemoryPack;
         sw.WriteLine();
 
         // Write document comment as remarks
-        BuildDebugInfo(sw, typeMeta, true);
+        if (typeMeta.GenerateType == GenerateType.Object)
+        {
+            BuildDebugInfo(sw, typeMeta, true);
+        }
 
         // emit type info
         typeMeta.Emit(sw);
@@ -159,6 +167,8 @@ public partial class TypeMeta
     readonly ReferenceSymbols reference;
 
     public INamedTypeSymbol Symbol { get; }
+    public GenerateType GenerateType { get; }
+    /// <summary>MinimallyQualifiedFormat(include generics T>)</summary>
     public string TypeName { get; }
     public MemberMeta[] Members { get; }
     public bool IsValueType { get; set; }
@@ -178,6 +188,10 @@ public partial class TypeMeta
     {
         this.reference = reference;
         this.Symbol = symbol;
+
+        var attrValue = symbol.GetAttribute(reference.MemoryPackableAttribute)?.ConstructorArguments[0].Value;
+        this.GenerateType = (attrValue != null) ? (GenerateType)attrValue : GenerateType.NoGenerate;
+
         this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         this.Constructor = ChooseConstructor(symbol, reference);
 
@@ -229,14 +243,12 @@ public partial class TypeMeta
     }
 
     // MemoryPack choose class/struct as same rule.
-    // If has no explicit constrtucotr, use parameterless one.
+    // If has no explicit constrtucotr, use parameterless one(includes private).
     // If has a one parameterless/parameterized constructor, choose it.
     // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
-    IMethodSymbol? ChooseConstructor(ITypeSymbol symbol, ReferenceSymbols reference)
+    IMethodSymbol? ChooseConstructor(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
-        var ctors = symbol.GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(x => x.MethodKind == MethodKind.Constructor)
+        var ctors = symbol.InstanceConstructors
             .Where(x => !x.IsImplicitlyDeclared) // remove empty ctor(struct always generate it), record's clone ctor
             .ToArray();
 
@@ -285,6 +297,12 @@ public partial class TypeMeta
             return;
         }
 
+        if (GenerateType == GenerateType.Collection)
+        {
+            writer.WriteLine(EmitGenericCollectionTemplate());
+            return;
+        }
+
         var serializeBody = "";
         var deserializeBody = "";
         if (IsUnmanagedType)
@@ -311,9 +329,6 @@ public partial class TypeMeta
         };
 
         var nullable = IsValueType ? "" : "?";
-
-        // TODO:Optimize pattern
-        // TODO:regsiter member's generics formatters(e.g. list, dict).
 
         var code = $$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
@@ -750,6 +765,40 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             }
 """;
     }
+
+    string EmitGenericCollectionTemplate()
+    {
+        var (collectionKind, collectionSymbol) = ParseCollectionKind();
+        var methodName = collectionKind switch
+        {
+            CollectionKind.Collection => "Collection",
+            CollectionKind.Set => "Set",
+            CollectionKind.Dictionary => "Dictionary",
+            _ => "",
+        };
+
+        var typeArgs = string.Join(", ", collectionSymbol!.TypeArguments.Select(x => x.FullyQualifiedToString()));
+
+        var code = $$"""
+partial class {{TypeName}} : IMemoryPackFormatterRegister
+{
+    static {{Symbol.Name}}()
+    {
+        MemoryPackFormatterProvider.Register<{{TypeName}}>();
+    }
+
+    static void IMemoryPackFormatterRegister.RegisterFormatter()
+    {
+        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
+        {
+            MemoryPackFormatterProvider.Register{{methodName}}<{{TypeName}}, {{typeArgs}}>();
+        }
+    }
+}
+""";
+
+        return code;
+    }
 }
 
 public class MethodMeta
@@ -846,7 +895,6 @@ public partial class MemberMeta
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                //case MemberKind.MemoryPackGenerate:
                 return $"writer.WritePackable(value.{Name});";
             case MemberKind.Unmanaged:
                 return $"writer.WriteUnmanaged(value.{Name});";

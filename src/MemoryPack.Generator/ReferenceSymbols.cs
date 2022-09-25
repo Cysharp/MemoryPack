@@ -18,7 +18,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackOnDeserializingAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializedAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
-    
+
     public WellKnownTypes KnownTypes { get; }
 
     public ReferenceSymbols(Compilation compilation)
@@ -55,7 +55,12 @@ public class ReferenceSymbols
     public class WellKnownTypes
     {
         readonly ReferenceSymbols parent;
+
         public INamedTypeSymbol System_Collections_Generic_IEnumerable_T { get; }
+        public INamedTypeSymbol System_Collections_Generic_ICollection_T { get; }
+        public INamedTypeSymbol System_Collections_Generic_ISet_T { get; }
+        public INamedTypeSymbol System_Collections_Generic_IDictionary_T { get; }
+
         public INamedTypeSymbol System_Version { get; }
         public INamedTypeSymbol System_Uri { get; }
 
@@ -65,12 +70,18 @@ public class ReferenceSymbols
         {
             this.parent = parent;
             System_Collections_Generic_IEnumerable_T = GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1").ConstructUnboundGenericType();
+            System_Collections_Generic_ICollection_T = GetTypeByMetadataName("System.Collections.Generic.ICollection`1").ConstructUnboundGenericType();
+            System_Collections_Generic_ISet_T = GetTypeByMetadataName("System.Collections.Generic.ISet`1").ConstructUnboundGenericType();
+            System_Collections_Generic_IDictionary_T = GetTypeByMetadataName("System.Collections.Generic.IDictionary`2").ConstructUnboundGenericType();
             System_Version = GetTypeByMetadataName("System.Version");
             System_Uri = GetTypeByMetadataName("System.Uri");
 
             knownTypes = new HashSet<ITypeSymbol>(new[]
             {
                 System_Collections_Generic_IEnumerable_T,
+                System_Collections_Generic_ICollection_T,
+                System_Collections_Generic_ISet_T,
+                System_Collections_Generic_IDictionary_T,
                 System_Version,
                 System_Uri
             }, SymbolEqualityComparer.Default);

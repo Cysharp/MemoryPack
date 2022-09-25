@@ -9,14 +9,14 @@ public interface IMemoryPackFormatter
     void Deserialize(ref MemoryPackReader reader, scoped ref object? value);
 }
 
-public interface IMemoryPackFormatter<T> : IMemoryPackFormatter
+public interface IMemoryPackFormatter<T>
 {
     void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;
     void Deserialize(ref MemoryPackReader reader, scoped ref T? value);
 }
 
-public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter<T>
+public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter<T>, IMemoryPackFormatter
 {
     public abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
         where TBufferWriter : IBufferWriter<byte>;

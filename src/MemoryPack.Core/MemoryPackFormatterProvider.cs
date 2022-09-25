@@ -19,6 +19,9 @@ public static partial class MemoryPackFormatterProvider
     // custom generic formatters
     static readonly ConcurrentDictionary<Type, Type> genericFormatterFactory = new ConcurrentDictionary<Type, Type>();
 
+    // custom generic collection formatters
+    static readonly ConcurrentDictionary<Type, Type> genericCollectionFormatterFactory = new ConcurrentDictionary<Type, Type>();
+
     // generics known types
     static readonly Dictionary<Type, Type> KnownGenericTypeFormatters = new Dictionary<Type, Type>()
     {
@@ -42,15 +45,70 @@ public static partial class MemoryPackFormatterProvider
         T.RegisterFormatter();
     }
 
-    public static void RegisterGeneric(Type genericType, Type formatterType)
+    public static void RegisterGenericType(Type genericType, Type genericFormatterType)
     {
-        if (genericType.IsGenericType && formatterType.IsGenericType)
+        if (genericType.IsGenericType && genericFormatterType.IsGenericType)
         {
-            genericFormatterFactory[genericType] = formatterType;
+            genericFormatterFactory[genericType] = genericFormatterType;
         }
         else
         {
-            ThrowHelper.ThrowMessage($"Registered type is not generic type. genericType:{genericType.FullName}, formatterType:{formatterType.FullName}");
+            ThrowHelper.ThrowMessage($"Registered type is not generic type. genericType:{genericType.FullName}, formatterType:{genericFormatterType.FullName}");
+        }
+    }
+
+    public static void RegisterCollection<TCollection, TElement>()
+        where TCollection : ICollection<TElement?>, new()
+    {
+        Register(new GenericCollectionFormatter<TCollection, TElement>());
+    }
+
+    public static void RegisterCollection(Type genericCollectionType)
+    {
+        if (genericCollectionType.IsGenericType && genericCollectionType.GetGenericArguments().Length == 1)
+        {
+            genericCollectionFormatterFactory[genericCollectionType] = typeof(GenericCollectionFormatter<,>);
+        }
+        else
+        {
+            ThrowHelper.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericCollectionType.FullName}");
+        }
+    }
+
+    public static void RegisterSet<TSet, TElement>()
+        where TSet : ISet<TElement?>, new()
+    {
+        Register(new GenericSetFormatter<TSet, TElement>());
+    }
+
+    public static void RegisterSet(Type genericSetType)
+    {
+        if (genericSetType.IsGenericType && genericSetType.GetGenericArguments().Length == 1)
+        {
+            genericCollectionFormatterFactory[genericSetType] = typeof(GenericSetFormatter<,>);
+        }
+        else
+        {
+            ThrowHelper.ThrowMessage($"Registered generic set is not filled generic formatter constraint. type: {genericSetType.FullName}");
+        }
+    }
+
+    public static void RegisterDictionary<TDictionary, TKey, TValue>()
+            where TKey : notnull
+            where TDictionary : IDictionary<TKey, TValue?>, new()
+    {
+        Register(new GenericDictionaryFormatter<TDictionary, TKey, TValue>());
+    }
+
+    public static void RegisterDictionary(Type genericDictionaryType)
+    {
+        if (genericDictionaryType.IsGenericType && genericDictionaryType.GetGenericArguments().Length == 2)
+        {
+            genericCollectionFormatterFactory[genericDictionaryType] = typeof(GenericDictionaryFormatter<,,>);
+        }
+        else
+        {
+            ThrowHelper.ThrowMessage($"Registered generic collection is not filled generic formatter constraint. type: {genericDictionaryType.FullName}");
         }
     }
 
@@ -188,6 +246,10 @@ public static partial class MemoryPackFormatterProvider
         formatterType = TryCreateGenericFormatterType(type, genericFormatterFactory);
         if (formatterType != null) goto CREATE;
 
+        // genericCollectionFormatterFactory
+        formatterType = TryCreateGenericCollectionFormatterType(type);
+        if (formatterType != null) goto CREATE;
+
         // Can't resolve formatter, return null(will create ErrorMemoryPackFormatter<T>).
         return null;
 
@@ -205,6 +267,20 @@ public static partial class MemoryPackFormatterProvider
             {
                 return formatterType.MakeGenericType(type.GetGenericArguments());
             }
+        }
+
+        return null;
+    }
+
+    static Type? TryCreateGenericCollectionFormatterType(Type type)
+    {
+        if (type.IsGenericType && genericCollectionFormatterFactory.TryGetValue(type, out var formatterType))
+        {
+            var genericDefinition = type.GetGenericTypeDefinition();
+            var elementTypes = genericDefinition.GetGenericArguments();
+
+            // formatterType is <TCollection, TArgs> so concat type at first
+            return formatterType.MakeGenericType(elementTypes.Prepend(type).ToArray());
         }
 
         return null;

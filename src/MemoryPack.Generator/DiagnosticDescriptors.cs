@@ -180,4 +180,28 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CollectionGenerateIsAbstract = new(
+        id: "MEMPACK022",
+        title: "Collection type not allows interface/abstract",
+        messageFormat: "The MemoryPackable object '{0}' is GenerateType.Collection but interface/abstract, only allows concrete type",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CollectionGenerateNotImplementedInterface = new(
+        id: "MEMPACK023",
+        title: "Collection type must implement collection interface",
+        messageFormat: "The MemoryPackable object '{0}' is GenerateType.Collection but not implemented collection interface(ICollection<T>/ISet<T>/IDictionary<TKey,TValue>)",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CollectionGenerateNoParameterlessConstructor = new(
+        id: "MEMPACK024",
+        title: "Collection type must require parameterless constructor",
+        messageFormat: "The MemoryPackable object '{0}' is GenerateType.Collection but not exists parameterless constructor",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

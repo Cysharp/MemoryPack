@@ -19,20 +19,31 @@ public class ProviderTest
 
     public void RegisterAs()
     {
-        MemoryPackFormatterProvider.RegisterGeneric(typeof(CustomType<>), typeof(CustomTypeFormatter<>));
+        MemoryPackFormatterProvider.RegisterGenericType(typeof(CustomType<>), typeof(CustomTypeFormatter<>));
 
         var t = new CustomType<int>() { Value = 9999 };
         var bin = MemoryPackSerializer.Serialize(t);
         MemoryPackSerializer.Deserialize<CustomType<int>>(bin)!.Value.Should().Be(9999);
     }
 
-    // TODO: NonGenerics only API can get formatter?
+    //[Fact]
+    //public void RegisterGenericTest()
+    //{
+    //    MemoryPackFormatterProvider.RegisterCollection<MyList, int>();
+
+    //    var list = new MyList { 1, 10, 100 };
+
+
+    //    var bin = MemoryPackSerializer.Serialize(list);
+    //    var foo = MemoryPackSerializer.Deserialize<MyList>(bin);
+    //}
+
 }
 
 public class CustomType<T>
 {
     public T? Value { get; set; }
-} 
+}
 
 public class CustomTypeFormatter<T> : MemoryPackFormatter<CustomType<T?>>
     where T : notnull
@@ -61,3 +72,9 @@ public class CustomTypeFormatter<T> : MemoryPackFormatter<CustomType<T?>>
         value = new CustomType<T?> { Value = reader.ReadObject<T>() };
     }
 }
+
+public class MyList : List<int>
+{
+}
+
+

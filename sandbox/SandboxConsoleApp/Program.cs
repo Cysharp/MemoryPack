@@ -1,67 +1,79 @@
 ﻿#pragma warning disable CS8600
 
 using MemoryPack;
-using MemoryPack.Formatters;
-using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
-using SandboxConsoleApp;
 using System;
-using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using System.Security;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-
-//ConsoleAppFramework.ConsoleApp.Run<StandardRunner>(args);
-//ConsoleAppFramework.ConsoleApp.Run<SystemTextJsonChecker>(args);
-
-// MemoryPackable check
-
-//var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>();
-//writer.WriteUnmanagedArray
-//var reader = new MemoryPackReader();
-
-//if (!RuntimeHelpers.IsReferenceOrContainsReferences<Span<byte>>())
-{
-}
-
-// var span = new Span<byte>();
-// MemoryPackSerializer.Serialize(span);
 
 
-ReadOnlySpan<byte> span = new byte[] { 1, 2, 3, 4 };
-
-for (int i = 0; i < span.Length; i++)
-{
-    m(ref Unsafe.AsRef(span[i]));
-}
-
-foreach (var item in span)
-{
-    Console.WriteLine(item);
-}
-
-void m(ref byte x)
-{
-    //x *= 2;
-    // Console.WriteLine(x);
-}
-
-
-
+Console.WriteLine("ok" );
 
 [MemoryPackable]
 public partial class Foo
 {
-    public byte[] B;
-    //[MemoryPackFormatter]
-    //public Span<byte> SPAN => B.AsSpan();
+
+    //Foo(int x)
+    //{
+
+    //}
+
+    //public Foo()
+    //{
+
+    //}
 }
 
 
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class ListInt : List<int>
+{
+
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class SetInt : HashSet<int>
+{
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class DictionaryIntInt : Dictionary<int, int>
+{
+}
+
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class ListGenerics<T> : List<T>
+{
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class SetGenerics<T> : HashSet<T>
+{
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class DictionaryGenerics<TK, TV> : Dictionary<TK, TV>
+    where TK : notnull
+{
+}
+
+
+//public class MyCollection<T> : List<T>, IMemoryPackFormatterRegister
+//{
+//    static MyCollection()
+//    {
+//        if (!MemoryPackFormatterProvider.IsRegistered<MyCollection<T>>())
+//        {
+//            MemoryPackFormatterProvider.Register<MyCollection<T>>();
+//        }
+//    }
+
+//    static void IMemoryPackFormatterRegister.RegisterFormatter()
+//    {
+//        MemoryPackFormatterProvider.RegisterCollection<MyCollection<T?>, T>();
+//    }
+//}
 
 
 //[MemoryPackable]

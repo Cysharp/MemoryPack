@@ -3,9 +3,19 @@
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackableAttribute : Attribute
 {
-    public MemoryPackableAttribute()
+    public GenerateType GenerateType { get; }
+
+    public MemoryPackableAttribute(GenerateType generateType = GenerateType.Object)
     {
+        this.GenerateType = generateType;
     }
+}
+
+public enum GenerateType
+{
+    Object,
+    Collection,
+    NoGenerate
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
