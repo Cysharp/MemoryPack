@@ -4,6 +4,8 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <!-- TODO: Currently not publish but will publish... -->
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
