@@ -1,7 +1,7 @@
 # MemoryPack
 [![GitHub Actions](https://github.com/Cysharp/MemoryPack/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/MemoryPack/actions) [![Releases](https://img.shields.io/github/release/Cysharp/MemoryPack.svg)](https://github.com/Cysharp/MemoryPack/releases)
 
-Zero encoding general purpose extreme performance binary serializer for C#.
+Zero encoding extreme performance binary serializer for C#.
 
 Currently preview.
 
