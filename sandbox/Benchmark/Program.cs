@@ -33,7 +33,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
-// BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
+BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);

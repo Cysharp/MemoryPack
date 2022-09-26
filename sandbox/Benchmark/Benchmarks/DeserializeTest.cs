@@ -17,8 +17,8 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Benchmarks;
 
-[GenericTypeArguments(typeof(JsonResponseModel))]
-[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+//[GenericTypeArguments(typeof(JsonResponseModel))]
+//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 public class DeserializeTest<T> : SerializerTestBase<T>
 {
     //SerializerSessionPool pool;
