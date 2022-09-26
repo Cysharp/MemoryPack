@@ -3,7 +3,9 @@
 
 Zero encoding extreme performance binary serializer for C#.
 
-Currently preview.
+// TODO: Benchmark image.
+
+// TODO: Intro message.
 
 Installation
 ---
@@ -43,12 +45,75 @@ var bin = MemoryPackSerializer.Serialize(v);
 var v2 = MemoryPackSerializer.Deserialize<MyClass>(bin);
 ```
 
-wire format
+Built-in supported types
 ---
-* unmanaged struct
-* object
-* collection
-* union
+
+
+Code Generator Options
+---
+
+Serialization Callback
+---
+
+Union
+---
+
+Serialize API
+---
+
+Deserialize API
+---
+
+
+Performance
+---
+
+
+Payload size and compression
+---
+
+
+
+
+
+
+Streaming Serialization
+---
+
+
+Formatter API
+---
+
+Unity support
+---
+
+
+Binary wire format specification
+---
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Four types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+
+There are no endian specifications. It is not possible to convert on machines with different endianness. However modern computers are usually little-endian.
+
+There are four types of format.
+
+* Unmanaged struct
+* Object
+* Collection
+* Union
+
+### Unmanaged struct
+
+### Object
+
+
+### Collection
+
+collectoin is 4byte unsigned interger as data count
+
+
+
+### Union
+
 
 License
 ---
