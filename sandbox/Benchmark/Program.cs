@@ -26,6 +26,9 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<SerializeInt>(config, args);
 //BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
 
+
+BenchmarkRunner.Run<RawSerialize>(config, args);
+
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
 //BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
@@ -33,7 +36,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
-BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
+//BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);

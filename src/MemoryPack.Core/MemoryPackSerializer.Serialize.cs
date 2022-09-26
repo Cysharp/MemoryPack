@@ -10,7 +10,7 @@ public static partial class MemoryPackSerializer
     [ThreadStatic]
     static ReusableLinkedArrayBufferWriter? threadStaticBufferWriter;
 
-    public static unsafe byte[] Serialize<T>(in T? value)
+    public static byte[] Serialize<T>(in T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {

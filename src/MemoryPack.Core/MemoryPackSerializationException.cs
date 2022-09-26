@@ -51,9 +51,9 @@ public class MemoryPackSerializationException : Exception
     }
 
     [DoesNotReturn]
-    public static void ThrowWriteInvalidPropertyCount(byte propertyCount)
+    public static void ThrowWriteInvalidMemberCount(byte memberCount)
     {
-        throw new MemoryPackSerializationException($"Property count allows < 250 but try to write {propertyCount}.");
+        throw new MemoryPackSerializationException($"MemberCount count allows < 250 but try to write {memberCount}.");
     }
 
     [DoesNotReturn]

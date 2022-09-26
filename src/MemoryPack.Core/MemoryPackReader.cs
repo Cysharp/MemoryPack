@@ -137,11 +137,11 @@ public ref partial struct MemoryPackReader
     // read methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryReadObjectHeader(out byte propertyCount)
+    public bool TryReadObjectHeader(out byte memberCount)
     {
-        propertyCount = GetSpanReference(1);
+        memberCount = GetSpanReference(1);
         Advance(1);
-        return propertyCount != MemoryPackCode.NullObject;
+        return memberCount != MemoryPackCode.NullObject;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

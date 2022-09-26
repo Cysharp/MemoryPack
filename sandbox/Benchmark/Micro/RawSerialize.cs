@@ -1,31 +1,246 @@
-﻿using System.Buffers;
-using System.Collections.Concurrent;
+﻿using Benchmark.Models;
+using MemoryPack;
+using MessagePack;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace MemoryPack.Internal;
+namespace Benchmark.Micro;
 
-internal static class ReusableLinkedArrayBufferWriterPool
+public class RawSerialize
 {
-    static readonly ConcurrentQueue<ReusableLinkedArrayBufferWriter> queue = new ConcurrentQueue<ReusableLinkedArrayBufferWriter>();
+    MyClass value;
+    [ThreadStatic]
+    static byte[]? bufferCache;
 
-    public static ReusableLinkedArrayBufferWriter Rent()
+    [ThreadStatic]
+    static ReusableLinkedArrayBufferWriter? staticWriter;
+
+    public RawSerialize()
     {
-        if (queue.TryDequeue(out var writer))
-        {
-            return writer;
-        }
-        return new ReusableLinkedArrayBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
+        value = new MyClass { X = 100, Y = 99999999, Z = 4444, FirstName = "Hoge Huga Tako", LastName = "あいうえおかきくけこ" };
     }
 
-    public static void Return(ReusableLinkedArrayBufferWriter writer)
+    [Benchmark]
+    public byte[] Raw()
     {
-        writer.Reset();
-        queue.Enqueue(writer);
+        var dest = bufferCache;
+        if (dest == null)
+        {
+            dest = bufferCache = GC.AllocateUninitializedArray<byte>(60000, true);
+        }
+
+        ref var p = ref MemoryMarshal.GetArrayDataReference(dest);
+
+        Unsafe.WriteUnaligned(ref p, value.X);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref p, 4), value.Y);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref p, 8), value.Z);
+
+
+        var f = value.FirstName!;
+        var len1 = f.Length * 2;
+        ref readonly var p2 = ref f.GetPinnableReference();
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref p, 12), f.Length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref p, 16), ref Unsafe.As<char, byte>(ref Unsafe.AsRef(p2)), (uint)len1);
+
+        var l = value.LastName!;
+        var len2 = l.Length * 2;
+        ref readonly var p3 = ref l.GetPinnableReference();
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref p, 16 + len1), l.Length); ;
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref p, 20 + len1), ref Unsafe.As<char, byte>(ref Unsafe.AsRef(p3)), (uint)len2);
+
+        var result = GC.AllocateUninitializedArray<byte>(20 + len1 + len2);
+
+        dest.AsSpan(0, result.Length).CopyTo(result);
+
+        return result;
+    }
+
+    [Benchmark]
+    public byte[] MessagePackSerialize()
+    {
+        return MessagePackSerializer.Serialize(value);
+    }
+
+    [Benchmark]
+    public byte[] HandMemoryPackWriterEmpty()
+    {
+        var bufWriter = staticWriter;
+        if (bufWriter == null)
+        {
+            bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
+        }
+
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        try
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                goto END;
+            }
+
+        //writer.WriteObjectHeader(5);
+        //writer.WriteUnmanaged(value.X, value.Y, value.Z);
+        //writer.WriteString(value.FirstName);
+        //writer.WriteString(value.LastName);
+
+
+
+        END:
+            writer.Flush();
+            return bufWriter.ToArrayAndReset();
+        }
+        finally
+        {
+            bufWriter.Reset();
+        }
+    }
+
+    [Benchmark]
+    public byte[] HandMemoryPackWriterHeaderOnly()
+    {
+        var bufWriter = staticWriter;
+        if (bufWriter == null)
+        {
+            bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
+        }
+
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        try
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                goto END;
+            }
+
+            writer.WriteObjectHeader(5);
+        //writer.WriteUnmanaged(value.X, value.Y, value.Z);
+        //writer.WriteString(value.FirstName);
+        //writer.WriteString(value.LastName);
+
+
+        END:
+            writer.Flush();
+            return bufWriter.ToArrayAndReset();
+        }
+        finally
+        {
+            bufWriter.Reset();
+        }
+    }
+
+    [Benchmark]
+    public byte[] HandMemoryPackWriterHeaderInt3()
+    {
+        var bufWriter = staticWriter;
+        if (bufWriter == null)
+        {
+            bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
+        }
+
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        try
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                goto END;
+            }
+
+            writer.WriteObjectHeader(5);
+            writer.WriteUnmanaged(value.X, value.Y, value.Z);
+        //writer.WriteString(value.FirstName);
+        //writer.WriteString(value.LastName);
+
+
+        END:
+            writer.Flush();
+            return bufWriter.ToArrayAndReset();
+        }
+        finally
+        {
+            bufWriter.Reset();
+        }
+    }
+
+    [Benchmark]
+    public byte[] HandMemoryPackWriterHeaderInt3String1()
+    {
+        var bufWriter = staticWriter;
+        if (bufWriter == null)
+        {
+            bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
+        }
+
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        try
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                goto END;
+            }
+
+            writer.WriteObjectHeader(5);
+            writer.WriteUnmanaged(value.X, value.Y, value.Z);
+            writer.WriteString(value.FirstName);
+        //writer.WriteString(value.LastName);
+
+
+        END:
+            writer.Flush();
+            return bufWriter.ToArrayAndReset();
+        }
+        finally
+        {
+            bufWriter.Reset();
+        }
+    }
+
+    [Benchmark]
+    public byte[] HandMemoryPackFull()
+    {
+        var bufWriter = staticWriter;
+        if (bufWriter == null)
+        {
+            bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
+        }
+
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        try
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                goto END;
+            }
+
+            writer.WriteObjectHeader(5);
+            writer.WriteUnmanaged(value.X, value.Y, value.Z);
+            writer.WriteString(value.FirstName);
+            writer.WriteString(value.LastName);
+
+
+        END:
+            writer.Flush();
+            return bufWriter.ToArrayAndReset();
+        }
+        finally
+        {
+            bufWriter.Reset();
+        }
+    }
+
+    [Benchmark]
+    public byte[] MemoryPackSerialize()
+    {
+        return MemoryPackSerializer.Serialize(value);
     }
 }
 
-// This class has large buffer so should cache [ThreadStatic] or Pool.
+
 internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 {
     const int InitialBufferSize = 262144; // 256K(32768, 65536, 131072, 262144)
@@ -103,7 +318,6 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         return next.FreeBuffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
         if (current.IsNull)
@@ -181,6 +395,8 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
             current.Clear();
         }
 
+        writer.Flush();
+
         ResetCore();
     }
 
@@ -212,7 +428,6 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     }
 
     // reset without list's BufferSegment element
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void ResetCore()
     {
         firstBufferWritten = 0;
@@ -222,7 +437,6 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         nextBufferSize = InitialBufferSize;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Reset()
     {
         if (totalWritten == 0) return;
@@ -252,13 +466,11 @@ internal struct BufferSegment
         written = 0;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
         written += count;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear()
     {
         if (buffer != null)

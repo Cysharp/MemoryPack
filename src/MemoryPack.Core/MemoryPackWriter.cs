@@ -123,13 +123,13 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteObjectHeader(byte propertyCount)
+    public void WriteObjectHeader(byte memberCount)
     {
-        if (propertyCount >= MemoryPackCode.Reserved1)
+        if (memberCount >= MemoryPackCode.Reserved1)
         {
-            MemoryPackSerializationException.ThrowWriteInvalidPropertyCount(propertyCount);
+            MemoryPackSerializationException.ThrowWriteInvalidMemberCount(memberCount);
         }
-        GetSpanReference(1) = propertyCount;
+        GetSpanReference(1) = memberCount;
         Advance(1);
     }
 
@@ -165,8 +165,15 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             return;
         }
 
-        var span = value.AsSpan();
-        WriteUnmanagedSpan(span);
+        var copyByteCount = value.Length * 2;
+        ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
+
+        ref var dest = ref GetSpanReference(copyByteCount + 4);
+
+        Unsafe.WriteUnaligned(ref dest, value.Length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
+
+        Advance(copyByteCount + 4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

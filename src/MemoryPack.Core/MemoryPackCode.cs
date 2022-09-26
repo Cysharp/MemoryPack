@@ -7,7 +7,7 @@ public static class MemoryPackCode
     public const int NullCollection = -1;
 
     // Object Header
-    // 0~249 is property count
+    // 0~249 is member count
     public const byte Reserved1 = 250;
     public const byte Reserved2 = 251;
     public const byte Reserved3 = 252;
