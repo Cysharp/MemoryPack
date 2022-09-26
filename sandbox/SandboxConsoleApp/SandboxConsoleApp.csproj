@@ -15,6 +15,15 @@
         <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
     </ItemGroup>
 
+    <!-- output memoerypack serialization info to directory -->
+    <ItemGroup>
+        <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
+    </ItemGroup>
+    <PropertyGroup>
+        <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
+    </PropertyGroup>
+
+
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
         <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">

@@ -1,13 +1,14 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 using System.Text;
 
 namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, in SourceProductionContext context)
+    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, string? serializationInfoLogDirectoryPath, in SourceProductionContext context)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -45,6 +46,11 @@ partial class MemoryPackGenerator
             return;
         }
 
+        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace("global::", "")
+            .Replace("<", "_")
+            .Replace(">", "_");
+
         var sw = new StringWriter();
 
         sw.WriteLine(@"
@@ -73,6 +79,27 @@ using MemoryPack;
         if (typeMeta.GenerateType == GenerateType.Object)
         {
             BuildDebugInfo(sw, typeMeta, true);
+
+            // also output to log
+            if (serializationInfoLogDirectoryPath != null)
+            {
+                try
+                {
+                    if (!Directory.Exists(serializationInfoLogDirectoryPath))
+                    {
+                        Directory.CreateDirectory(serializationInfoLogDirectoryPath);
+                    }
+                    var logSw = new StringWriter();
+                    BuildDebugInfo(logSw, typeMeta, false);
+                    var message = logSw.ToString();
+
+                    File.WriteAllText(Path.Combine(serializationInfoLogDirectoryPath, $"{fullType}.txt"), message, new UTF8Encoding(false));
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex.ToString());
+                }
+            }
         }
 
         // emit type info
@@ -80,10 +107,6 @@ using MemoryPack;
 
         var code = sw.ToString();
 
-        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            .Replace("global::", "")
-            .Replace("<", "_")
-            .Replace(">", "_");
         context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
     }
 

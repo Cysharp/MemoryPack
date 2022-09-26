@@ -58,8 +58,18 @@ partial class TypeMeta
         this.reference = reference;
         this.Symbol = symbol;
 
-        var attrValue = symbol.GetAttribute(reference.MemoryPackableAttribute)?.ConstructorArguments[0].Value;
-        this.GenerateType = (attrValue != null) ? (GenerateType)attrValue : GenerateType.NoGenerate;
+        var packableCtorArgs = symbol.GetAttribute(reference.MemoryPackableAttribute)?.ConstructorArguments;
+        this.GenerateType = GenerateType.Object;
+        if (packableCtorArgs == null)
+        {
+            this.GenerateType = GenerateType.NoGenerate;
+        }
+        else if (packableCtorArgs.Value.Length != 0)
+        {
+            var ctorValue = packableCtorArgs.Value[0];
+            var generateType = ctorValue.Value ?? GenerateType.Object;
+            this.GenerateType = (GenerateType)generateType;
+        }
 
         this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         this.Constructor = ChooseConstructor(symbol, reference);
@@ -83,6 +93,7 @@ partial class TypeMeta
                     {
                         return false;
                     }
+                    if (p.IsIndexer) return false;
                 }
                 return true;
             })

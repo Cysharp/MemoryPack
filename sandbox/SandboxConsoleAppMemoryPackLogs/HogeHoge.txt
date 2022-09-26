@@ -1,0 +1,65 @@
+HogeHoge
+---
+System.Numerics.BigInteger P1
+System.Version P2
+System.Uri P3
+System.TimeZoneInfo P4
+System.Collections.BitArray P5
+System.Text.StringBuilder P6
+System.Type P7
+int[,] P8
+int[,,] P9
+int[,,,] P10
+System.Collections.Generic.KeyValuePair<int, int> P11
+System.Lazy<int> P12
+int? P13
+System.ArraySegment<int> P14
+System.Memory<int> P15
+System.ReadOnlyMemory<int> P16
+System.Buffers.ReadOnlySequence<int> P17
+System.Collections.Generic.List<int> P18
+System.Collections.Generic.Stack<int> P19
+System.Collections.Generic.Queue<int> P20
+System.Collections.Generic.LinkedList<int> P21
+System.Collections.Generic.HashSet<int> P22
+System.Collections.Generic.PriorityQueue<int, int> P23
+System.Collections.ObjectModel.ObservableCollection<int> P24
+System.Collections.ObjectModel.Collection<int> P25
+System.Collections.Concurrent.ConcurrentQueue<int> P26
+System.Collections.Concurrent.ConcurrentStack<int> P27
+System.Collections.Concurrent.ConcurrentBag<int> P28
+System.Collections.Generic.Dictionary<int, int> P29
+System.Collections.Generic.SortedDictionary<int, int> P30
+System.Collections.Generic.SortedList<int, int> P31
+System.Collections.Concurrent.ConcurrentDictionary<int, int> P32
+System.Collections.ObjectModel.ReadOnlyCollection<int> P33
+System.Collections.ObjectModel.ReadOnlyObservableCollection<int> P34
+System.Collections.Concurrent.BlockingCollection<int> P35
+System.Collections.Immutable.ImmutableArray<int> P36
+System.Collections.Immutable.ImmutableList<int> P37
+System.Collections.Immutable.ImmutableQueue<int> P38
+System.Collections.Immutable.ImmutableStack<int> P39
+System.Collections.Immutable.ImmutableDictionary<int, int> P40
+System.Collections.Immutable.ImmutableSortedDictionary<int, int> P41
+System.Collections.Immutable.ImmutableSortedSet<int> P42
+System.Collections.Immutable.ImmutableHashSet<int> P43
+System.Collections.Immutable.IImmutableList<int> P44
+System.Collections.Immutable.IImmutableQueue<int> P45
+System.Collections.Immutable.IImmutableStack<int> P46
+System.Collections.Immutable.IImmutableDictionary<int, int> P47
+System.Collections.Immutable.IImmutableSet<int> P48
+System.Collections.Generic.IEnumerable<int> P49
+System.Collections.Generic.ICollection<int> P50
+System.Collections.Generic.IReadOnlyCollection<int> P51
+System.Collections.Generic.IList<int> P52
+System.Collections.Generic.IReadOnlyList<int> P53
+System.Collections.Generic.IDictionary<int, int> P54
+System.Collections.Generic.IReadOnlyDictionary<int, int> P55
+System.Linq.ILookup<int, int> P56
+System.Linq.IGrouping<int, int> P57
+System.Collections.Generic.ISet<int> P58
+System.Collections.Generic.IReadOnlySet<int> P59
+System.Tuple<int, string, int> T3
+(int, string, int) VT3
+MyStruct? N1
+System.Collections.Generic.KeyValuePair<string, string> N2

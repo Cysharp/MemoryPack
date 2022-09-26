@@ -1,0 +1,4 @@
+FooStruct
+---
+unmanaged int x
+unmanaged int y

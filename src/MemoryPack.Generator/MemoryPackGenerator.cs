@@ -35,7 +35,17 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     {
         // no need RegisterPostInitializationOutput
 
-        // TODO:get option and generate debug-info
+        // return dir of info output or null .
+        var logProvider = context.AnalyzerConfigOptionsProvider
+            .Select((configOptions, token) =>
+            {
+                if (configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_SerializationInfoOutputDirectory", out var path))
+                {
+                    return path;
+                }
+
+                return (string?)null;
+            });
 
         var typeDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
                 MemoryPackableAttributeFullName,
@@ -54,11 +64,18 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
 
         var source = typeDeclarations
             .Combine(context.CompilationProvider)
-            .WithComparer(Comparer.Instance);
+            .WithComparer(Comparer.Instance)
+            .Combine(logProvider);
 
-        context.RegisterSourceOutput(source, static (context, source) => Generate(source.Item1, source.Item2, context));
+        context.RegisterSourceOutput(source, static (context, source) =>
+        {
+            var typeDeclaration = source.Left.Item1;
+            var compilation = source.Left.Item2;
+            var logPath = source.Right;
+
+            Generate(typeDeclaration, compilation, logPath, context);
+        });
     }
-
 
     class Comparer : IEqualityComparer<(TypeDeclarationSyntax, Compilation)>
     {

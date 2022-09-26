@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 
@@ -19,6 +20,23 @@ using System.Text;
 
 
 Console.WriteLine("ok");
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class ListGenerics<T> : List<T>
+{
+}
+
+[MemoryPackable]
+public partial class Person
+{
+    public int Age { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+}
+
+
+[MemoryPackable]
+public partial record struct FooStruct(int x, int y);
 
 [MemoryPackable]
 public partial class Nu
@@ -173,10 +191,6 @@ public partial class DictionaryIntInt : Dictionary<int, int>
 }
 
 
-[MemoryPackable(GenerateType.Collection)]
-public partial class ListGenerics<T> : List<T>
-{
-}
 
 [MemoryPackable(GenerateType.Collection)]
 public partial class SetGenerics<T> : HashSet<T>
