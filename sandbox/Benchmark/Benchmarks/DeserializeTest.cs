@@ -77,6 +77,4 @@ public class DeserializeTest<T> : SerializerTestBase<T>
     //{
     //    return orleansSerializer.SerializeToArray(value);
     //}
-
-    // TODO:Check streamapi
 }

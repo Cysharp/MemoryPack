@@ -71,7 +71,7 @@ These types can serialize by default:
 
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
-`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct`. If type is `struct` or `recrod struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
+`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `recrod struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
 
 Otherwise, in the default, `[MemoryPackable]` serializes public instance property or field. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
 
@@ -109,48 +109,36 @@ Which members are serialized, you can check IntelliSense in type(code genreator 
 
 ![image](https://user-images.githubusercontent.com/46207/192393984-9af01fcb-872e-46fb-b08f-4783e8cef4ae.png)
 
-Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order.
+All members must be memorypack-serializable, if not, code generator reports error.
+
+![image](https://user-images.githubusercontent.com/46207/192396889-fd3c8b4e-accb-47d4-a7ec-150e1a90517e.png)
+
+MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK024`) to be define comfortably.
+
+
+// TODO: MemoryPackFormatterAttribute
 
 
 
+Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant)
+ section.
 
-// TODO:order is follow by member
-// if inherit, parent -> child
-
-
-// TODO: Serialize is order, can not change the order
-// TODO: see: version torellant section
 
 ### Constructor selection
 constructor selection.
 
 
+    // MemoryPack choose class/struct as same rule.
+    // If has no explicit constrtucotr, use parameterless one(includes private).
+    // If has a one parameterless/parameterized constructor, choose it.
+    // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+
+// [MemoryPackConstructor]
+
 ### Serialization callbacks
 
 
-```
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackFormatterAttribute : Attribute
-{
-}
 
-// similar naming as System.Text.Json attribtues
-// https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonattribute
-
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackIgnoreAttribute : Attribute
-{
-}
-
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackIncludeAttribute : Attribute
-{
-}
-
-[AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackConstructorAttribute : Attribute
-{
-}
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackOnSerializing : Attribute

@@ -267,7 +267,7 @@ public partial class DictionaryGenerics<TK, TV> : Dictionary<TK, TV>
 
 
 [MemoryPackable] 
-public partial class Sample : Parent
+public partial class Sample
 {
     // these types are serialized by default
     public int PublicField;
@@ -294,3 +294,25 @@ public partial class Sample : Parent
     int privateProperty2 { get; set; }
 }
 
+
+
+
+[MemoryPackable]
+public partial class Sample2
+{
+
+
+
+
+
+
+
+    public NotSerializableType NotSerializableProperty { get; set; }
+
+    public int[] SerializableProperty { get; set; }
+}
+
+public class NotSerializableType
+{
+
+}
