@@ -265,3 +265,32 @@ public partial class DictionaryGenerics<TK, TV> : Dictionary<TK, TV>
 //    public required int Bar { get; init; }
 
 
+
+[MemoryPackable] 
+public partial class Sample : Parent
+{
+    // these types are serialized by default
+    public int PublicField;
+    public readonly int PublicReadOnlyField;
+    public int PublicProperty { get; set; }
+    public int PrivateSetPublicProperty { get; private set; }
+    public int ReadOnlyPublicProperty { get; }
+    public int InitProperty { get; init; }
+    public required int RequiredInitProperty { get; init; }
+
+    // these types are not serialized by default
+    int privateProperty { get; set; }
+    int privateField;
+    readonly int privateReadOnlyField;
+
+    // use [MemoryPackIgnore] to remove target of public member
+    [MemoryPackIgnore]
+    public int PublicProperty2 => PublicProperty + PublicField;
+
+    // use [MemoryPackInclude] to promote private member to serialization target
+    [MemoryPackInclude]
+    int privateField2;
+    [MemoryPackInclude]
+    int privateProperty2 { get; set; }
+}
+

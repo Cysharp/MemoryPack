@@ -26,6 +26,8 @@ Quick Start
 Define the struct or class to be serialized and annotate it with a `[MemoryPackable]` attribute and `partial` keyword.
 
 ```csharp
+using MemoryPack;
+
 [MemoryPackable]
 public partial class Person
 {
@@ -69,23 +71,140 @@ These types can serialize by default:
 
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
+`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct`. If type is `struct` or `recrod struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
+
+Otherwise, in the default, `[MemoryPackable]` serializes public instance property or field. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    // these types are serialized by default
+    public int PublicField;
+    public readonly int PublicReadOnlyField;
+    public int PublicProperty { get; set; }
+    public int PrivateSetPublicProperty { get; private set; }
+    public int ReadOnlyPublicProperty { get; }
+    public int InitProperty { get; init; }
+    public required int RequiredInitProperty { get; init; }
+
+    // these types are not serialized by default
+    int privateProperty { get; set; }
+    int privateField;
+    readonly int privateReadOnlyField;
+
+    // use [MemoryPackIgnore] to remove target of public member
+    [MemoryPackIgnore]
+    public int PublicProperty2 => PublicProperty + PublicField;
+
+    // use [MemoryPackInclude] to promote private member to serialization target
+    [MemoryPackInclude]
+    int privateField2;
+    [MemoryPackInclude]
+    int privateProperty2 { get; set; }
+}
+```
+
+Which members are serialized, you can check IntelliSense in type(code genreator makes serialization info to `<remarks />` comment).
+
+![image](https://user-images.githubusercontent.com/46207/192393984-9af01fcb-872e-46fb-b08f-4783e8cef4ae.png)
+
+Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order.
 
 
 
 
+// TODO:order is follow by member
+// if inherit, parent -> child
 
 
+// TODO: Serialize is order, can not change the order
+// TODO: see: version torellant section
+
+### Constructor selection
+constructor selection.
 
 
-Options
+### Serialization callbacks
 
 
+```
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackFormatterAttribute : Attribute
+{
+}
 
-Serialization Callback
+// similar naming as System.Text.Json attribtues
+// https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonattribute
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackIgnoreAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackIncludeAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackConstructorAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackOnSerializing : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackOnSerialized : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackOnDeserializing : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackOnDeserialized : Attribute
+{
+}
+
+```
+
+Define custom collection
+---
+
+
+```csharp
+public enum GenerateType
+{
+    Object,
+    Collection,
+    NoGenerate
+}
+```
+
+
 
 
 Union
 ---
+```
+public sealed class MemoryPackUnionAttribute : Attribute
+{
+    public byte Tag { get; set; }
+    public Type Type { get; set; }
+
+    public MemoryPackUnionAttribute(byte tag, Type type)
+    {
+        this.Tag = tag;
+        this.Type = type;
+    }
+}
+```
 
 Serialize API
 ---
@@ -117,9 +236,8 @@ Payload size and compression
 
 Version tolerant
 ---
+Limited support....
 
-Packages
----
 
 Serialization info
 ----
@@ -133,13 +251,50 @@ Serialization info
 </PropertyGroup>
 ```
 
+Packages
+---
+
+* MemoryPack
+* MemoryPack.Core
+* MemoryPack.Generator
+* MemoryPack.Streaming
+
 
 Streaming Serialization
 ---
+```
+
+public static class MemoryPackStreamingSerializer
+{
+    public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
+    {
+    public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
 
 
-Formatter API
+    public static async IAsyncEnumerable<T?> DeserializeAsync<T>(PipeReader pipeReader, int bufferAtLeast = 4096, int readMinimumSize = 8192, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+
+    
+
+    public static IAsyncEnumerable<T?> DeserializeAsync<T>(Stream stream, int bufferAtLeast = 4096, int readMinimumSize = 8192, CancellationToken cancellationToken = default)
+```
+
+Formatter/Provider API
 ---
+`MemoryPackFormatter<T>`
+
+
+`MemoryPackFormatterProvider`
+
+```
+public static void RegisterCollection<TCollection, TElement>()
+        where TCollection : ICollection<TElement?>, new()
+public static void Register<T>(MemoryPackFormatter<T> formatter)
+    public static void Register<T>()
+        where T : IMemoryPackFormatterRegister        
+
+Register<T>
+RegisterGenericType
+```
 
 Unity support
 ---
