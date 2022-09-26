@@ -22,7 +22,7 @@ public static partial class MemoryPackSerializer
         {
             if (value == null)
             {
-                return MemoryPackCode.NullCollection.ToArray();
+                return MemoryPackCode.NullCollectionData.ToArray();
             }
 
             var srcArray = ((Array)(object)value!);
@@ -75,7 +75,7 @@ public static partial class MemoryPackSerializer
             if (value == null)
             {
                 var span = bufferWriter.GetSpan(4);
-                MemoryPackCode.NullCollection.CopyTo(span);
+                MemoryPackCode.NullCollectionData.CopyTo(span);
                 bufferWriter.Advance(4);
                 return;
             }
@@ -85,7 +85,7 @@ public static partial class MemoryPackSerializer
             if (length == 0)
             {
                 var span = bufferWriter.GetSpan(4);
-                MemoryPackCode.ZeroCollection.CopyTo(span);
+                MemoryPackCode.ZeroCollectionData.CopyTo(span);
                 bufferWriter.Advance(4);
                 return;
             }

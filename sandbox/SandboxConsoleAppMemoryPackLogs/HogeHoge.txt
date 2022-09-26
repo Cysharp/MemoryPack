@@ -40,7 +40,6 @@ System.Collections.Immutable.ImmutableList<int> P37
 System.Collections.Immutable.ImmutableQueue<int> P38
 System.Collections.Immutable.ImmutableStack<int> P39
 System.Collections.Immutable.ImmutableDictionary<int, int> P40
-System.Collections.Immutable.ImmutableSortedDictionary<int, int> P41
 System.Collections.Immutable.ImmutableSortedSet<int> P42
 System.Collections.Immutable.ImmutableHashSet<int> P43
 System.Collections.Immutable.IImmutableList<int> P44

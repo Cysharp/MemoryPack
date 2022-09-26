@@ -14,6 +14,9 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     int bufferLength;
     int advancedCount;
     int depth; // check recursive serialize
+    int writtenCount;
+
+    public int WrittenCount => writtenCount;
 
     public MemoryPackWriter(ref TBufferWriter writer)
     {
@@ -21,6 +24,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref Unsafe.NullRef<byte>();
         this.bufferLength = 0;
         this.advancedCount = 0;
+        this.writtenCount = 0;
         this.depth = 0;
     }
 
@@ -31,6 +35,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref MemoryMarshal.GetArrayDataReference(firstBufferOfWriter);
         this.bufferLength = firstBufferOfWriter.Length;
         this.advancedCount = 0;
+        this.writtenCount = 0;
         this.depth = 0;
     }
 
@@ -40,6 +45,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
         this.bufferLength = firstBufferOfWriter.Length;
         this.advancedCount = 0;
+        this.writtenCount = 0;
         this.depth = 0;
     }
 
@@ -79,6 +85,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         bufferLength = rest;
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
         advancedCount += count;
+        writtenCount += count;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,6 +98,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
         bufferReference = ref Unsafe.NullRef<byte>();
         bufferLength = 0;
+        writtenCount = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -144,7 +152,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullCollectionHeader()
     {
-        Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullLength);
+        Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullCollection);
         Advance(4);
     }
 

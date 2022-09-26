@@ -1,15 +1,25 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <!-- TODO: Currently not publish but will publish... -->
-        <IsPackable>false</IsPackable>
+        <EnablePreviewFeatures>True</EnablePreviewFeatures>
+        <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
         <None Include="../../Icon.png" Pack="true" PackagePath="/" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
+    </ItemGroup>
+
 </Project>
+

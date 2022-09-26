@@ -7,11 +7,15 @@ namespace MemoryPack;
 public ref partial struct MemoryPackReader
 {
     ReadOnlySequence<byte> bufferSource;
+    readonly long totalLength;
     ref byte bufferReference;
     int bufferLength;
     byte[]? rentBuffer;
     int advancedCount;
-    long restSequenceLength; // used for malformed length check
+    int consumed;   // total length of consumed
+
+    public int Consumed => consumed;
+    public long Remaining => totalLength - consumed;
 
     public MemoryPackReader(in ReadOnlySequence<byte> sequence)
     {
@@ -20,8 +24,9 @@ public ref partial struct MemoryPackReader
         this.bufferReference = ref MemoryMarshal.GetReference(span);
         this.bufferLength = span.Length;
         this.advancedCount = 0;
+        this.consumed = 0;
         this.rentBuffer = null;
-        this.restSequenceLength = sequence.Length;
+        this.totalLength = sequence.Length;
     }
 
     public MemoryPackReader(ReadOnlySpan<byte> buffer)
@@ -30,8 +35,9 @@ public ref partial struct MemoryPackReader
         this.bufferReference = ref MemoryMarshal.GetReference(buffer);
         this.bufferLength = buffer.Length;
         this.advancedCount = 0;
+        this.consumed = 0;
         this.rentBuffer = null;
-        this.restSequenceLength = buffer.Length;
+        this.totalLength = buffer.Length;
     }
 
     // buffer operations
@@ -56,7 +62,7 @@ public ref partial struct MemoryPackReader
             rentBuffer = null;
         }
 
-        if (restSequenceLength == 0)
+        if (Remaining == 0)
         {
             MemoryPackSerializationException.ThrowSequenceReachedEnd();
         }
@@ -72,7 +78,7 @@ public ref partial struct MemoryPackReader
 
         advancedCount = 0;
 
-        if (sizeHint <= restSequenceLength)
+        if (sizeHint <= Remaining)
         {
             if (sizeHint <= bufferSource.FirstSpan.Length)
             {
@@ -105,7 +111,7 @@ public ref partial struct MemoryPackReader
         bufferLength = rest;
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
         advancedCount += count;
-        restSequenceLength -= count;
+        consumed += count;
     }
 
     public void Dispose()
@@ -161,12 +167,24 @@ public ref partial struct MemoryPackReader
         Advance(4);
 
         // If collection-length is larger than buffer-length, it is invalid data.
-        if (restSequenceLength < length)
+        if (Remaining < length)
         {
             MemoryPackSerializationException.ThrowInsufficientBufferUnless(length);
         }
 
-        return length != MemoryPackCode.NullLength;
+        return length != MemoryPackCode.NullCollection;
+    }
+
+    /// <summary>
+    /// no validate collection size, be careful to use.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool DangerousTryReadCollectionHeader(out int length)
+    {
+        length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
+        Advance(4);
+
+        return length != MemoryPackCode.NullCollection;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

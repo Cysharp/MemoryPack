@@ -4,7 +4,7 @@ public static class MemoryPackCode
 {
     // Collection Header
     // 0~* is length
-    public const int NullLength = -1;
+    public const int NullCollection = -1;
 
     // Object Header
     // 0~249 is property count
@@ -16,6 +16,6 @@ public static class MemoryPackCode
     public const byte NullObject = 255;
 
     // predefined, C# compiler optimize byte[] as ReadOnlySpan<byte> property
-    internal static ReadOnlySpan<byte> NullCollection => new byte[] { 255, 255, 255, 255 }; // -1
-    internal static ReadOnlySpan<byte> ZeroCollection => new byte[] { 0, 0, 0, 0 }; // 0
+    internal static ReadOnlySpan<byte> NullCollectionData => new byte[] { 255, 255, 255, 255 }; // -1
+    internal static ReadOnlySpan<byte> ZeroCollectionData => new byte[] { 0, 0, 0, 0 }; // 0
 }
