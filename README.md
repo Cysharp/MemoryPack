@@ -47,6 +47,27 @@ var v2 = MemoryPackSerializer.Deserialize<MyClass>(bin);
 
 Built-in supported types
 ---
+These types can serialize by default:
+
+// TODO: this is copy of msgpack readme, require to modify it.
+
+* Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
+* `TimeSpan`,  `DateTime`, `DateTimeOffset`
+* `Guid`, `Uri`, `Version`, `StringBuilder`
+* `BigInteger`, `Complex`, `Half`
+* `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
+* `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
+* `ArrayList`, `Hashtable`
+* `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
+* `IList<>`, `ICollection<>`, `IEnumerable<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`
+* `Dictionary<,>`, `IDictionary<,>`, `SortedDictionary<,>`, `ILookup<,>`, `IGrouping<,>`, `ReadOnlyDictionary<,>`, `IReadOnlyDictionary<,>`
+* `ObservableCollection<>`, `ReadOnlyObservableCollection<>`
+* `ISet<>`,
+* `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`
+* Immutable collections (`ImmutableList<>`, etc)
+* Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
+* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
+
 
 
 Code Generator Options
@@ -75,6 +96,18 @@ Payload size and compression
 
 
 
+
+Serialization info
+----
+```
+<!-- output memoerypack serialization info to directory -->
+<ItemGroup>
+    <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
+</ItemGroup>
+<PropertyGroup>
+    <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
+</PropertyGroup>
+```
 
 
 Streaming Serialization
