@@ -111,9 +111,18 @@ Which members are serialized, you can check IntelliSense in type(code genreator 
 
 All members must be memorypack-serializable, if not, code generator reports error.
 
-![image](https://user-images.githubusercontent.com/46207/192396889-fd3c8b4e-accb-47d4-a7ec-150e1a90517e.png)
+![image](https://user-images.githubusercontent.com/46207/192413557-8a47d668-5339-46c5-a3da-a77841666f81.png)
 
 MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK024`) to be define comfortably.
+
+```csharp
+[MemoryPackable]
+public partial class Sample2
+{
+    [MemoryPackAllowSerialize]
+    public NotSerializableType? NotSerializableProperty { get; set; }
+}
+```
 
 
 // TODO: MemoryPackFormatterAttribute

@@ -293,26 +293,3 @@ public partial class Sample
     [MemoryPackInclude]
     int privateProperty2 { get; set; }
 }
-
-
-
-
-[MemoryPackable]
-public partial class Sample2
-{
-
-
-
-
-
-
-
-    public NotSerializableType NotSerializableProperty { get; set; }
-
-    public int[] SerializableProperty { get; set; }
-}
-
-public class NotSerializableType
-{
-
-}

@@ -38,7 +38,7 @@ public sealed class MemoryPackUnionAttribute : Attribute
 //}
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackFormatterAttribute : Attribute
+public sealed class MemoryPackAllowSerializeAttribute : Attribute
 {
 }
 

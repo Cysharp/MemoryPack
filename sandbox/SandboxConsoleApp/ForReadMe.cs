@@ -11,13 +11,7 @@ namespace Samples;
 [MemoryPackable]
 public partial class Sample2
 {
-
-
-
-
-
-
-
+    [MemoryPackAllowSerialize]
     public NotSerializableType? NotSerializableProperty { get; set; }
 }
 

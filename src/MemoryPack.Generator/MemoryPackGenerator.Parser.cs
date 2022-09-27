@@ -23,7 +23,7 @@ public enum MemberKind
     Enum,
 
     // from attribute
-    MemoryPackFormatter,
+    AllowSerialize,
     MemoryPackUnion,
 
     Object, // others allow
@@ -558,9 +558,9 @@ partial class MemberMeta
 
             if (memberSymbol != null)
             {
-                if (memberSymbol.ContainsAttribute(references.MemoryPackFormatterAttribute))
+                if (memberSymbol.ContainsAttribute(references.MemoryPackAllowSerializeAttribute))
                 {
-                    return MemberKind.MemoryPackFormatter;
+                    return MemberKind.AllowSerialize;
                 }
             }
 
