@@ -5,19 +5,17 @@ Zero encoding extreme performance binary serializer for C#.
 
 ![image](https://user-images.githubusercontent.com/46207/192470270-bdefb1b7-90a7-45ab-b570-4fc79a98f331.png)
 
-Memorypack
+For standard object, MemoryPack is x3 faster than MessagePack for C#. For struct array, MemoryPack gots boosted power, x50~100 faster than other serializers.
 
+MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator.
 
+Other serializers performs many encoding operations such as VarInt encoding, tag, UTF8 Encoding, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. zero-encoding is similar as FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
 
+Other than performance, MemoryPack has these features.
 
-* Cache data for Redis
-* Save large data to file/network
-* Blazor that only communicate with C# Client/Server
-
-
-* 
-
-// TODO: Intro message.
+* Support modern I/O APIs(`IBufferWriter<byte>`, `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>`
+* No Dynamic CodeGen(IL.Emit) so Natigve AOT friendly
+* Reflectionless non-generics APIs
 
 Installation
 ---
