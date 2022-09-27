@@ -17,17 +17,24 @@ using System.Reflection;
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
     .AddExporter(DefaultExporters.Plain)
+    .AddExporter(MarkdownExporter.Default)
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1)); // .AddJob(Job.ShortRun);
 
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args, config);
+
+
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).RunAllJoined(config);
+
+
 // BenchmarkRunner.Run(Assembly.GetEntryAssembly()!, config, args);
+
+
 
 //BenchmarkRunner.Run<SerializeInt>(config, args);
 //BenchmarkRunner.Run<SerializeTest<MyClass>>(config, args);
 
 
-BenchmarkRunner.Run<RawSerialize>(config, args);
+//BenchmarkRunner.Run<RawSerialize>(config, args);
 
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
@@ -41,10 +48,10 @@ BenchmarkRunner.Run<RawSerialize>(config, args);
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-//BenchmarkSwitcher.FromTypes(new[]{
-//    typeof(SerializeTest<>),
-//    typeof(DeserializeTest<>) })
-//    .RunAllJoined(config);
+BenchmarkSwitcher.FromTypes(new[]{
+    typeof(SerializeTest<>),
+    typeof(DeserializeTest<>) })
+    .RunAllJoined(config);
 
 
 #if DEBUG

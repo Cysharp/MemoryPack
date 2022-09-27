@@ -3,7 +3,19 @@
 
 Zero encoding extreme performance binary serializer for C#.
 
-// TODO: Benchmark image.
+![image](https://user-images.githubusercontent.com/46207/192470270-bdefb1b7-90a7-45ab-b570-4fc79a98f331.png)
+
+Memorypack
+
+
+
+
+* Cache data for Redis
+* Save large data to file/network
+* Blazor that only communicate with C# Client/Server
+
+
+* 
 
 // TODO: Intro message.
 
@@ -137,7 +149,6 @@ MemoryPack supports parameterized constructor not only parameterless constructor
 * If has a one parameterless/parameterized constructor(includes private), use it
 * If has multiple construcotrs, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
 * If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
-
 
 ```csharp
 [MemoryPackable]
@@ -457,7 +468,7 @@ By checking the differences in this file, dangerous schema changes can be preven
 
 Performance
 ---
-TODO:
+TODO for describe details, stay tuned.
 
 Payload size and compression
 ---
@@ -473,30 +484,27 @@ In any case, if the payload size is large, compression should be considered. LZ4
 
 Packages
 ---
+MemoryPack has four packages.
 
 * MemoryPack
 * MemoryPack.Core
 * MemoryPack.Generator
 * MemoryPack.Streaming
 
+Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionaly use `MemoryPack.Streaming`.
 
 Streaming Serialization
 ---
+`MemoryPack.Streaming` provides additional `MemoryPackStreamingSerializer`, it serialize/deserialize collection data streamingly.
 
 ```csharp
-
 public static class MemoryPackStreamingSerializer
 {
     public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
-    {
     public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
-
-
     public static async IAsyncEnumerable<T?> DeserializeAsync<T>(PipeReader pipeReader, int bufferAtLeast = 4096, int readMinimumSize = 8192, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-
-    
-
     public static IAsyncEnumerable<T?> DeserializeAsync<T>(Stream stream, int bufferAtLeast = 4096, int readMinimumSize = 8192, CancellationToken cancellationToken = default)
+}
 ```
 
 Formatter/Provider API

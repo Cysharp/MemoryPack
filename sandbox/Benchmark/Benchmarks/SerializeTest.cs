@@ -27,12 +27,13 @@ using System.Text.Json;
 
 namespace Benchmark.Benchmarks;
 
-//[GenericTypeArguments(typeof(int))]
-//[GenericTypeArguments(typeof(Vector3[]))]
 //[GenericTypeArguments(typeof(MyClass))]
 
-//[GenericTypeArguments(typeof(JsonResponseModel))]
-//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+
+[GenericTypeArguments(typeof(int))]
+[GenericTypeArguments(typeof(Vector3[]))]
+[GenericTypeArguments(typeof(JsonResponseModel))]
+[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
