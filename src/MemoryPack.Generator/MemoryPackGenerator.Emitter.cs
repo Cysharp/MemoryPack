@@ -138,6 +138,10 @@ using MemoryPack;
 
         if (!xmlDocument)
         {
+            if (type.IsUnmanagedType)
+            {
+                sw.Write("unmanaged ");
+            }
             sw.WriteLine(WithEscape(type.Symbol));
             sw.WriteLine("---");
         }
@@ -153,11 +157,6 @@ using MemoryPack;
             if (xmlDocument)
             {
                 sw.Write("/// <b>");
-            }
-
-            if (type.IsUnmanagedType)
-            {
-                sw.Write("unmanaged ");
             }
 
             sw.Write(WithEscape(item.MemberType));

@@ -1,3 +1,0 @@
-Samples.Sample2
----
-Samples.NotSerializableType NotSerializableProperty

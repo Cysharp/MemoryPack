@@ -115,6 +115,8 @@ All members must be memorypack-serializable, if not, code generator reports erro
 
 MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK024`) to be define comfortably.
 
+If target type is defined MemoryPack serialization externally and registered, use `[MemoryPackAllowSerialize]` to silent diagnostics.
+
 ```csharp
 [MemoryPackable]
 public partial class Sample2
@@ -124,129 +126,350 @@ public partial class Sample2
 }
 ```
 
-
-// TODO: MemoryPackFormatterAttribute
-
-
-
-Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant)
- section.
-
+Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant)  section.
 
 ### Constructor selection
-constructor selection.
+
+MemoryPack supports parameterized constructor not only parameterless constructor. The selection of the constructor follows these rules. Both class and struct follows same.
+
+* If has `[MemoryPackConstructor]`, use it
+* If has no explicit constrtucotr(includes private), use parameterless one
+* If has a one parameterless/parameterized constructor(includes private), use it
+* If has multiple construcotrs, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
+* If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
 
 
-    // MemoryPack choose class/struct as same rule.
-    // If has no explicit constrtucotr, use parameterless one(includes private).
-    // If has a one parameterless/parameterized constructor, choose it.
-    // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+```csharp
+[MemoryPackable]
+public partial class Person
+{
+    public readonly int Age;
+    public readonly string Name;
 
-// [MemoryPackConstructor]
+    // You can use parametarized constructor(paramter name must match with member names)
+    public Person(int age, string name)
+    {
+        this.Age = age;
+        this.Name = name;
+    }
+}
+
+// also supports record primary constructor
+[MemoryPackable]
+public partial record Person2(int Age, string Name);
+
+[MemoryPackable]
+public partial class Person
+{
+    public readonly int Age;
+    public readonly string Name;
+
+    // You can use parametarized constructor
+    public Person(int age, string name)
+    {
+        this.Age = age;
+        this.Name = name;
+    }
+}
+
+// also supports record primary constructor
+[MemoryPackable]
+public partial record Person2(int Age, string Name);
+
+public partial class Person3
+{
+    public int Age { get; set; }
+    public string Name { get; set; }
+
+    public Person3()
+    {
+    }
+
+    // If exists multiple constructors, must use [MemoryPackConstructor]
+    [MemoryPackConstructor]
+    public Person3(int age, string name)
+    {
+        this.Age = age;
+        this.Name = name;
+    }
+}
+```
 
 ### Serialization callbacks
 
+When serialize, desrialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
 
-
-
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerializing : Attribute
+```csharp
+[MemoryPackable]
+public partial class MethodCallSample
 {
-}
+    // method call order is static -> instance
+    [MemoryPackOnSerializing]
+    public static void OnSerializing1()
+    {
+        Console.WriteLine(nameof(OnSerializing1));
+    }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerialized : Attribute
-{
-}
+    // also allows private method
+    [MemoryPackOnSerializing]
+    void OnSerializing2()
+    {
+        Console.WriteLine(nameof(OnSerializing2));
+    }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserializing : Attribute
-{
-}
+    // serializing -> /* serialize */ -> serialized
+    [MemoryPackOnSerialized]
+    static void OnSerialized1()
+    {
+        Console.WriteLine(nameof(OnSerialized1));
+    }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserialized : Attribute
-{
-}
+    [MemoryPackOnSerialized]
+    public void OnSerialized2()
+    {
+        Console.WriteLine(nameof(OnSerialized2));
+    }
 
+    [MemoryPackOnDeserializing]
+    public static void OnDeserializing1()
+    {
+        Console.WriteLine(nameof(OnDeserializing1));
+    }
+
+    // Note: instance method with MemoryPackOnDeserializing, that not called if instance is not passed by `ref`
+    [MemoryPackOnDeserializing]
+    public void OnDeserializing2()
+    {
+        Console.WriteLine(nameof(OnDeserializing2));
+    }
+
+    [MemoryPackOnDeserialized]
+    public static void OnDeserialized1()
+    {
+        Console.WriteLine(nameof(OnDeserialized1));
+    }
+
+    [MemoryPackOnDeserialized]
+    public void OnDeserialized2()
+    {
+        Console.WriteLine(nameof(OnDeserialized2));
+    }
+}
 ```
 
 Define custom collection
 ---
-
+In default, annotated `[MemoryPackObject]` type try to search members. However if type is collection(`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenreateType.Collection` to serialize correctly.
 
 ```csharp
-public enum GenerateType
+[MemoryPackable(GenerateType.Collection)]
+public partial class MyList<T> : List<T>
 {
-    Object,
-    Collection,
-    NoGenerate
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
+{
+
 }
 ```
 
-
-
-
-Union
+Polymorphism(Union)
 ---
-```
-public sealed class MemoryPackUnionAttribute : Attribute
-{
-    public byte Tag { get; set; }
-    public Type Type { get; set; }
+MemoryPack supports serializing interface and abstract class objects for polymorphism serialization. In MemoryPack these are called Union. Only interfaces and abstracts classes are allowed to be annotated with `[MemoryPackUnion]` attributes. Unique union tags are required.
 
-    public MemoryPackUnionAttribute(byte tag, Type type)
-    {
-        this.Tag = tag;
-        this.Type = type;
-    }
+```csharp
+// Annotate [MemoryPackable] and inheritance types by [MemoryPackUnion]
+// Union also supports abstract class
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(FooClass))]
+[MemoryPackUnion(1, typeof(BarClass))]
+public partial interface IUnionSample
+{
+}
+
+[MemoryPackable]
+public partial class FooClass : IUnionSample
+{
+    public int XYZ { get; set; }
+}
+
+[MemoryPackable]
+public partial class BarClass : IUnionSample
+{
+    public string? OPQ { get; set; }
+}
+// ---
+
+IUnionSample data = new FooClass() { XYZ = 999 };
+
+// Serialize as interface type.
+var bin = MemoryPackSerializer.Serialize(data);
+
+// Deserialize as interface type.
+var reData = MemoryPackSerializer.Deserialize<IUnionSample>(bin);
+
+switch (reData)
+{
+    case FooClass x:
+        Console.WriteLine(x.XYZ);
+        break;
+    case BarClass x:
+        Console.WriteLine(x.OPQ);
+        break;
+    default:
+        break;
 }
 ```
 
 Serialize API
 ---
+Serialize has three overloads.
+
+```csharp
+// Non generic API also available, these version is first argument is Type and value is object?
+byte[] Serialize<T>(in T? value)
+void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value)
+async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
+```
+
+The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
+
+If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and almostly fast.
+
+Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
+
+If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
 
 Deserialize API
 ---
+Deserialize has `ReadOnlySpan<byte>` and `ReadOnlySequence<byte>`, `Stream` overload and `ref` support.
 
+```csharp
+T? Deserialize<T>(ReadOnlySpan<byte> buffer)
+void Deserialize<T>(ReadOnlySpan<byte> buffer, ref T? value)
+T? Deserialize<T>(in ReadOnlySequence<byte> buffer)
+void Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value)
+async ValueTask<T?> DeserializeAsync<T>(Stream stream)
+```
+
+`ref` overload overwrite existing instance, for details see [Overwrite](#overwrite) section.
+
+`DeserializeAsync(Stream)` is not completely streaming read, first read into MemoryPack's internal pool up to the end-of-stream, then deserialize.
+
+If you want to do complete streaming read, see [Streaming Serialization](#streaming-serialization) section.
 
 Overwrite
 ---
+MemoryPack supports deserialize to existing instance, that reduce new instance allocation. It can use by `Deserialize(ref T? value)` overload.
 
-// Clear support collection formatters
-// T[], List, Stack, Queue, LinkedList, HashSet, PriorityQueue,
-// ObservableCollection, Collection
-// ConcurrentQueue, ConcurrentStack, ConcurrentBag
-// Dictionary, SortedDictionary, SortedList, ConcurrentDictionary
+```csharp
+var person = new Person();
+var bin = MemoryPackSerializer.Serialize(person);
 
+// overwrite data to existing instance.
+MemoryPackSerializer.Deserialize(bin, ref person);
+```
 
+MemoryPack will attempt to overwrite as much as possible, but if the conditions do not match, it will create a new instance (as in normal deserialization).
 
-Performance
----
-
-
-Payload size and compression
----
-
-
-
+* ref value(includes members in object graph) is null, set new instance
+* only allows parameterless constructor, if parametarized constructor is used, create new instance
+* if value is `T[]`, reuse only if the length is the same, otherwise create new instance
+* if value is collection that has `.Clear()` method(`List<>`, `Stack<>`, `Queue<>`, `LinkedList<>`, `HashSet<>`, `PriorityQueue<,>`, `ObservableCollection`, `Collection`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentBag<>`, `Dictionary<,>`, `SoretedDictionary<,>`, `SortedList<,>`, `ConcurrentDictionary<,>`) call Clear() and reuse it, otherwise create new instance
 
 Version tolerant
 ---
-Limited support....
+MemoryPack supports schema evolution limitedly.
 
+* unmanaged struct can't change any more
+* MemoryPackable objects, members can be added, but not deleted
+* MemoryPackable objects, can't change member order
+
+```csharp
+[MemoryPackable]
+public partial class VersionCheck
+{
+    public int Prop1 { get; set; }
+    public long Prop2 { get; set; }
+}
+
+// Add is OK.
+[MemoryPackable]
+public partial class VersionCheck
+{
+    public int Prop1 { get; set; }
+    public long Prop2 { get; set; }
+    public int? AddedProp { get; set; }
+}
+
+// Remove is NG.
+[MemoryPackable]
+public partial class VersionCheck
+{
+    // public int Prop1 { get; set; }
+    public long Prop2 { get; set; }
+}
+
+// Change order is NG.
+[MemoryPackable]
+public partial class VersionCheck
+{
+    public long Prop2 { get; set; }
+    public int Prop1 { get; set; }
+}
+```
+
+Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
 Serialization info
 ----
-```
+Which members are serialized, you can check IntelliSense in type. There is an option to write that information to a file at compile time. Set `MemoryPackGenerator_SerializationInfoOutputDirectory` as follows.
+
+```xml
 <!-- output memoerypack serialization info to directory -->
 <ItemGroup>
     <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
 </ItemGroup>
 <PropertyGroup>
-    <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
+    <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)\MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
 </PropertyGroup>
 ```
+
+The following info is written to the file.
+
+![image](https://user-images.githubusercontent.com/46207/192460684-c2fd8bcb-375e-41dd-9960-58205d5b1b7a.png)
+
+If the type is unmanaged, showed `unmanaged` before type name.
+
+```txt
+unmanaged FooStruct
+---
+int x
+int y
+```
+
+By checking the differences in this file, dangerous schema changes can be prevented. For example, you may want to use CI to detect the following rules
+
+* modify unmanaged type
+* member order change
+* member deletion
+
+Performance
+---
+TODO:
+
+Payload size and compression
+---
+Payload size depends on the target value; unlike JSON, there are no keys and it is a binary format, so the payload size is likely to be smaller than JSON.
+
+For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
+
+Also, strings are usually UTF8 for other formats, but MemoryPack is UTF16 fixed length (2 bytes), so MemoryPack is larger if the string occupies ASCII. Conversely, MemoryPack may be smaller if the string contains many UTF8 characters of 3 bytes or more, such as Japanese.
+
+float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MsgPack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
+
+In any case, if the payload size is large, compression should be considered. LZ4, ZStandard and Brotli are recommended. An efficient way to combine compression and serialization will be presented at a later date.
 
 Packages
 ---
@@ -259,7 +482,8 @@ Packages
 
 Streaming Serialization
 ---
-```
+
+```csharp
 
 public static class MemoryPackStreamingSerializer
 {
@@ -277,20 +501,38 @@ public static class MemoryPackStreamingSerializer
 
 Formatter/Provider API
 ---
-`MemoryPackFormatter<T>`
+If you want to implement formatter manually, inherit `MemoryPackFormatter<T>` to recommended.
 
+```csharp
+public class SkeltonFormatter : MemoryPackFormatter<Skelton>
+{
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Skelton? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            return;
+        }
 
-`MemoryPackFormatterProvider`
+        // use writer method.
+    }
 
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref Skelton? value)
+    {
+        if (!reader.TryReadObjectHeader(out var count))
+        {
+            value = null;
+            return;
+        }
+
+        // use reader method.
+    }
+}
 ```
-public static void RegisterCollection<TCollection, TElement>()
-        where TCollection : ICollection<TElement?>, new()
-public static void Register<T>(MemoryPackFormatter<T> formatter)
-    public static void Register<T>()
-        where T : IMemoryPackFormatterRegister        
+The created formatter is registered with `MemoryPackFormatterProvider`.
 
-Register<T>
-RegisterGenericType
+```csharp
+MemoryPackFormatterProvider.Register(new SkeltonFormatter());
 ```
 
 Unity support

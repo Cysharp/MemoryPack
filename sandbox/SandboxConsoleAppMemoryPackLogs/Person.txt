@@ -1,5 +1,0 @@
-Person
----
-int Age
-string FirstName
-string LastName

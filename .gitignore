@@ -118,3 +118,5 @@ nuget/*.unitypackage
 # Unity
 
 __packages/
+
+sandbox/SandboxConsoleApp/MemoryPackLogs/

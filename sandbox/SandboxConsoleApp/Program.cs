@@ -2,6 +2,7 @@
 
 using MemoryPack;
 using MemoryPack.Formatters;
+using Samples;
 using System;
 using System.Buffers;
 using System.Collections;
@@ -17,9 +18,17 @@ using System.Text;
 
 
 
+// ---
 
 
-Console.WriteLine("ok");
+
+var person = new Person();
+var bin = MemoryPackSerializer.Serialize(person);
+
+// overwrite data to existing instance.
+MemoryPackSerializer.Deserialize(bin, ref person);
+
+
 
 [MemoryPackable(GenerateType.Collection)]
 public partial class ListGenerics<T> : List<T>
@@ -266,7 +275,7 @@ public partial class DictionaryGenerics<TK, TV> : Dictionary<TK, TV>
 
 
 
-[MemoryPackable] 
+[MemoryPackable]
 public partial class Sample
 {
     // these types are serialized by default

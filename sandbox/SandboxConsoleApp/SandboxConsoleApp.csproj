@@ -21,7 +21,7 @@
         <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
     </ItemGroup>
     <PropertyGroup>
-        <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
+        <MemoryPackGenerator_SerializationInfoOutputDirectory>$(MSBuildProjectDirectory)\MemoryPackLogs</MemoryPackGenerator_SerializationInfoOutputDirectory>
     </PropertyGroup>
 
 
