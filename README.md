@@ -14,7 +14,7 @@ Other serializers performs many encoding operations such as VarInt encoding, tag
 Other than performance, MemoryPack has these features.
 
 * Support modern I/O APIs(`IBufferWriter<byte>`, `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>`
-* No Dynamic CodeGen(IL.Emit) so Natigve AOT friendly
+* No Dynamic CodeGen(IL.Emit) so Native AOT friendly
 * Reflectionless non-generics APIs
 
 Installation
@@ -46,7 +46,7 @@ public partial class Person
 }
 ```
 
-Serialization code is generated vis C# source generator feature, that implements `IMemoryPackable<T>` interface. In Visual Studio, you can check generated code via `Ctrl+K, R` on class name and select `*.MemoryPackFormatter.g.cs`.
+Serialization code is generated via C# source generator feature, that implements `IMemoryPackable<T>` interface. In Visual Studio, you can check generated code via `Ctrl+K, R` on class name and select `*.MemoryPackFormatter.g.cs`.
 
 Call `MemoryPackSerializer.Serialize<T>/Deserialize<T>` to serialize/deserialize your object instance.
 
