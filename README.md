@@ -143,9 +143,9 @@ Member order is **important**, MemoryPack does not serialize any member-name and
 MemoryPack supports parameterized constructor not only parameterless constructor. The selection of the constructor follows these rules. Both class and struct follows same.
 
 * If has `[MemoryPackConstructor]`, use it
-* If has no explicit constrtucotr(includes private), use parameterless one
+* If has no explicit constructor(includes private), use parameterless one
 * If has a one parameterless/parameterized constructor(includes private), use it
-* If has multiple construcotrs, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
+* If has multiple constructors, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
 * If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
 
 ```csharp
@@ -206,7 +206,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serialize, desrialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
+When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
 
 ```csharp
 [MemoryPackable]
