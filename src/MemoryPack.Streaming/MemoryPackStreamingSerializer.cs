@@ -168,6 +168,7 @@ public static class MemoryPackStreamingSerializer
 
                         if (consumedByteCount == 0 || buffer.Length == 0)
                         {
+                            await pipeReader.CompleteAsync().ConfigureAwait(false);
                             yield break;
                         }
                     }
