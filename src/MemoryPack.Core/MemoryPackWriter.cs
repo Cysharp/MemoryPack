@@ -170,7 +170,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);
 
-        if(copyByteCount > 0)
+        if (copyByteCount > 0)
         {
             ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
             Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
