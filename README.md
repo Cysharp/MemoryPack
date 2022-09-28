@@ -167,24 +167,6 @@ public partial class Person
 [MemoryPackable]
 public partial record Person2(int Age, string Name);
 
-[MemoryPackable]
-public partial class Person
-{
-    public readonly int Age;
-    public readonly string Name;
-
-    // You can use parametarized constructor
-    public Person(int age, string name)
-    {
-        this.Age = age;
-        this.Name = name;
-    }
-}
-
-// also supports record primary constructor
-[MemoryPackable]
-public partial record Person2(int Age, string Name);
-
 public partial class Person3
 {
     public int Age { get; set; }
