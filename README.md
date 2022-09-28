@@ -3,7 +3,7 @@
 
 Zero encoding extreme performance binary serializer for C#.
 
-![image](https://user-images.githubusercontent.com/46207/192470270-bdefb1b7-90a7-45ab-b570-4fc79a98f331.png)
+![image](https://user-images.githubusercontent.com/46207/192748136-262ac2e7-4646-46e1-afb8-528a51a4a987.png)
 
 For standard object, MemoryPack is x3 faster than MessagePack for C#. For struct array, MemoryPack gots boosted power, x50~100 faster than other serializers.
 
