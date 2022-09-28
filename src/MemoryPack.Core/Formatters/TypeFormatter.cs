@@ -21,7 +21,7 @@ public sealed partial class TypeFormatter : MemoryPackFormatter<Type>
             return;
         }
 
-        var shortName = ShortTypeNameRegex().Replace(full, "");
+        var shortName = ShortTypeNameRegex().Replace(full, string.Empty);
         writer.WriteString(shortName);
     }
 

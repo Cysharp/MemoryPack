@@ -196,7 +196,7 @@ public ref partial struct MemoryPackReader
         }
         if (length == 0)
         {
-            return "";
+            return string.Empty;
         }
 
         var byteCount = length * 2;
