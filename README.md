@@ -16,6 +16,8 @@ Other than performance, MemoryPack has these features.
 * Support modern I/O APIs(`IBufferWriter<byte>`, `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>`
 * No Dynamic CodeGen(IL.Emit) so Native AOT friendly
 * Reflectionless non-generics APIs
+* Deserialize into existing instance
+* PipeWriter/Reader based streaming serialization
 
 Installation
 ---
