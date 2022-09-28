@@ -13,7 +13,7 @@ Other serializers performs many encoding operations such as VarInt encoding, tag
 
 Other than performance, MemoryPack has these features.
 
-* Support modern I/O APIs(`IBufferWriter<byte>`, `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>`
+* Support modern I/O APIs(`IBufferWriter<byte>`, `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>`)
 * Native AOT friendly Source Generator based code generation, no Dynamic CodeGen(IL.Emit)
 * Reflectionless non-generics APIs
 * Deserialize into existing instance
