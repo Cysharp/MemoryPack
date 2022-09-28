@@ -166,12 +166,15 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         var copyByteCount = value.Length * 2;
-        ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
 
         ref var dest = ref GetSpanReference(copyByteCount + 4);
-
         Unsafe.WriteUnaligned(ref dest, value.Length);
-        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
+
+        if(copyByteCount > 0)
+        {
+            ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
+        }
 
         Advance(copyByteCount + 4);
     }
