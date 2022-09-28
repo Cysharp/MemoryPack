@@ -560,7 +560,7 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 `[int length, values...]`
 
-Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
+Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length. String is collection(serialize as `ReadOnlySpan<char>`, in other words, UTF16).
 
 ### Union
 
