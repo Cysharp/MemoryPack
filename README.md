@@ -81,7 +81,7 @@ These types can serialize by default:
 
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
-`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `recrod struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
+`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `record struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
 
 Otherwise, in the default, `[MemoryPackable]` serializes public instance property or field. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
 
@@ -143,9 +143,9 @@ Member order is **important**, MemoryPack does not serialize any member-name and
 MemoryPack supports parameterized constructor not only parameterless constructor. The selection of the constructor follows these rules. Both class and struct follows same.
 
 * If has `[MemoryPackConstructor]`, use it
-* If has no explicit constrtucotr(includes private), use parameterless one
+* If has no explicit constructor(includes private), use parameterless one
 * If has a one parameterless/parameterized constructor(includes private), use it
-* If has multiple construcotrs, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
+* If has multiple constructors, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
 * If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
 
 ```csharp
@@ -206,7 +206,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serialize, desrialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
+When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
 
 ```csharp
 [MemoryPackable]
