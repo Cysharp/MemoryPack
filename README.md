@@ -17,6 +17,7 @@ Other than performance, MemoryPack has these features.
 * No Dynamic CodeGen(IL.Emit) so Native AOT friendly
 * Reflectionless non-generics APIs
 * Deserialize into existing instance
+* Polymorphism(Union)
 * PipeWriter/Reader based streaming serialization
 
 Installation
