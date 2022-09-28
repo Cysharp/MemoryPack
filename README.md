@@ -74,7 +74,7 @@ These types can serialize by default:
 * `Uri`, `Version`, `StringBuilder`, `Type`, `BitArray`
 * `T[]`, `T[,]`, `T[,,]`, `T[,,,]`, `Memory<>`, `ReadOnlyMemory<>`, `ArraySegment<>`, `ReadOnlySequence<>`
 * `Nullable<>`, `Lazy<>`, `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-* `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `PriorityQueue<>`
+* `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `PriorityQueue<,>`
 * `Dictionary<,>`, `SortedList<,>`, `SortedDictionary<,>`,  `ReadOnlyDictionary<,>` 
 * `Collection<>`, `ReadOnlyCollection<>`,`ObservableCollection<>`, `ReadOnlyObservableCollection<>`
 * `IEnumerable<>`, `ICollection<>`, `IList<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`, `ISet<>`
