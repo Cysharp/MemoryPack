@@ -7,6 +7,8 @@
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PackageTags>serializer</PackageTags>
+        <Description>Additional streaming support for MemoryPack.</Description>
     </PropertyGroup>
 
     <ItemGroup>
