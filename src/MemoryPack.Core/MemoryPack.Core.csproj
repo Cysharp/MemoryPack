@@ -8,6 +8,8 @@
         <RootNamespace>MemoryPack</RootNamespace>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
+        <PackageTags>serializer</PackageTags>
+        <Description>Core libraries(attribute, logics) of MemoryPack.</Description>
     </PropertyGroup>
 
     <ItemGroup>

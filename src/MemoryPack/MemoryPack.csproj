@@ -6,6 +6,8 @@
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <IncludeContentInPack>true</IncludeContentInPack>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
+        <PackageTags>serializer</PackageTags>
+        <Description>Zero encoding extreme performance binary serializer for C#.</Description>
     </PropertyGroup>
 
     <ItemGroup>
