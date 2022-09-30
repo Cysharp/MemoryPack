@@ -10,8 +10,8 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackableAttribute { get; }
     public INamedTypeSymbol MemoryPackUnionAttribute { get; }
     public INamedTypeSymbol MemoryPackConstructorAttribute { get; }
-    // public INamedTypeSymbol MemoryPackGenerateAttribute { get; }
     public INamedTypeSymbol MemoryPackAllowSerializeAttribute { get; }
+    public INamedTypeSymbol MemoryPackOrderAttribute { get; }
     public INamedTypeSymbol MemoryPackIgnoreAttribute { get; }
     public INamedTypeSymbol MemoryPackIncludeAttribute { get; }
     public INamedTypeSymbol MemoryPackOnSerializingAttribute { get; }
@@ -30,8 +30,8 @@ public class ReferenceSymbols
         MemoryPackableAttribute = GetTypeByMetadataName(MemoryPackGenerator.MemoryPackableAttributeFullName);
         MemoryPackUnionAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackUnionAttribute");
         MemoryPackConstructorAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackConstructorAttribute");
-        //MemoryPackGenerateAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackGenerateAttribute");
         MemoryPackAllowSerializeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackAllowSerializeAttribute");
+        MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");
         MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");
         MemoryPackIncludeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute");
         MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializing");

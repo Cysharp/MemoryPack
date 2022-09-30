@@ -66,6 +66,10 @@ partial class TypeMeta
         }
         else if (packableCtorArgs.Value.Length != 0)
         {
+            // TODO: MemoryPackable has two attribtue
+            // (SerializeLayout serializeLayout)
+            // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
+            // so check length first and choose which constructor used.
             var ctorValue = packableCtorArgs.Value[0];
             var generateType = ctorValue.Value ?? GenerateType.Object;
             this.GenerateType = (GenerateType)generateType;

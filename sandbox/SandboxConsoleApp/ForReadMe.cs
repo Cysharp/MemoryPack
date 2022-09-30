@@ -138,3 +138,24 @@ public partial class Version2
     public long Prop2 { get; set; }
     public int? AddedProp { get; set; }
 }
+
+
+
+[MemoryPackable(GenerateType.Object)]
+public partial class Sonota1
+{
+
+}
+
+[MemoryPackable(SerializeLayout.Sequential)]
+public partial class Sonota2
+{
+
+}
+
+[MemoryPackable(GenerateType.Object, SerializeLayout.Explicit)]
+public partial class Sonota3
+{
+    [MemoryPackOrder(0)]
+    public int MyProperty { get; set; }
+}
