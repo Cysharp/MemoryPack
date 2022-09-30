@@ -26,7 +26,7 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
             writer.WriteObjectHeader(1);
         }
 
-        writer.WriteObject(value.Value);
+        writer.WriteValue(value.Value);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref T? value)
@@ -45,6 +45,6 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
 
         if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
-        value = reader.ReadObject<T>();
+        value = reader.ReadValue<T>();
     }
 }

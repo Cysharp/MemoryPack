@@ -227,13 +227,13 @@ public ref partial struct MemoryPackReader
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ReadObject<T>(scoped ref T? value)
+    public void ReadValue<T>(scoped ref T? value)
     {
         GetFormatter<T>().Deserialize(ref this, ref value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadObject<T>()
+    public T? ReadValue<T>()
     {
         T? value = default;
         GetFormatter<T>().Deserialize(ref this, ref value);

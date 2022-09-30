@@ -414,8 +414,8 @@ namespace MemoryPack.Formatters
             }
 
             writer.WriteObjectHeader(2);
-            writer.WriteObject(value.Key);
-            writer.WriteObject<IEnumerable<TElement>>(value); // write as IEnumerable<TElement>
+            writer.WriteValue(value.Key);
+            writer.WriteValue<IEnumerable<TElement>>(value); // write as IEnumerable<TElement>
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IGrouping<TKey, TElement>? value)
@@ -428,7 +428,7 @@ namespace MemoryPack.Formatters
 
             if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
-            var key = reader.ReadObject<TKey>();
+            var key = reader.ReadValue<TKey>();
             var values = reader.ReadArray<TElement>() as IEnumerable<TElement>;
 
             if (key == null) MemoryPackSerializationException.ThrowDeserializeObjectIsNull(nameof(key));

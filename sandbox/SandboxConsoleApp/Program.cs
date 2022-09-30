@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CS8600
+#pragma warning disable CS0169
 
 using MemoryPack;
 using MemoryPack.Formatters;
@@ -20,6 +21,7 @@ using System.Text;
 using System.Xml.Linq;
 
 
+Console.WriteLine("foo");
 
 // ---
 

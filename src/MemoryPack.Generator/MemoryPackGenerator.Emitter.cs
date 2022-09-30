@@ -615,7 +615,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             {
                 var method = x.Type.IsWillImplementIMemoryPackable(reference)
                     ? "WritePackable"
-                    : "WriteObject";
+                    : "WriteValue";
                 return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{TypeName}?, {ToUnionTagTypeFullyQualifiedToString(x.Type)}>(ref value)); break;";
             })
             .NewLine();
@@ -652,7 +652,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         {
             var method = x.Type.IsWillImplementIMemoryPackable(reference)
                 ? "ReadPackable"
-                : "ReadObject";
+                : "ReadValue";
             return $$"""
                 case {{x.Tag}}:
                     if (value is {{ToUnionTagTypeFullyQualifiedToString(x.Type)}})
@@ -760,7 +760,7 @@ public partial class MemberMeta
             case MemberKind.Array:
                 return $"writer.WritedArray(value.{Name});";
             default:
-                return $"writer.WriteObject(value.{Name});";
+                return $"writer.WriteValue(value.{Name});";
         }
     }
 
@@ -779,7 +779,7 @@ public partial class MemberMeta
             case MemberKind.Array:
                 return $"__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             default:
-                return $"__{Name} = reader.ReadObject<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
     }
 
@@ -798,7 +798,7 @@ public partial class MemberMeta
             case MemberKind.Array:
                 return $"reader.ReadArray(ref __{Name});";
             default:
-                return $"reader.ReadObject(ref __{Name});";
+                return $"reader.ReadValue(ref __{Name});";
         }
     }
 }

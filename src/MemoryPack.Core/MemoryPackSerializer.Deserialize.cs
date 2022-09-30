@@ -30,7 +30,7 @@ public static partial class MemoryPackSerializer
         var reader = new MemoryPackReader(buffer);
         try
         {
-            reader.ReadObject(ref value);
+            reader.ReadValue(ref value);
         }
         finally
         {
@@ -50,7 +50,7 @@ public static partial class MemoryPackSerializer
         var reader = new MemoryPackReader(buffer);
         try
         {
-            reader.ReadObject(ref value);
+            reader.ReadValue(ref value);
         }
         finally
         {

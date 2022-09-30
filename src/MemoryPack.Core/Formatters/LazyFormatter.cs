@@ -11,7 +11,7 @@ public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
         }
 
         writer.WriteObjectHeader(1);
-        writer.WriteObject(value.Value);
+        writer.WriteValue(value.Value);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Lazy<T?>? value)
@@ -24,7 +24,7 @@ public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
 
         if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
-        var v = reader.ReadObject<T>();
+        var v = reader.ReadValue<T>();
         value = new Lazy<T?>(v);
     }
 }

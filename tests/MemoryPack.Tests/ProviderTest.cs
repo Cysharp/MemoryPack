@@ -57,7 +57,7 @@ public class CustomTypeFormatter<T> : MemoryPackFormatter<CustomType<T?>>
         }
 
         writer.WriteObjectHeader(1);
-        writer.WriteObject<T>(value.Value);
+        writer.WriteValue<T>(value.Value);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref CustomType<T?>? value)
@@ -69,7 +69,7 @@ public class CustomTypeFormatter<T> : MemoryPackFormatter<CustomType<T?>>
         }
         if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
-        value = new CustomType<T?> { Value = reader.ReadObject<T>() };
+        value = new CustomType<T?> { Value = reader.ReadValue<T>() };
     }
 }
 

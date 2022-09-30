@@ -35,7 +35,7 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
         }
 
         writer.WriteObjectHeader(1);
-        writer.WriteObject(value.Item1);
+        writer.WriteValue(value.Item1);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?>? value)
@@ -49,7 +49,7 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
         if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new Tuple<T1?>(
-            reader.ReadObject<T1>()
+            reader.ReadValue<T1>()
         );
     }
 }
@@ -65,8 +65,8 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
         }
 
         writer.WriteObjectHeader(2);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?>? value)
@@ -80,8 +80,8 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
         if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new Tuple<T1?, T2?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>()
         );
     }
 }
@@ -97,9 +97,9 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
         }
 
         writer.WriteObjectHeader(3);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?>? value)
@@ -113,9 +113,9 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
         if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
         value = new Tuple<T1?, T2?, T3?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>()
         );
     }
 }
@@ -131,10 +131,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
         }
 
         writer.WriteObjectHeader(4);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?>? value)
@@ -148,10 +148,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
         if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>()
         );
     }
 }
@@ -167,11 +167,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
         }
 
         writer.WriteObjectHeader(5);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?>? value)
@@ -185,11 +185,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
         if (count != 5) MemoryPackSerializationException.ThrowInvalidPropertyCount(5, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>()
         );
     }
 }
@@ -205,12 +205,12 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
         }
 
         writer.WriteObjectHeader(6);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?>? value)
@@ -224,12 +224,12 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
         if (count != 6) MemoryPackSerializationException.ThrowInvalidPropertyCount(6, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>()
         );
     }
 }
@@ -245,13 +245,13 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
         }
 
         writer.WriteObjectHeader(7);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
-        writer.WriteObject(value.Item7);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
+        writer.WriteValue(value.Item7);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>? value)
@@ -265,13 +265,13 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
         if (count != 7) MemoryPackSerializationException.ThrowInvalidPropertyCount(7, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>(),
-            reader.ReadObject<T7>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>(),
+            reader.ReadValue<T7>()
         );
     }
 }
@@ -288,14 +288,14 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
         }
 
         writer.WriteObjectHeader(8);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
-        writer.WriteObject(value.Item7);
-        writer.WriteObject(value.Rest);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
+        writer.WriteValue(value.Item7);
+        writer.WriteValue(value.Rest);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>? value)
@@ -309,14 +309,14 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
         if (count != 8) MemoryPackSerializationException.ThrowInvalidPropertyCount(8, count);
 
         value = new Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>(),
-            reader.ReadObject<T7>(),
-            reader.ReadObject<TRest>()!
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>(),
+            reader.ReadValue<T7>(),
+            reader.ReadValue<TRest>()!
         );
     }
 }
@@ -333,7 +333,7 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
         }
 
         writer.WriteObjectHeader(1);
-        writer.WriteObject(value.Item1);
+        writer.WriteValue(value.Item1);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?> value)
@@ -353,7 +353,7 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
         if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new ValueTuple<T1?>(
-            reader.ReadObject<T1>()
+            reader.ReadValue<T1>()
         );
     }
 }
@@ -369,8 +369,8 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
         }
 
         writer.WriteObjectHeader(2);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?> value)
@@ -390,8 +390,8 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
         if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new ValueTuple<T1?, T2?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>()
         );
     }
 }
@@ -407,9 +407,9 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
         }
 
         writer.WriteObjectHeader(3);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?> value)
@@ -429,9 +429,9 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
         if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
         value = new ValueTuple<T1?, T2?, T3?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>()
         );
     }
 }
@@ -447,10 +447,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
         }
 
         writer.WriteObjectHeader(4);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?> value)
@@ -470,10 +470,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
         if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>()
         );
     }
 }
@@ -489,11 +489,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
         }
 
         writer.WriteObjectHeader(5);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?> value)
@@ -513,11 +513,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
         if (count != 5) MemoryPackSerializationException.ThrowInvalidPropertyCount(5, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>()
         );
     }
 }
@@ -533,12 +533,12 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
         }
 
         writer.WriteObjectHeader(6);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?> value)
@@ -558,12 +558,12 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
         if (count != 6) MemoryPackSerializationException.ThrowInvalidPropertyCount(6, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>()
         );
     }
 }
@@ -579,13 +579,13 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
         }
 
         writer.WriteObjectHeader(7);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
-        writer.WriteObject(value.Item7);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
+        writer.WriteValue(value.Item7);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?> value)
@@ -605,13 +605,13 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
         if (count != 7) MemoryPackSerializationException.ThrowInvalidPropertyCount(7, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>(),
-            reader.ReadObject<T7>()
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>(),
+            reader.ReadValue<T7>()
         );
     }
 }
@@ -628,14 +628,14 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
         }
 
         writer.WriteObjectHeader(8);
-        writer.WriteObject(value.Item1);
-        writer.WriteObject(value.Item2);
-        writer.WriteObject(value.Item3);
-        writer.WriteObject(value.Item4);
-        writer.WriteObject(value.Item5);
-        writer.WriteObject(value.Item6);
-        writer.WriteObject(value.Item7);
-        writer.WriteObject(value.Rest);
+        writer.WriteValue(value.Item1);
+        writer.WriteValue(value.Item2);
+        writer.WriteValue(value.Item3);
+        writer.WriteValue(value.Item4);
+        writer.WriteValue(value.Item5);
+        writer.WriteValue(value.Item6);
+        writer.WriteValue(value.Item7);
+        writer.WriteValue(value.Rest);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest> value)
@@ -655,14 +655,14 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
         if (count != 8) MemoryPackSerializationException.ThrowInvalidPropertyCount(8, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>(
-            reader.ReadObject<T1>(),
-            reader.ReadObject<T2>(),
-            reader.ReadObject<T3>(),
-            reader.ReadObject<T4>(),
-            reader.ReadObject<T5>(),
-            reader.ReadObject<T6>(),
-            reader.ReadObject<T7>(),
-            reader.ReadObject<TRest>()!
+            reader.ReadValue<T1>(),
+            reader.ReadValue<T2>(),
+            reader.ReadValue<T3>(),
+            reader.ReadValue<T4>(),
+            reader.ReadValue<T5>(),
+            reader.ReadValue<T6>(),
+            reader.ReadValue<T7>(),
+            reader.ReadValue<TRest>()!
         );
     }
 }

@@ -21,7 +21,7 @@ public static class MemoryPackStreamingSerializer
             var writer = new MemoryPackWriter<PipeWriter>(ref pipeWriter);
             while (enumerator.MoveNext())
             {
-                writer.WriteObject(enumerator.Current);
+                writer.WriteValue(enumerator.Current);
                 if (flushRate < writer.WrittenCount)
                 {
                     writer.Flush();
@@ -59,7 +59,7 @@ public static class MemoryPackStreamingSerializer
             var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter);
             while (enumerator.MoveNext())
             {
-                writer.WriteObject(enumerator.Current);
+                writer.WriteValue(enumerator.Current);
                 if (flushRate < writer.WrittenCount)
                 {
                     writer.Flush();
@@ -111,7 +111,7 @@ public static class MemoryPackStreamingSerializer
                     return reader.Consumed;
                 }
 
-                itemBuffer.Add(reader.ReadObject<T?>());
+                itemBuffer.Add(reader.ReadValue<T?>());
                 remain.Value--;
             }
 
