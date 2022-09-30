@@ -36,4 +36,9 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
             reader.ReadObject<TValue>()
         );
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref KeyValuePair<TKey?, TValue?> value)
+    {
+        throw new NotImplementedException();
+    }
 }

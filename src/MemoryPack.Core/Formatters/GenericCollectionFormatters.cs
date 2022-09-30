@@ -1,4 +1,6 @@
-﻿namespace MemoryPack.Formatters;
+﻿using System.Collections.Immutable;
+
+namespace MemoryPack.Formatters;
 
 public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPackFormatter<TCollection?>
     where TCollection : ICollection<TElement?>, new()
@@ -19,6 +21,11 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
             var v = item;
             formatter.Serialize(ref writer, ref v);
         }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref TCollection? value)
+    {
+        throw new NotImplementedException();
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref TCollection? value)
@@ -47,6 +54,24 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
     where TSet : ISet<TElement?>, new()
 {
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TSet? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullCollectionHeader();
+            return;
+        }
+
+        var formatter = writer.GetFormatter<TElement?>();
+
+        writer.WriteCollectionHeader(value.Count);
+        foreach (var item in value)
+        {
+            var v = item;
+            formatter.Serialize(ref writer, ref v);
+        }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref TSet? value)
     {
         if (value == null)
         {
@@ -99,6 +124,24 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
     }
 
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TDictionary? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullCollectionHeader();
+            return;
+        }
+
+        var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+
+        writer.WriteCollectionHeader(value.Count);
+        foreach (var item in value)
+        {
+            var v = item;
+            formatter.Serialize(ref writer, ref v);
+        }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref TDictionary? value)
     {
         if (value == null)
         {

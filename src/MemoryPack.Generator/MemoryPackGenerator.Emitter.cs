@@ -254,6 +254,15 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         return;
     }
 
+static void IMemoryPackable<{{TypeName}}>.Serialize(ref DoNothingMemoryPackWriter writer, scoped ref {{TypeName}}{{nullable}} value)
+    {
+{{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
+{{serializeBody}}
+    END:
+{{OnSerialized.Select(x => "        " + x.Emit()).NewLine()}}
+        return;
+    }
+
     static void IMemoryPackable<{{TypeName}}>.Deserialize(ref MemoryPackReader reader, scoped ref {{TypeName}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
@@ -563,6 +572,13 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 {{EmitUnionTypeToTagField()}}
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}? value)
+        {
+{{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
+{{EmitUnionSerializeBody()}}
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+        }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}

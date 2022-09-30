@@ -322,6 +322,11 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
     {
         MemoryPackSerializationException.ThrowNotRegisteredInProvider(type);
     }
+
+    public void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref object? value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
@@ -372,5 +377,10 @@ internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
         {
             MemoryPackSerializationException.ThrowNotRegisteredInProvider(typeof(T));
         }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T? value)
+    {
+        throw new NotImplementedException();
     }
 }

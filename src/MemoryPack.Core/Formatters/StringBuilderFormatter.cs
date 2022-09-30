@@ -52,4 +52,9 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 
         reader.Advance(size);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref StringBuilder? value)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -22,13 +22,18 @@ using System.Text;
 
 
 
-var person = new Person();
+var person = new Person()
+{
+    Age = 12,
+    FirstName = "Hadi",
+    LastName = "Att",
+};
 var bin = MemoryPackSerializer.Serialize(person);
-
+var size = MemoryPackSerializer.GetSize(person);
 // overwrite data to existing instance.
-MemoryPackSerializer.Deserialize(bin, ref person);
+var p2 = MemoryPackSerializer.Deserialize<Person>(bin);
 
-
+var x = 1;
 
 [MemoryPackable(GenerateType.Collection)]
 public partial class ListGenerics<T> : List<T>

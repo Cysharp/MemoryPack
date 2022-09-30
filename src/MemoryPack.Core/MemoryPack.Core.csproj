@@ -28,6 +28,10 @@
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>MemoryPackReader.Unmanaged.cs</LastGenOutput>
         </None>
+        <None Update="DoNothingMemoryPackWriter.Unmanaged.tt">
+          <LastGenOutput>DoNothingMemoryPackWriter.Unmanaged.cs</LastGenOutput>
+          <Generator>TextTemplatingFileGenerator</Generator>
+        </None>
         <None Update="MemoryPackWriter.Unmanaged.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>MemoryPackWriter.Unmanaged.cs</LastGenOutput>
@@ -53,6 +57,11 @@
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>MemoryPackReader.Unmanaged.tt</DependentUpon>
+        </Compile>
+        <Compile Update="DoNothingMemoryPackWriter.Unmanaged.cs">
+          <DependentUpon>DoNothingMemoryPackWriter.Unmanaged.tt</DependentUpon>
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
         </Compile>
         <Compile Update="MemoryPackWriter.Unmanaged.cs">
             <DesignTime>True</DesignTime>

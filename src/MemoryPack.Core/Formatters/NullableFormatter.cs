@@ -47,4 +47,25 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
 
         value = reader.ReadObject<T>();
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T? value)
+    {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            writer.DangerousWriteUnmanaged(value);
+            return;
+        }
+
+        if (!value.HasValue)
+        {
+            writer.WriteNullObjectHeader();
+            return;
+        }
+        else
+        {
+            writer.WriteObjectHeader(1);
+        }
+
+        writer.WriteObject(value.Value);
+    }
 }

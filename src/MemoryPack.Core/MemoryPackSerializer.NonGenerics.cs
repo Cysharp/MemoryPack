@@ -10,12 +10,12 @@ public static partial class MemoryPackSerializer
     // Serialize
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] Serialize(Type type, object? value)
+    public static byte[] Serialize(Type type, object? value, int size)
     {
         var bufferWriter = threadStaticBufferWriter;
         if (bufferWriter == null)
         {
-            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true, size);
         }
 
         try
@@ -45,9 +45,9 @@ public static partial class MemoryPackSerializer
         writer.Flush();
     }
 
-    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, int size, CancellationToken cancellationToken = default)
     {
-        var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
+        var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent(size);
         try
         {
             Serialize(tempWriter, value);

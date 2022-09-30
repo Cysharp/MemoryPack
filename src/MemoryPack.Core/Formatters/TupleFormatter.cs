@@ -52,6 +52,11 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
             reader.ReadObject<T1>()
         );
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?>? value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>>
@@ -83,6 +88,11 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
             reader.ReadObject<T1>(),
             reader.ReadObject<T2>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -117,6 +127,11 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
             reader.ReadObject<T2>(),
             reader.ReadObject<T3>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -153,6 +168,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
             reader.ReadObject<T3>(),
             reader.ReadObject<T4>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?, T4?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -191,6 +211,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
             reader.ReadObject<T4>(),
             reader.ReadObject<T5>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -231,6 +256,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
             reader.ReadObject<T5>(),
             reader.ReadObject<T6>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -273,6 +303,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
             reader.ReadObject<T6>(),
             reader.ReadObject<T7>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -319,6 +354,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
             reader.ReadObject<TRest>()!
         );
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>? value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 
@@ -355,6 +395,11 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
         value = new ValueTuple<T1?>(
             reader.ReadObject<T1>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ValueTuple<T1?> value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -393,6 +438,11 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
             reader.ReadObject<T1>(),
             reader.ReadObject<T2>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -433,6 +483,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
             reader.ReadObject<T2>(),
             reader.ReadObject<T3>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?, T3?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -475,6 +530,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
             reader.ReadObject<T3>(),
             reader.ReadObject<T4>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?, T3?, T4?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -519,6 +579,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
             reader.ReadObject<T4>(),
             reader.ReadObject<T5>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?, T3?, T4?, T5?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -565,6 +630,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
             reader.ReadObject<T5>(),
             reader.ReadObject<T6>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?, T3?, T4?, T5?, T6?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -613,6 +683,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
             reader.ReadObject<T6>(),
             reader.ReadObject<T7>()
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref (T1?, T2?, T3?, T4?, T5?, T6?, T7?) value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -664,6 +739,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
             reader.ReadObject<T7>(),
             reader.ReadObject<TRest>()!
         );
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest> value)
+    {
+        throw new NotImplementedException();
     }
 }
 

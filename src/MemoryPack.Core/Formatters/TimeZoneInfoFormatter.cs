@@ -20,4 +20,9 @@ public sealed class TimeZoneInfoFormatter : MemoryPackFormatter<TimeZoneInfo>
 
         value = TimeZoneInfo.FromSerializedString(source);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref TimeZoneInfo? value)
+    {
+        throw new NotImplementedException();
+    }
 }

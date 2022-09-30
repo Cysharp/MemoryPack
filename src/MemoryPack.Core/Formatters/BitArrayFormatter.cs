@@ -21,6 +21,21 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
         writer.WriteUnmanagedArray(view.m_array);
     }
 
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref BitArray? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            return;
+        }
+
+        ref var view = ref Unsafe.As<BitArray, BitArrayView>(ref value);
+
+        writer.WriteUnmanagedWithObjectHeader(2, view.m_length);
+        writer.WriteUnmanagedArray(view.m_array);
+    }
+
+
     public override void Deserialize(ref MemoryPackReader reader, scoped ref BitArray? value)
     {
         if (!reader.TryReadObjectHeader(out var count))

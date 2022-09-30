@@ -28,4 +28,9 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
         reader.ReadUnmanaged(out int major, out int minor, out int build, out int revision);
         value = new Version(major, minor, build, revision);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Version? value)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -36,4 +36,9 @@ public sealed partial class TypeFormatter : MemoryPackFormatter<Type>
 
         value = Type.GetType(typeName, throwOnError: true);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Type? value)
+    {
+        throw new NotImplementedException();
+    }
 }

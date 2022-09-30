@@ -21,4 +21,9 @@ public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
         value = Unsafe.ReadUnaligned<T>(ref reader.GetSpanReference(Unsafe.SizeOf<T>()));
         reader.Advance(Unsafe.SizeOf<T>());
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T value)
+    {
+        throw new NotImplementedException();
+    }
 }

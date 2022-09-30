@@ -106,6 +106,11 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
             }
         }
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T?[,]? value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,]>
@@ -218,6 +223,11 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
                 formatter.Deserialize(ref reader, ref value[i, j, k]);
             }
         }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T?[,,]? value)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -341,5 +351,10 @@ public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
                 formatter.Deserialize(ref reader, ref value[i, j, k, l]);
             }
         }
+    }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T?[,,,]? value)
+    {
+        throw new NotImplementedException();
     }
 }

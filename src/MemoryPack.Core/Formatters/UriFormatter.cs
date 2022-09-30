@@ -23,4 +23,9 @@ public sealed class UriFormatter : MemoryPackFormatter<Uri>
             value = new Uri(str, UriKind.RelativeOrAbsolute);
         }
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Uri? value)
+    {
+        throw new NotImplementedException();
+    }
 }

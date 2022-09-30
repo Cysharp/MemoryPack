@@ -1,0 +1,44 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    string MakeT(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"T{x}"));
+    string MakeArgs(int count) => string.Join(", ", Enumerable.Range(1, count).Select(x => $"scoped in T{x} value{x}"));
+    string MakeWhere(int count) => string.Join("\r\n        ", Enumerable.Range(1, count).Select(x => $"where T{x} : unmanaged"));
+    string MakeSize(int count) => string.Join(" + ", Enumerable.Range(1, count).Select(x => $"Unsafe.SizeOf<T{x}>()"));
+#>
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace MemoryPack;
+
+public ref partial struct DoNothingMemoryPackWriter
+{
+<# foreach(var dangerous in new[] { false, true }) { #>
+<# for(var i = 1; i < 16; i++ ) { #>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void <#= dangerous ? "Dangerous" : "" #>WriteUnmanaged<<#= MakeT(i) #>>(<#= MakeArgs(i) #>)
+<# if(!dangerous) { #>
+        <#= MakeWhere(i) #>
+<# } #>
+    {
+        var size = <#= MakeSize(i) #>;
+        Advance(size);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void <#= dangerous ? "Dangerous" : "" #>WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
+<# if(!dangerous) { #>
+        <#= MakeWhere(i) #>
+<# } #>
+    {
+        var size = <#= MakeSize(i) #> + 1;
+        Advance(size);
+    }
+
+<# } } #>
+}

@@ -58,6 +58,17 @@ namespace MemoryPack.Formatters
             writer.WriteSpan(CollectionsMarshal.AsSpan(value));
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref List<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            writer.WriteSpan(CollectionsMarshal.AsSpan(value));
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -83,6 +94,17 @@ namespace MemoryPack.Formatters
     public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            writer.WriteSpan(CollectionsMarshalEx.AsSpan(value));
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Stack<T?>? value)
         {
             if (value == null)
             {
@@ -120,6 +142,23 @@ namespace MemoryPack.Formatters
         // Queue is circular buffer, can't optimize like List, Stack.
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Queue<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Queue<T?>? value)
         {
             if (value == null)
             {
@@ -183,6 +222,23 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref LinkedList<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref LinkedList<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -213,6 +269,23 @@ namespace MemoryPack.Formatters
     public sealed class HashSetFormatter<T> : MemoryPackFormatter<HashSet<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref HashSet<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref HashSet<T?>? value)
         {
             if (value == null)
             {
@@ -284,6 +357,24 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref PriorityQueue<TElement?, TPriority?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<(TElement?, TPriority?)>();
+
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value.UnorderedItems)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref PriorityQueue<TElement?, TPriority?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -314,6 +405,23 @@ namespace MemoryPack.Formatters
     public sealed class CollectionFormatter<T> : MemoryPackFormatter<Collection<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Collection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Collection<T?>? value)
         {
             if (value == null)
             {
@@ -376,6 +484,23 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ObservableCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ObservableCollection<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -406,6 +531,31 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentQueueFormatter<T> : MemoryPackFormatter<ConcurrentQueue<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentQueue<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            // note: serializing ConcurretnCollection(Queue/Stack/Bag/Dictionary) is not thread-safe.
+            // operate Add/Remove in iterating in other thread, not guranteed correct result
+
+            var formatter = writer.GetFormatter<T?>();
+            var count = value.Count;
+            writer.WriteCollectionHeader(count);
+            var i = 0;
+            foreach (var item in value)
+            {
+                i++;
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ConcurrentQueue<T?>? value)
         {
             if (value == null)
             {
@@ -492,6 +642,40 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ConcurrentStack<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            // reverse order in serialize
+            var count = value.Count;
+            T?[] rentArray = ArrayPool<T?>.Shared.Rent(count);
+            try
+            {
+                var i = 0;
+                foreach (var item in value)
+                {
+                    rentArray[i++] = item;
+                }
+                if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
+
+                var formatter = writer.GetFormatter<T?>();
+                writer.WriteCollectionHeader(count);
+                for (i = i - 1; i >= 0; i--)
+                {
+                    formatter.Serialize(ref writer, ref rentArray[i]);
+                }
+            }
+            finally
+            {
+                ArrayPool<T?>.Shared.Return(rentArray, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            }
+        }
+
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentStack<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -542,6 +726,29 @@ namespace MemoryPack.Formatters
 
             if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ConcurrentBag<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            var count = value.Count;
+            writer.WriteCollectionHeader(count);
+            var i = 0;
+            foreach (var item in value)
+            {
+                i++;
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
+        }
+
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentBag<T?>? value)
         {
@@ -599,6 +806,25 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Dictionary<TKey, TValue?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -638,6 +864,24 @@ namespace MemoryPack.Formatters
         }
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SortedDictionary<TKey, TValue?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref SortedDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -711,6 +955,25 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref SortedList<TKey, TValue?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref SortedList<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -750,6 +1013,29 @@ namespace MemoryPack.Formatters
         }
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentDictionary<TKey, TValue?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+
+            var count = value.Count;
+            writer.WriteCollectionHeader(count);
+            var i = 0;
+            foreach (var item in value)
+            {
+                i++;
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+
+            if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ConcurrentDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -818,6 +1104,23 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ReadOnlyCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyCollection<T?>? value)
         {
             var array = reader.ReadArray<T?>();
@@ -852,6 +1155,24 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ReadOnlyObservableCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyObservableCollection<T?>? value)
         {
             var array = reader.ReadArray<T?>();
@@ -870,6 +1191,23 @@ namespace MemoryPack.Formatters
     public sealed class BlockingCollectionFormatter<T> : MemoryPackFormatter<BlockingCollection<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BlockingCollection<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref BlockingCollection<T?>? value)
         {
             if (value == null)
             {

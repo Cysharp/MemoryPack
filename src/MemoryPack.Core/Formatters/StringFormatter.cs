@@ -7,6 +7,11 @@ public sealed class StringFormatter : MemoryPackFormatter<string>
         writer.WriteString(value);
     }
 
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref string? value)
+    {
+        writer.WriteString(value);
+    }
+
     public override void Deserialize(ref MemoryPackReader reader, scoped ref string? value)
     {
         value = reader.ReadString();

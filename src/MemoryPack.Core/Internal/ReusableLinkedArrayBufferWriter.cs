@@ -9,13 +9,13 @@ internal static class ReusableLinkedArrayBufferWriterPool
 {
     static readonly ConcurrentQueue<ReusableLinkedArrayBufferWriter> queue = new ConcurrentQueue<ReusableLinkedArrayBufferWriter>();
 
-    public static ReusableLinkedArrayBufferWriter Rent()
+    public static ReusableLinkedArrayBufferWriter Rent(int size)
     {
         if (queue.TryDequeue(out var writer))
         {
             return writer;
         }
-        return new ReusableLinkedArrayBufferWriter(useFirstBuffer: false, pinned: false); // does not cache firstBuffer
+        return new ReusableLinkedArrayBufferWriter(useFirstBuffer: false, pinned: false, size); // does not cache firstBuffer
     }
 
     public static void Return(ReusableLinkedArrayBufferWriter writer)
@@ -44,11 +44,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     public int TotalWritten => totalWritten;
     bool UseFirstBuffer => firstBuffer != noUseFirstBufferSentinel;
 
-    public ReusableLinkedArrayBufferWriter(bool useFirstBuffer, bool pinned)
+    public ReusableLinkedArrayBufferWriter(bool useFirstBuffer, bool pinned, int size)
     {
         this.buffers = new List<BufferSegment>();
         this.firstBuffer = useFirstBuffer
-            ? GC.AllocateUninitializedArray<byte>(InitialBufferSize, pinned)
+            ? GC.AllocateUninitializedArray<byte>(size, pinned)
             : noUseFirstBufferSentinel;
         this.firstBufferWritten = 0;
         this.current = default;
@@ -121,33 +121,33 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return Array.Empty<byte>();
 
-        var result = GC.AllocateUninitializedArray<byte>(totalWritten);
-        var dest = result.AsSpan();
+        //var result = GC.AllocateUninitializedArray<byte>(totalWritten);
+        //var dest = result.AsSpan();
 
-        if (UseFirstBuffer)
-        {
-            firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
-            dest = dest.Slice(firstBufferWritten);
-        }
+        //if (UseFirstBuffer)
+        //{
+        //    firstBuffer.AsSpan(0, firstBufferWritten).CopyTo(dest);
+        //    dest = dest.Slice(firstBufferWritten);
+        //}
 
-        if (buffers.Count > 0)
-        {
-            foreach (var item in CollectionsMarshal.AsSpan(buffers))
-            {
-                item.WrittenBuffer.CopyTo(dest);
-                dest = dest.Slice(item.WrittenCount);
-                item.Clear(); // reset buffer-segment in this loop to avoid iterate twice for Reset
-            }
-        }
+        //if (buffers.Count > 0)
+        //{
+        //    foreach (var item in CollectionsMarshal.AsSpan(buffers))
+        //    {
+        //        item.WrittenBuffer.CopyTo(dest);
+        //        dest = dest.Slice(item.WrittenCount);
+        //        item.Clear(); // reset buffer-segment in this loop to avoid iterate twice for Reset
+        //    }
+        //}
 
-        if (!current.IsNull)
-        {
-            current.WrittenBuffer.CopyTo(dest);
-            current.Clear();
-        }
+        //if (!current.IsNull)
+        //{
+        //    current.WrittenBuffer.CopyTo(dest);
+        //    current.Clear();
+        //}
 
         ResetCore();
-        return result;
+        return firstBuffer;
     }
 
     public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)

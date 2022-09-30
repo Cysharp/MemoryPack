@@ -27,4 +27,9 @@ public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
         var v = reader.ReadObject<T>();
         value = new Lazy<T?>(v);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Lazy<T?>? value)
+    {
+        throw new NotImplementedException();
+    }
 }

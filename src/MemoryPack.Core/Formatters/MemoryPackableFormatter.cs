@@ -14,4 +14,9 @@ public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
     {
         reader.ReadPackable(ref value);
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T? value)
+    {
+        writer.WritePackable(value);
+    }
 }

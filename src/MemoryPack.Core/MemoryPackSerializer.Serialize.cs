@@ -45,7 +45,7 @@ public static partial class MemoryPackSerializer
         var bufferWriter = threadStaticBufferWriter;
         if (bufferWriter == null)
         {
-            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true, GetSize(value));
         }
 
         try
@@ -114,7 +114,7 @@ public static partial class MemoryPackSerializer
 
     public static async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
     {
-        var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
+        var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent(GetSize(value));
         try
         {
             Serialize(tempWriter, value);

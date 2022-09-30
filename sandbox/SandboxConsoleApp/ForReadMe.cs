@@ -119,6 +119,11 @@ public class Skelton : MemoryPackFormatter<Skelton>
 
         // use reader method.
     }
+
+    public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref Skelton? value)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

@@ -123,7 +123,8 @@ namespace MemoryPack.Formatters
             else
             {
                 // write to tempbuffer(because we don't know length so can't write header)
-                var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
+                var size = MemoryPackSerializer.GetSize(value);
+                var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent(size);
                 try
                 {
                     var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
@@ -148,6 +149,11 @@ namespace MemoryPack.Formatters
                     ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
                 }
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IEnumerable<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IEnumerable<T?>? value)
@@ -175,6 +181,11 @@ namespace MemoryPack.Formatters
         {
             value = ReadList<T?>(ref reader);
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ICollection<T?>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class InterfaceReadOnlyCollectionFormatter<T> : MemoryPackFormatter<IReadOnlyCollection<T?>>
@@ -195,6 +206,11 @@ namespace MemoryPack.Formatters
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyCollection<T?>? value)
         {
             value = ReadList<T?>(ref reader);
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IReadOnlyCollection<T?>? value)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -217,6 +233,11 @@ namespace MemoryPack.Formatters
         {
             value = ReadList<T?>(ref reader);
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IList<T?>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class InterfaceReadOnlyListFormatter<T> : MemoryPackFormatter<IReadOnlyList<T?>>
@@ -237,6 +258,11 @@ namespace MemoryPack.Formatters
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyList<T?>? value)
         {
             value = ReadList<T?>(ref reader);
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IReadOnlyList<T?>? value)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -288,6 +314,11 @@ namespace MemoryPack.Formatters
 
             value = dict;
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IDictionary<TKey, TValue>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IReadOnlyDictionary<TKey, TValue>>
@@ -337,6 +368,11 @@ namespace MemoryPack.Formatters
             }
 
             value = dict;
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IReadOnlyDictionary<TKey, TValue>? value)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -390,6 +426,11 @@ namespace MemoryPack.Formatters
             }
             value = new Lookup<TKey, TElement>(dict);
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ILookup<TKey, TElement>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class InterfaceGroupingFormatter<TKey, TElement> : MemoryPackFormatter<IGrouping<TKey, TElement>>
@@ -436,6 +477,11 @@ namespace MemoryPack.Formatters
 
             value = new Grouping<TKey, TElement>(key, values);
 
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IGrouping<TKey, TElement>? value)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -486,6 +532,11 @@ namespace MemoryPack.Formatters
 
             value = set;
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ISet<T?>? value)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class InterfaceReadOnlySetFormatter<T> : MemoryPackFormatter<IReadOnlySet<T?>>
@@ -534,6 +585,11 @@ namespace MemoryPack.Formatters
             }
 
             value = set;
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IReadOnlySet<T?>? value)
+        {
+            throw new NotImplementedException();
         }
     }
 

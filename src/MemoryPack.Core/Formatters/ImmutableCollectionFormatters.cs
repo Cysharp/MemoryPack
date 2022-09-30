@@ -48,6 +48,18 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableArray<T?> value)
+        {
+            if (value.IsDefault)
+            {
+                writer.WriteNullCollectionHeader();
+            }
+            else
+            {
+                writer.WriteSpan(value.AsSpan());
+            }
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableArray<T?> value)
         {
             var array = reader.ReadArray<T?>();
@@ -78,6 +90,23 @@ namespace MemoryPack.Formatters
     public sealed class ImmutableListFormatter<T> : MemoryPackFormatter<ImmutableList<T?>>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableList<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableList<T?>? value)
         {
             if (value == null)
             {
@@ -140,8 +169,8 @@ namespace MemoryPack.Formatters
             }
 
             // ImmutableQueue<T> has no Count, so use similar serialization of IEnumerable<T>
-
-            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
+            var size = MemoryPackSerializer.GetSize(value);
+            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent(size);
             try
             {
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
@@ -166,6 +195,34 @@ namespace MemoryPack.Formatters
                 ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
             }
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableQueue<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            // ImmutableQueue<T> has no Count, so use similar serialization of IEnumerable<T>
+
+            var tempWriter = new DoNothingMemoryPackWriter();
+
+            var count = 0;
+            var formatter = writer.GetFormatter<T?>();
+            foreach (var item in value)
+            {
+                count++;
+                var v = item;
+                formatter.Serialize(ref tempWriter, ref v);
+            }
+
+
+            // write to parameter writer.
+            writer.WriteCollectionHeader(count);
+            writer.Advance(tempWriter.WrittenCount);
+        }
+
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableQueue<T?>? value)
         {
@@ -229,8 +286,8 @@ namespace MemoryPack.Formatters
             }
 
             // ImmutableStack<T> has no Count, so use similar serialization of IEnumerable<T>
-
-            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
+            var size = MemoryPackSerializer.GetSize(value);
+            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent(size);
             try
             {
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
@@ -254,6 +311,11 @@ namespace MemoryPack.Formatters
             {
                 ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableStack<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableStack<T?>? value)
@@ -335,6 +397,11 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableDictionary<TKey, TValue?>? value)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -380,6 +447,11 @@ namespace MemoryPack.Formatters
                 var v = item;
                 formatter.Serialize(ref writer, ref v);
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableHashSet<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableHashSet<T?>? value)
@@ -445,6 +517,11 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableSortedDictionary<TKey, TValue?>? value)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableSortedDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -490,6 +567,11 @@ namespace MemoryPack.Formatters
                 var v = item;
                 formatter.Serialize(ref writer, ref v);
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref ImmutableSortedSet<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableSortedSet<T?>? value)
@@ -546,6 +628,11 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IImmutableList<T?>? value)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableList<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -592,8 +679,8 @@ namespace MemoryPack.Formatters
             }
 
             // ImmutableQueue<T> has no Count, so use similar serialization of IEnumerable<T>
-
-            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
+            var size = MemoryPackSerializer.GetSize(value);
+            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent(size);
             try
             {
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
@@ -618,6 +705,12 @@ namespace MemoryPack.Formatters
                 ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
             }
         }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IImmutableQueue<T?>? value)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableQueue<T?>? value)
         {
@@ -681,8 +774,8 @@ namespace MemoryPack.Formatters
             }
 
             // ImmutableStack<T> has no Count, so use similar serialization of IEnumerable<T>
-
-            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
+            var size = MemoryPackSerializer.GetSize(value);
+            var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent(size);
             try
             {
                 var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
@@ -706,6 +799,11 @@ namespace MemoryPack.Formatters
             {
                 ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IImmutableStack<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableStack<T?>? value)
@@ -787,6 +885,11 @@ namespace MemoryPack.Formatters
             }
         }
 
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IImmutableDictionary<TKey, TValue?>? value)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -832,6 +935,11 @@ namespace MemoryPack.Formatters
                 var v = item;
                 formatter.Serialize(ref writer, ref v);
             }
+        }
+
+        public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref IImmutableSet<T?>? value)
+        {
+            throw new NotImplementedException();
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IImmutableSet<T?>? value)
