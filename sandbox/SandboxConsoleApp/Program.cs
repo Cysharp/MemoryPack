@@ -10,11 +10,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Xml.Linq;
 
 
 
@@ -22,12 +25,74 @@ using System.Text;
 
 
 
-var person = new Person();
-var bin = MemoryPackSerializer.Serialize(person);
+//var encoder = new BrotliEncoder(4, 22);
 
-// overwrite data to existing instance.
-MemoryPackSerializer.Deserialize(bin, ref person);
+//// new BrotliDecoder().Decompress(
 
+
+////encoder.Compress(, , , , true);
+
+
+
+
+//encoder.Dispose();
+
+
+
+
+
+
+
+
+//var person = new Person();
+//var bin = MemoryPackSerializer.Serialize(person);
+
+//// overwrite data to existing instance.
+//MemoryPackSerializer.Deserialize(bin, ref person);
+
+//internal void WriteCore(ReadOnlySpan<byte> buffer, bool isFinalBlock = false)
+//{
+//    if (_mode != CompressionMode.Compress)
+//        throw new InvalidOperationException(SR.BrotliStream_Decompress_UnsupportedOperation);
+//    EnsureNotDisposed();
+
+//    OperationStatus lastResult = OperationStatus.DestinationTooSmall;
+//    Span<byte> output = new Span<byte>(_buffer);
+//    while (lastResult == OperationStatus.DestinationTooSmall)
+//    {
+//        int bytesConsumed;
+//        int bytesWritten;
+//        lastResult = _encoder.Compress(buffer, output, out bytesConsumed, out bytesWritten, isFinalBlock);
+//        if (lastResult == OperationStatus.InvalidData)
+//            throw new InvalidOperationException(SR.BrotliStream_Compress_InvalidData);
+//        if (bytesWritten > 0)
+//            _stream.Write(output.Slice(0, bytesWritten));
+//        if (bytesConsumed > 0)
+//            buffer = buffer.Slice(bytesConsumed);
+//    }
+//}
+
+
+//internal static partial class BrotliUtils
+//{
+//    public const int WindowBits_Min = 10;
+//    public const int WindowBits_Default = 22;
+//    public const int WindowBits_Max = 24;
+//    public const int Quality_Min = 0;
+//    public const int Quality_Default = 4;
+//    public const int Quality_Max = 11;
+//    public const int MaxInputSize = int.MaxValue - 515; // 515 is the max compressed extra bytes
+
+//    internal static int GetQualityFromCompressionLevel(CompressionLevel compressionLevel) =>
+//        compressionLevel switch
+//        {
+//            CompressionLevel.NoCompression => Quality_Min,
+//            CompressionLevel.Fastest => 1,
+//            CompressionLevel.Optimal => Quality_Default,
+//            CompressionLevel.SmallestSize => Quality_Max,
+//            _ => throw new ArgumentException(SR.ArgumentOutOfRange_Enum, nameof(compressionLevel))
+//        };
+//}
 
 
 [MemoryPackable(GenerateType.Collection)]
