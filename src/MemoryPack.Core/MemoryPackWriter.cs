@@ -191,7 +191,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteObject<T>(scoped in T? value)
+    public void WriteValue<T>(scoped in T? value)
     {
         depth++;
         if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));

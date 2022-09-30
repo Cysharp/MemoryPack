@@ -11,8 +11,8 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
         }
 
         writer.WriteObjectHeader(2);
-        writer.WriteObject(value.Key);
-        writer.WriteObject(value.Value);
+        writer.WriteValue(value.Key);
+        writer.WriteValue(value.Value);
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref KeyValuePair<TKey?, TValue?> value)
@@ -32,8 +32,8 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
         if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new KeyValuePair<TKey?, TValue?>(
-            reader.ReadObject<TKey>(),
-            reader.ReadObject<TValue>()
+            reader.ReadValue<TKey>(),
+            reader.ReadValue<TValue>()
         );
     }
 }

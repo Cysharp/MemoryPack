@@ -108,7 +108,7 @@ public static partial class MemoryPackSerializer
     public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
         where TBufferWriter : IBufferWriter<byte>
     {
-        writer.WriteObject(value);
+        writer.WriteValue(value);
         writer.Flush();
     }
 

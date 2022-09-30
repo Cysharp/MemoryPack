@@ -110,7 +110,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableList.Create(item);
                 return;
             }
@@ -183,7 +183,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableQueue.Create(item);
                 return;
             }
@@ -272,7 +272,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableStack.Create(item);
                 return;
             }
@@ -398,7 +398,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableHashSet.Create(item);
                 return;
             }
@@ -508,7 +508,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableSortedSet.Create(item);
                 return;
             }
@@ -562,7 +562,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableList.Create(item);
                 return;
             }
@@ -635,7 +635,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableQueue.Create(item);
                 return;
             }
@@ -724,7 +724,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableStack.Create(item);
                 return;
             }
@@ -850,7 +850,7 @@ namespace MemoryPack.Formatters
 
             if (length == 1)
             {
-                var item = reader.ReadObject<T>();
+                var item = reader.ReadValue<T>();
                 value = ImmutableHashSet.Create(item);
                 return;
             }
