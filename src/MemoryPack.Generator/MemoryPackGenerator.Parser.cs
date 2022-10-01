@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -37,6 +38,7 @@ partial class TypeMeta
     readonly ReferenceSymbols reference;
     public INamedTypeSymbol Symbol { get; }
     public GenerateType GenerateType { get; }
+    public SerializeLayout SerializeLayout { get; }
     /// <summary>MinimallyQualifiedFormat(include generics T>)</summary>
     public string TypeName { get; }
     public MemberMeta[] Members { get; }
@@ -63,16 +65,24 @@ partial class TypeMeta
         if (packableCtorArgs == null)
         {
             this.GenerateType = GenerateType.NoGenerate;
+            this.SerializeLayout = SerializeLayout.Sequential;
         }
         else if (packableCtorArgs.Value.Length != 0)
         {
-            // TODO: MemoryPackable has two attribtue
-            // (SerializeLayout serializeLayout)
-            // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
-            // so check length first and choose which constructor used.
-            var ctorValue = packableCtorArgs.Value[0];
-            var generateType = ctorValue.Value ?? GenerateType.Object;
-            this.GenerateType = (GenerateType)generateType;
+            // MemoryPackable has two attribtue
+            if (packableCtorArgs.Value.Length == 1)
+            {
+                // (SerializeLayout serializeLayout)
+                var ctorValue = packableCtorArgs.Value[0];
+                this.SerializeLayout = (SerializeLayout)(ctorValue.Value ?? SerializeLayout.Sequential);
+                this.GenerateType = GenerateType.Object;
+            }
+            else
+            {
+                // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
+                this.GenerateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
+                this.SerializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
+            }
         }
 
         this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
@@ -101,8 +111,10 @@ partial class TypeMeta
                 }
                 return true;
             })
-            .Select(x => new MemberMeta(x, Constructor, reference))
+            .Select((x, i) => new MemberMeta(x, Constructor, reference, i))
+            .OrderBy(x => x.Order)
             .ToArray();
+
         this.IsValueType = symbol.IsValueType;
         this.IsUnmanagedType = symbol.IsUnmanagedType;
         this.IsInterfaceOrAbstract = symbol.IsAbstract;
@@ -112,6 +124,7 @@ partial class TypeMeta
         this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType);
         this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType);
         this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType);
+
         if (IsUnion)
         {
             this.UnionTags = symbol.GetAttributes()
@@ -271,7 +284,9 @@ partial class TypeMeta
             var allParameterExists = this.Constructor.Parameters.All(x => nameDict.Contains(x.Name));
             if (!allParameterExists)
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, syntax.Identifier.GetLocation(), Symbol.Name));
+                var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, location, Symbol.Name));
                 noError = false;
             }
         }
@@ -283,12 +298,12 @@ partial class TypeMeta
             {
                 // diagnostics location should be method identifier
                 // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, item.GetLocation(syntax), Symbol.Name, item.Name));
                 noError = false;
             }
             if (IsUnmanagedType)
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
                 noError = false;
             }
         }
@@ -304,8 +319,10 @@ partial class TypeMeta
                     var ignore = item.ContainsAttribute(reference.MemoryPackIgnoreAttribute);
                     if (include || ignore)
                     {
+                        var location = item.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+
                         var attr = include ? "MemoryPackInclude" : "MemoryPackIgnore";
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OverrideMemberCantAddAnnotation, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, attr));
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OverrideMemberCantAddAnnotation, location, Symbol.Name, item.Name, attr));
                         noError = false;
                     }
                 }
@@ -322,23 +339,54 @@ partial class TypeMeta
         // exists can't serialize member
         foreach (var item in Members)
         {
+
             if (item.Kind == MemberKind.NonSerializable)
             {
                 if (item.MemberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || item.MemberType.TypeKind == TypeKind.Delegate)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberCantSerializeType, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberCantSerializeType, item.GetLocation(syntax), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
                     noError = false;
                 }
                 else
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsNotMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsNotMemoryPackable, item.GetLocation(syntax), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
                     noError = false;
                 }
             }
             else if (item.Kind == MemberKind.RefLike)
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsRefStruct, syntax.Identifier.GetLocation(), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsRefStruct, item.GetLocation(syntax), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
                 noError = false;
+            }
+        }
+
+        // order
+        if (SerializeLayout == SerializeLayout.Explicit)
+        {
+            // All members must annotate MemoryPackOrder
+            foreach (var item in Members)
+            {
+                if (!item.HasExplicitOrder)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AllMembersMustAnnotateOrder, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    noError = false;
+                }
+            }
+
+            // Annotated MemoryPackOrder must be continuous number from zero.
+            if (noError)
+            {
+                var expectedOrder = 0;
+                foreach (var item in Members)
+                {
+                    if (item.Order != expectedOrder)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AllMembersMustBeContinuousNumber, item.GetLocation(syntax), Symbol.Name, item.Name));
+                        noError = false;
+                        break;
+                    }
+                    expectedOrder++;
+                }
             }
         }
 
@@ -422,12 +470,26 @@ partial class MemberMeta
     public bool IsSettable { get; }
     public bool IsAssignable { get; }
     public bool IsConstructorParameter { get; }
+    public int Order { get; }
+    public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
 
-    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references)
+    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
+        this.Order = sequentialOrder;
+        var orderAttr = symbol.GetAttribute(references.MemoryPackOrderAttribute);
+        if (orderAttr != null)
+        {
+            this.Order = (int)(orderAttr.ConstructorArguments[0].Value ?? sequentialOrder);
+            this.HasExplicitOrder = true;
+
+        }
+        else
+        {
+            this.HasExplicitOrder = false;
+        }
 
         if (constructor != null)
         {
@@ -463,6 +525,12 @@ partial class MemberMeta
         }
 
         Kind = ParseMemberKind(symbol, MemberType, references);
+    }
+
+    public Location GetLocation(TypeDeclarationSyntax fallback)
+    {
+        var location = Symbol.Locations.FirstOrDefault() ?? fallback.Identifier.GetLocation();
+        return location;
     }
 
     static MemberKind ParseMemberKind(ISymbol? memberSymbol, ITypeSymbol memberType, ReferenceSymbols references)
@@ -586,5 +654,11 @@ public partial class MethodMeta
         this.Name = symbol.Name;
         this.IsStatic = symbol.IsStatic;
         this.IsValueType = isValueType;
+    }
+
+    public Location GetLocation(TypeDeclarationSyntax fallback)
+    {
+        var location = Symbol.Locations.FirstOrDefault() ?? fallback.Identifier.GetLocation();
+        return location;
     }
 }

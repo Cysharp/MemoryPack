@@ -140,22 +140,11 @@ public partial class Version2
 }
 
 
-
-[MemoryPackable(GenerateType.Object)]
-public partial class Sonota1
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class SampleExplicitOrder
 {
-
-}
-
-[MemoryPackable(SerializeLayout.Sequential)]
-public partial class Sonota2
-{
-
-}
-
-[MemoryPackable(GenerateType.Object, SerializeLayout.Explicit)]
-public partial class Sonota3
-{
+    [MemoryPackOrder(1)]
+    public int Prop1 { get; set; }
     [MemoryPackOrder(0)]
-    public int MyProperty { get; set; }
+    public int Prop0 { get; set; }
 }

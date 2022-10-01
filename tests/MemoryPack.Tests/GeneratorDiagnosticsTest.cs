@@ -468,4 +468,39 @@ public partial class Hoge : List<int>
 }
 """);
     }
+
+    [Fact]
+    public void MEMPACK025_AllMembersMustAnnotateOrder()
+    {
+        Compile(25, """
+using MemoryPack;
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class Hoge
+{
+    [MemoryPackOrder(0)]
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
 }
+""");
+    }
+
+    [Fact]
+    public void MEMPACK026_AllMembersMustBeContinuousNumber()
+    {
+        Compile(26, """
+using MemoryPack;
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class Hoge
+{
+    [MemoryPackOrder(0)]
+    public int Prop1 { get; set; }
+    [MemoryPackOrder(2)]
+    public int Prop2 { get; set; }
+}
+""");
+    }
+}
+
+

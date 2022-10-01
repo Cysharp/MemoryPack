@@ -20,8 +20,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
+var a = int.MaxValue;
+var b = ~a;
+Console.WriteLine(b);
 
-Console.WriteLine("foo");
 
 // ---
 
@@ -42,6 +44,33 @@ Console.WriteLine("foo");
 
 
 
+
+[MemoryPackable(GenerateType.Object)]
+public partial class Sonota1
+{
+    // public NoSerializableObject? MyProperty { get; set; }
+}
+
+public class NoSerializableObject
+{
+
+}
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class Sonota2
+{
+    [MemoryPackOrder(1)]
+    public int MyProperty1 { get; set; }
+    [MemoryPackOrder(0)]
+    public int MyProperty2 { get; set; }
+}
+
+[MemoryPackable(GenerateType.Object, SerializeLayout.Explicit)]
+public partial class Sonota3
+{
+    [MemoryPackOrder(0)]
+    public int MyProperty { get; set; }
+}
 
 
 
