@@ -60,7 +60,7 @@ var bin = MemoryPackSerializer.Serialize(v);
 var val = MemoryPackSerializer.Deserialize<Person>(bin);
 ```
 
-Serialize method supports return `byte[]` and serialize to `IBufferWriter<byte>` or `Stream`. Deserialize method supports `ReadOnlySpan<byte>`, `ReadOnlySeqeunce<byte>` and `Stream`. Andalso there have non-generics version.
+Serialize method supports return `byte[]` and serialize to `IBufferWriter<byte>` or `Stream`. Deserialize method supports `ReadOnlySpan<byte>`, `ReadOnlySeqeunce<byte>` and `Stream`. And also there have non-generics version.
 
 Built-in supported types
 ---
