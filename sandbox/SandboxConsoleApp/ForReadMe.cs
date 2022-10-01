@@ -138,3 +138,13 @@ public partial class Version2
     public long Prop2 { get; set; }
     public int? AddedProp { get; set; }
 }
+
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class SampleExplicitOrder
+{
+    [MemoryPackOrder(1)]
+    public int Prop1 { get; set; }
+    [MemoryPackOrder(0)]
+    public int Prop0 { get; set; }
+}

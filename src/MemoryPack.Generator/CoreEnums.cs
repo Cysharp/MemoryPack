@@ -7,3 +7,9 @@ public enum GenerateType
     Collection,
     NoGenerate
 }
+
+public enum SerializeLayout
+{
+    Sequential, // default
+    Explicit
+}

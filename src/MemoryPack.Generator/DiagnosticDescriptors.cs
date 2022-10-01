@@ -204,4 +204,20 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor AllMembersMustAnnotateOrder = new(
+        id: "MEMPACK025",
+        title: "All members must annotate MemoryPackOrder when SerializeLayout.Explicit",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' is not annotated MemoryPackOrder",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor AllMembersMustBeContinuousNumber = new(
+        id: "MEMPACK026",
+        title: "All MemoryPackOrder members must be continuous number from zero",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' is not continuous number from zero",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

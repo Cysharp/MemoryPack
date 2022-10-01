@@ -126,7 +126,7 @@ All members must be memorypack-serializable, if not, code generator reports erro
 
 ![image](https://user-images.githubusercontent.com/46207/192413557-8a47d668-5339-46c5-a3da-a77841666f81.png)
 
-MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK024`) to be define comfortably.
+MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK026`) to be define comfortably.
 
 If target type is defined MemoryPack serialization externally and registered, use `[MemoryPackAllowSerialize]` to silent diagnostics.
 
@@ -140,6 +140,20 @@ public partial class Sample2
 ```
 
 Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant)  section.
+
+Default order is sequential but you can choose explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
+
+```csharp
+// serialize Prop0 -> Prop1
+[MemoryPackable(SerializeLayout.Explicit)]
+public partial class SampleExplicitOrder
+{
+    [MemoryPackOrder(1)]
+    public int Prop1 { get; set; }
+    [MemoryPackOrder(0)]
+    public int Prop0 { get; set; }
+}
+```
 
 ### Constructor selection
 
