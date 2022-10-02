@@ -548,15 +548,16 @@ If you request it, there is a possibility to make a detuned Unity version. Pleas
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Four types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Five types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
 There are no endian specifications. It is not possible to convert on machines with different endianness. However modern computers are usually little-endian.
 
-There are four value types of format.
+There are five value types of format.
 
 * Unmanaged struct
 * Object
 * Collection
+* String
 * Union
 
 ### Unmanaged struct
@@ -574,7 +575,14 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 `[int length, values...]`
 
-Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length. String is collection(serialize as `ReadOnlySpan<char>`, in other words, UTF16).
+Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
+
+### String
+
+`(int utf16-length, utf16-value)`  
+`(int ~utf8-length, int utf16-length, utf8-value)`
+
+String has two-form, UTF16 and UTF8. If first 4byte signed integer is `-1`, represents null. `0`, represents empty. UTF16 is same as collection(serialize as `ReadOnlySpan<char>`, utf16-value's byte count is utf16-length * 2). If first signed integer <= `-2`, value is encoded by UTF8. utf8-length is encoded in complement, `~utf8-length` to retrieve length. Next signed integer is utf16-length, it allows `-1` that represents unknown length. utf8-value store byte value for the number of utf8-length.
 
 ### Union
 

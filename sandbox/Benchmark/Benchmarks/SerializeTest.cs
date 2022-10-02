@@ -30,10 +30,10 @@ namespace Benchmark.Benchmarks;
 //[GenericTypeArguments(typeof(MyClass))]
 
 
-[GenericTypeArguments(typeof(int))]
-[GenericTypeArguments(typeof(Vector3[]))]
-[GenericTypeArguments(typeof(JsonResponseModel))]
-[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+//[GenericTypeArguments(typeof(int))]
+//[GenericTypeArguments(typeof(Vector3[]))]
+//[GenericTypeArguments(typeof(JsonResponseModel))]
+//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
@@ -79,7 +79,7 @@ public class SerializeTest<T> : SerializerTestBase<T>
     [Benchmark, BenchmarkCategory(Categories.Bytes)]
     public byte[] MemoryPackSerialize()
     {
-        return MemoryPackSerializer.Serialize(value);
+        return MemoryPackSerializer.Serialize(value, MemoryPackSerializeOptions.Default);
     }
 
     // requires T:new(), can't test it.

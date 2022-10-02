@@ -144,7 +144,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -233,7 +233,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -596,7 +596,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -685,7 +685,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();

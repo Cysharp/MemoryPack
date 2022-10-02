@@ -10,7 +10,7 @@ public class WriterTest
     {
         var buffer = new SpanControlWriter();
 
-        var writer = new MemoryPackWriter<SpanControlWriter>(ref buffer);
+        var writer = new MemoryPackWriter<SpanControlWriter>(ref buffer, MemoryPackSerializeOptions.Default);
 
         buffer.ProvideSpanLength = 5;
 
@@ -50,7 +50,7 @@ public class WriterTest
         var buffer = new ArrayBufferWriter<byte>();
 
         {
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
 
             writer.WriteNullObjectHeader();
             writer.Flush();
@@ -60,7 +60,7 @@ public class WriterTest
         }
         for (var i = 0; i < 250; i++)
         {
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
             writer.WriteObjectHeader((byte)i);
             writer.Flush();
 
@@ -71,7 +71,7 @@ public class WriterTest
         for (byte i = MemoryPackCode.Reserved1; i <= MemoryPackCode.NullObject; i++)
         {
             if (i == 0) break;
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
             var error = false;
             try
             {

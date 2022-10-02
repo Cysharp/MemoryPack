@@ -10,7 +10,7 @@ public static partial class MemoryPackSerializer
     // Serialize
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] Serialize(Type type, object? value)
+    public static byte[] Serialize(Type type, object? value, MemoryPackSerializeOptions? options = default)
     {
         var bufferWriter = threadStaticBufferWriter;
         if (bufferWriter == null)
@@ -20,7 +20,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer());
+            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
             Serialize(type, ref writer, value);
             return bufferWriter.ToArrayAndReset();
         }
@@ -30,10 +30,10 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value)
+    public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value, MemoryPackSerializeOptions? options = default)
         where TBufferWriter : IBufferWriter<byte>
     {
-        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter));
+        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
         Serialize(type, ref writer, value);
     }
 
@@ -45,12 +45,12 @@ public static partial class MemoryPackSerializer
         writer.Flush();
     }
 
-    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
     {
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
-            Serialize(tempWriter, value);
+            Serialize(tempWriter, value, options);
             await tempWriter.WriteToAndResetAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         finally

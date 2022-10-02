@@ -7,18 +7,18 @@ namespace MemoryPack.Streaming;
 
 public static class MemoryPackStreamingSerializer
 {
-    public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
     {
-        static void WriteCollectionHeader(PipeWriter pipeWriter, int count)
+        static void WriteCollectionHeader(PipeWriter pipeWriter, int count, MemoryPackSerializeOptions options)
         {
-            var writer = new MemoryPackWriter<PipeWriter>(ref pipeWriter);
+            var writer = new MemoryPackWriter<PipeWriter>(ref pipeWriter, options);
             writer.WriteCollectionHeader(count);
             writer.Flush();
         }
 
-        static bool WriteWhileReachFlushRate(PipeWriter pipeWriter, IEnumerator<T> enumerator, int flushRate)
+        static bool WriteWhileReachFlushRate(PipeWriter pipeWriter, IEnumerator<T> enumerator, int flushRate, MemoryPackSerializeOptions options)
         {
-            var writer = new MemoryPackWriter<PipeWriter>(ref pipeWriter);
+            var writer = new MemoryPackWriter<PipeWriter>(ref pipeWriter, options);
             while (enumerator.MoveNext())
             {
                 writer.WriteValue(enumerator.Current);
@@ -33,11 +33,13 @@ public static class MemoryPackStreamingSerializer
             return false; // false when completed.
         }
 
-        WriteCollectionHeader(pipeWriter, count);
+        options = options ?? MemoryPackSerializeOptions.Default;
+
+        WriteCollectionHeader(pipeWriter, count, options);
 
         using var enumerator = source.GetEnumerator();
 
-        while (WriteWhileReachFlushRate(pipeWriter, enumerator, flushRate))
+        while (WriteWhileReachFlushRate(pipeWriter, enumerator, flushRate, options))
         {
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -45,18 +47,18 @@ public static class MemoryPackStreamingSerializer
         await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
     {
-        static void WriteCollectionHeader(ReusableLinkedArrayBufferWriter bufferWriter, int count)
+        static void WriteCollectionHeader(ReusableLinkedArrayBufferWriter bufferWriter, int count, MemoryPackSerializeOptions options)
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter);
+            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, options);
             writer.WriteCollectionHeader(count);
             writer.Flush();
         }
 
-        static bool WriteWhileReachFlushRate(ReusableLinkedArrayBufferWriter bufferWriter, IEnumerator<T> enumerator, int flushRate)
+        static bool WriteWhileReachFlushRate(ReusableLinkedArrayBufferWriter bufferWriter, IEnumerator<T> enumerator, int flushRate, MemoryPackSerializeOptions options)
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter);
+            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, options);
             while (enumerator.MoveNext())
             {
                 writer.WriteValue(enumerator.Current);
@@ -71,14 +73,16 @@ public static class MemoryPackStreamingSerializer
             return false; // false when completed.
         }
 
+        options = options ?? MemoryPackSerializeOptions.Default;
+
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
-            WriteCollectionHeader(tempWriter, count);
+            WriteCollectionHeader(tempWriter, count, options);
 
             using var enumerator = source.GetEnumerator();
 
-            while (WriteWhileReachFlushRate(tempWriter, enumerator, flushRate))
+            while (WriteWhileReachFlushRate(tempWriter, enumerator, flushRate, options))
             {
                 await tempWriter.WriteToAndResetAsync(stream, cancellationToken).ConfigureAwait(false);
             }

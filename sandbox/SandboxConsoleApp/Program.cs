@@ -20,10 +20,12 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
-var a = int.MaxValue;
-var b = ~a;
-Console.WriteLine(b);
 
+
+var bin = MemoryPackSerializer.Serialize("hogehoge");
+var takotako = MemoryPackSerializer.Deserialize<string>(bin);
+
+Console.WriteLine(takotako);
 
 // ---
 
