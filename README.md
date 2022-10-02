@@ -580,7 +580,7 @@ Collection has 4byte signed interger as data count in header, `-1` represents `n
 
 `((byte)254, byte tag, value)`
 
-Union has 2 byte unsgined byte in header, First byte `254` is marker as Union, next unsgined byte is tag that for discriminated value type. 
+Union has 2 byte unsgined byte in header, First byte `254` is marker as Union, next unsgined byte is tag that for discriminated value type. When marker byte is `255` represents null.
 
 License
 ---
