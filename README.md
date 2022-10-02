@@ -561,7 +561,7 @@ There are four value types of format.
 
 ### Unmanaged struct
 
-Unmanaged struct is C# struct that no contains referene type, similar constraint of [C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types). Serializing struct layout as is, includes padding.
+Unmanaged struct is C# struct that no contains reference type, similar constraint of [C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types). Serializing struct layout as is, includes padding.
 
 ### Object
 
