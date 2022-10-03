@@ -39,8 +39,8 @@ namespace Benchmark.Benchmarks;
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class SerializeTest<T> : SerializerTestBase<T>
 {
-    ArrayBufferWriter<byte> writer;
-    MemoryStream stream;
+    //ArrayBufferWriter<byte> writer;
+    //MemoryStream stream;
     //Utf8JsonWriter jsonWriter;
     //SerializerSessionPool pool;
     //Serializer<T> orleansSerializer;
@@ -49,9 +49,9 @@ public class SerializeTest<T> : SerializerTestBase<T>
         : base()
     {
         // Orleans
-        var serviceProvider = new ServiceCollection()
-            .AddSerializer(builder => builder.AddAssembly(typeof(SerializeTest<>).Assembly))
-            .BuildServiceProvider();
+        //var serviceProvider = new ServiceCollection()
+        //    .AddSerializer(builder => builder.AddAssembly(typeof(SerializeTest<>).Assembly))
+        //    .BuildServiceProvider();
         //pool = serviceProvider.GetRequiredService<SerializerSessionPool>();
         //orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
 
@@ -64,17 +64,17 @@ public class SerializeTest<T> : SerializerTestBase<T>
         //var serialize3 = stream.ToArray();
         //stream.Position = 0;
         //var serialize4 = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
-        var serialize5 = MemoryPackSerializer.Serialize(value);
+        //var serialize5 = MemoryPackSerializer.Serialize(value);
 
-        writer = new ArrayBufferWriter<byte>(new[] { /* serialize1,  serialize2, serialize3, serialize4,*/ serialize5 }.Max(x => x.Length));
+        //writer = new ArrayBufferWriter<byte>(new[] { /* serialize1,  serialize2, serialize3, serialize4,*/ serialize5 }.Max(x => x.Length));
         //jsonWriter = new Utf8JsonWriter(writer);
     }
 
     //[Benchmark(Baseline = true), BenchmarkCategory(Categories.Bytes)]
-    public byte[] MessagePackSerialize()
-    {
-        return MessagePackSerializer.Serialize(value);
-    }
+    //public byte[] MessagePackSerialize()
+    //{
+    //    return MessagePackSerializer.Serialize(value);
+    //}
 
     [Benchmark, BenchmarkCategory(Categories.Bytes)]
     public byte[] MemoryPackSerialize()
@@ -90,22 +90,22 @@ public class SerializeTest<T> : SerializerTestBase<T>
     //}
 
     //[Benchmark, BenchmarkCategory(Categories.Bytes)]
-    public byte[] ProtobufNetSerialize()
-    {
-        ProtoBuf.Serializer.Serialize(stream, value);
-        var array = stream.ToArray();
-        stream.Position = 0;
-        return array;
-    }
+    //public byte[] ProtobufNetSerialize()
+    //{
+    //    ProtoBuf.Serializer.Serialize(stream, value);
+    //    var array = stream.ToArray();
+    //    stream.Position = 0;
+    //    return array;
+    //}
 
     //[Benchmark, BenchmarkCategory(Categories.Bytes)]
-    public byte[] SystemTextJsonSerialize()
-    {
-        System.Text.Json.JsonSerializer.Serialize(stream, value);
-        var array = stream.ToArray();
-        stream.Position = 0;
-        return array;
-    }
+    //public byte[] SystemTextJsonSerialize()
+    //{
+    //    System.Text.Json.JsonSerializer.Serialize(stream, value);
+    //    var array = stream.ToArray();
+    //    stream.Position = 0;
+    //    return array;
+    //}
 
     //[Benchmark, BenchmarkCategory(Categories.Bytes)]
     //public byte[] OrleansSerialize()
@@ -114,18 +114,18 @@ public class SerializeTest<T> : SerializerTestBase<T>
     //}
 
     //[Benchmark(Baseline = true), BenchmarkCategory(Categories.BufferWriter)]
-    public void MessagePackBufferWriter()
-    {
-        MessagePackSerializer.Serialize(writer, value);
-        writer.Clear();
-    }
+    //public void MessagePackBufferWriter()
+    //{
+    //    MessagePackSerializer.Serialize(writer, value);
+    //    writer.Clear();
+    //}
 
-    [Benchmark, BenchmarkCategory(Categories.BufferWriter)]
-    public void MemoryPackBufferWriter()
-    {
-        MemoryPackSerializer.Serialize(writer, value);
-        writer.Clear();
-    }
+    //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
+    //public void MemoryPackBufferWriter()
+    //{
+    //    MemoryPackSerializer.Serialize(writer, value);
+    //    writer.Clear();
+    //}
 
     //[Benchmark]
     //public void BinaryPackStream()
@@ -135,11 +135,11 @@ public class SerializeTest<T> : SerializerTestBase<T>
     //}
 
     //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
-    public void ProtobufNetBufferWriter()
-    {
-        ProtoBuf.Serializer.Serialize(writer, value);
-        writer.Clear();
-    }
+    //public void ProtobufNetBufferWriter()
+    //{
+    //    ProtoBuf.Serializer.Serialize(writer, value);
+    //    writer.Clear();
+    //}
 
     //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
     //public void SystemTextJsonBufferWriter()
