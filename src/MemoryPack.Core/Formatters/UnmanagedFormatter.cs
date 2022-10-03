@@ -24,6 +24,6 @@ public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
 
     public override void Serialize(ref DoNothingMemoryPackWriter writer, scoped ref T value)
     {
-        throw new NotImplementedException();
+        writer.Advance(Unsafe.SizeOf<T>());
     }
 }
