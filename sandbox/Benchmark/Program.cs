@@ -12,6 +12,7 @@ using BinaryPack.Models.Interfaces;
 using Iced.Intel;
 using MemoryPack;
 using MemoryPack.Formatters;
+using MessagePack;
 using MyBenchmark;
 using System.Reflection;
 
@@ -49,18 +50,25 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-//BenchmarkSwitcher.FromTypes(new[]{
-//    typeof(SerializeTest<>),
-//    typeof(DeserializeTest<>) })
-//    .RunAllJoined(config);
+BenchmarkSwitcher.FromTypes(new[]{
+    typeof(SerializeTest<>),
+    //typeof(DeserializeTest<>)
+})
+    .RunAllJoined(config);
 
-BenchmarkRunner.Run<BigClassTest>(config, args);
+//BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
+
+//var model = new NeuralNetworkLayerModel();
+//model.Initialize();
+//var value = (NeuralNetworkLayerModel)(object)model;
+//var bytes = MessagePackSerializer.Serialize(value);
+//var m2 = MessagePackSerializer.Deserialize<NeuralNetworkLayerModel>(bytes);
 #if DEBUG
 
 
 
 
- Check<JsonResponseModel>();
+Check<JsonResponseModel>();
 //Check<NeuralNetworkLayerModel>();
 
 void Check<T>()
