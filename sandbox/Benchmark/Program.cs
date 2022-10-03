@@ -14,6 +14,8 @@ using MemoryPack;
 using MemoryPack.Formatters;
 using System.Reflection;
 
+#if !DEBUG
+
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
     .AddExporter(DefaultExporters.Plain)
@@ -22,6 +24,8 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args, config);
 
+
+//BenchmarkRunner.Run<Utf8Decoding>(config, args);
 
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).RunAllJoined(config);
 
@@ -40,27 +44,32 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 
+//BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
+
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
-//BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
+
+
+BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-BenchmarkSwitcher.FromTypes(new[]{
-    typeof(SerializeTest<>),
-    typeof(DeserializeTest<>) })
-    .RunAllJoined(config);
+//BenchmarkSwitcher.FromTypes(new[]{
+//    typeof(SerializeTest<>),
+//    typeof(DeserializeTest<>) })
+//    .RunAllJoined(config);
 
+#endif
 
 #if DEBUG
 
+var foo = new Utf8Decoding().Utf16LengthUtf8ToUtf16();
+Console.WriteLine(foo);
 
-
-
- Check<JsonResponseModel>();
-//Check<NeuralNetworkLayerModel>();
+Check<JsonResponseModel>();
+Check<NeuralNetworkLayerModel>();
 
 void Check<T>()
     where T : IInitializable, IEquatable<T>, new()

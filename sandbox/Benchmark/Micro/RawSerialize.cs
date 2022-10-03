@@ -71,7 +71,7 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
         try
         {
             if (value == null)
@@ -106,7 +106,7 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
         try
         {
             if (value == null)
@@ -140,7 +140,7 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
         try
         {
             if (value == null)
@@ -174,7 +174,7 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
         try
         {
             if (value == null)
@@ -208,7 +208,7 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer());
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
         try
         {
             if (value == null)

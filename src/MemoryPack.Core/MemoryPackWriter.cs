@@ -1,9 +1,12 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Unicode;
 
 namespace MemoryPack;
 
+[StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryPackWriter<TBufferWriter>
     where TBufferWriter : IBufferWriter<byte>
 {
@@ -15,10 +18,13 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     int advancedCount;
     int depth; // check recursive serialize
     int writtenCount;
+    readonly bool serializeStringAsUtf8;
+    readonly MemoryPackSerializeOptions options;
 
     public int WrittenCount => writtenCount;
+    public MemoryPackSerializeOptions Options => options;
 
-    public MemoryPackWriter(ref TBufferWriter writer)
+    public MemoryPackWriter(ref TBufferWriter writer, MemoryPackSerializeOptions options)
     {
         this.bufferWriter = ref writer;
         this.bufferReference = ref Unsafe.NullRef<byte>();
@@ -26,10 +32,12 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
+        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
+        this.options = options;
     }
 
     // optimized ctor, avoid first GetSpan call if we can.
-    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter)
+    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackSerializeOptions options)
     {
         this.bufferWriter = ref writer;
         this.bufferReference = ref MemoryMarshal.GetArrayDataReference(firstBufferOfWriter);
@@ -37,9 +45,11 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
+        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
+        this.options = options;
     }
 
-    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter)
+    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackSerializeOptions options)
     {
         this.bufferWriter = ref writer;
         this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
@@ -47,6 +57,8 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
+        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
+        this.options = options;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -165,18 +177,62 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             return;
         }
 
+        if (value.Length == 0)
+        {
+            Unsafe.WriteUnaligned(ref GetSpanReference(4), 0);
+            Advance(4);
+            return;
+        }
+
+        if (serializeStringAsUtf8)
+        {
+            WriteUtf8(value);
+        }
+        else
+        {
+            WriteUtf16(value);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void WriteUtf16(string value)
+    {
         var copyByteCount = value.Length * 2;
 
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);
 
-        if (copyByteCount > 0)
-        {
-            ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
-        }
+        ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
+        Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
 
         Advance(copyByteCount + 4);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void WriteUtf8(string value)
+    {
+        // [utf8-length, utf16-length, utf8-value]
+
+        var source = value.AsSpan();
+
+        // UTF8.GetMaxByteCount -> (length + 1) * 3
+        var maxByteCount = (source.Length + 1) * 3;
+
+        ref var destPointer = ref GetSpanReference(maxByteCount + 8); // header
+
+        // write utf16-length
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destPointer, 4), source.Length);
+
+        var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref destPointer, 8), maxByteCount);
+        var status = Utf8.FromUtf16(source, dest, out var _, out var bytesWritten, replaceInvalidSequences: false);
+        if (status != OperationStatus.Done)
+        {
+            MemoryPackSerializationException.ThrowFailedEncoding(status);
+        }
+
+        // write written utf8-length in header, that is ~length
+        Unsafe.WriteUnaligned(ref destPointer, ~bytesWritten);
+        Advance(bytesWritten + 8); // + header
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

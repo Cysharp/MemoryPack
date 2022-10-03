@@ -1,9 +1,14 @@
 ﻿using System.Buffers;
+using System.Reflection.Emit;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Unicode;
 
 namespace MemoryPack;
 
+[StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryPackReader
 {
     ReadOnlySequence<byte> bufferSource;
@@ -199,6 +204,19 @@ public ref partial struct MemoryPackReader
             return "";
         }
 
+        if (length > 0)
+        {
+            return ReadUtf16(length);
+        }
+        else
+        {
+            return ReadUtf8(length);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    string ReadUtf16(int length)
+    {
         var byteCount = length * 2;
         ref var src = ref GetSpanReference(byteCount);
 
@@ -208,6 +226,59 @@ public ref partial struct MemoryPackReader
 
         return str;
     }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // non default, no inline
+    string ReadUtf8(int utf8Length)
+    {
+        // [utf8-length, utf16-length, utf8-value]
+        // already read utf8 length, but it is complement.
+
+        utf8Length = ~utf8Length;
+
+        ref var spanRef = ref GetSpanReference(utf8Length + 4); // + read utf16 length
+
+        string str;
+        var utf16Length = Unsafe.ReadUnaligned<int>(ref spanRef);
+
+        if (utf16Length <= 0)
+        {
+            var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
+            str = Encoding.UTF8.GetString(src);
+        }
+        else
+        {
+            // check malformed utf16Length
+            var max = unchecked((Remaining + 1) * 3);
+            if (max < 0) max = int.MaxValue;
+            if (max < utf16Length)
+            {
+                MemoryPackSerializationException.ThrowInsufficientBufferUnless(utf8Length);
+            }
+
+            // regular path, know decoded UTF16 length will gets faster decode result
+            unsafe
+            {
+                fixed (byte* p = &Unsafe.Add(ref spanRef, 4))
+                {
+                    str = string.Create(utf16Length, ((IntPtr)p, utf8Length), static (dest, state) =>
+                    {
+                        var src = MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>((byte*)state.Item1), state.Item2);
+                        var status = Utf8.ToUtf16(src, dest, out var bytesRead, out var charsWritten, replaceInvalidSequences: false);
+                        if (status != OperationStatus.Done)
+                        {
+                            MemoryPackSerializationException.ThrowFailedEncoding(status);
+                        }
+                    });
+                }
+            }
+        }
+
+        Advance(utf8Length + 4);
+
+        return str;
+    }
+
+    delegate void ReadOnlySpanAction(Span<char> span, ReadOnlySpan<byte> arg);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadPackable<T>(scoped ref T? value)

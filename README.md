@@ -336,9 +336,9 @@ Serialize has three overloads.
 
 ```csharp
 // Non generic API also available, these version is first argument is Type and value is object?
-byte[] Serialize<T>(in T? value)
-void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value)
-async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
+byte[] Serialize<T>(in T? value, MemoryPackSerializeOptions? options = default)
+void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
+async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
 ```
 
 The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
@@ -348,6 +348,16 @@ If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://gi
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
 
 If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
+
+### MemoryPackSerializeOptions
+
+`MemoryPackSerializeOptions` configures how serialize string as Utf16 or Utf8. If passing null then uses `MemoryPackSerializeOptions.Default`, it is same as `MemoryPackSerializeOptions.Utf8`, in other words, serialize the string as Utf8. If you want to serialize with Utf16, you can use `MemoryPackSerializeOptions.Utf16`.
+
+Since C#'s internal string representation is UTF16, UTF16 performs better. However, the payload tends to be larger; in UTF8, an ASCII string is one byte, while in UTF16 it is two bytes. Because the difference in size of this payload is so large, UTF8 is set by default.
+
+If the data is non-ASCII (e.g. Japanese, which can be more than 3 bytes, and UTF8 is larger), or if you have to compress it separately, UTF16 may give better results.
+
+Whether UTF8 or UTF16 is selected during serialization, it is not necessary to specify it during deserialization. It will be automatically detected and deserialized normally.
 
 Deserialize API
 ---
@@ -473,9 +483,9 @@ Payload size depends on the target value; unlike JSON, there are no keys and it 
 
 For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
 
-Also, strings are usually UTF8 for other formats, but MemoryPack is UTF16 fixed length (2 bytes), so MemoryPack is larger if the string occupies ASCII. Conversely, MemoryPack may be smaller if the string contains many UTF8 characters of 3 bytes or more, such as Japanese.
-
 float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MsgPack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
+
+String is UTF8 by default, which is similar to other serializers, but if the UTF16 option is chosen, it will be of a different nature.
 
 In any case, if the payload size is large, compression should be considered. LZ4, ZStandard and Brotli are recommended. An efficient way to combine compression and serialization will be presented at a later date.
 
@@ -548,15 +558,16 @@ If you request it, there is a possibility to make a detuned Unity version. Pleas
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Four types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Five types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
 There are no endian specifications. It is not possible to convert on machines with different endianness. However modern computers are usually little-endian.
 
-There are four value types of format.
+There are five value types of format.
 
 * Unmanaged struct
 * Object
 * Collection
+* String
 * Union
 
 ### Unmanaged struct
@@ -574,7 +585,14 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 `[int length, values...]`
 
-Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length. String is collection(serialize as `ReadOnlySpan<char>`, in other words, UTF16).
+Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
+
+### String
+
+`(int utf16-length, utf16-value)`  
+`(int ~utf8-length, int utf16-length, utf8-value)`
+
+String has two-form, UTF16 and UTF8. If first 4byte signed integer is `-1`, represents null. `0`, represents empty. UTF16 is same as collection(serialize as `ReadOnlySpan<char>`, utf16-value's byte count is utf16-length * 2). If first signed integer <= `-2`, value is encoded by UTF8. utf8-length is encoded in complement, `~utf8-length` to retrieve length. Next signed integer is utf16-length, it allows `-1` that represents unknown length. utf8-value store byte value for the number of utf8-length.
 
 ### Union
 

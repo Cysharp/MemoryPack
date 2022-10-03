@@ -16,20 +16,40 @@ using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
-var a = int.MaxValue;
-var b = ~a;
-Console.WriteLine(b);
 
+
+//var bin = MemoryPackSerializer.Serialize("hogehoge");
+//var takotako = MemoryPackSerializer.Deserialize<string>(bin);
+
+//Console.WriteLine(takotako);
 
 // ---
 
+var str = "あいうえおかきくけこさしすせそたちつてとなにぬねの";
+var bytes = Encoding.UTF8.GetBytes(str);
+
+var encoder = new BrotliEncoder(4, 22);
 
 
-//var encoder = new BrotliEncoder(4, 22);
+
+
+
+var dest = new byte[1024];
+
+//bytes = MemoryMarshal.AsBytes(str.AsSpan()).ToArray();
+
+encoder.Compress(bytes, dest, out var consumed, out var written, true);
+
+
+var foo = dest.AsSpan(0, written).ToArray();
+
+Console.WriteLine(bytes.Length);
+Console.WriteLine(foo.Length);
 
 //// new BrotliDecoder().Decompress(
 
