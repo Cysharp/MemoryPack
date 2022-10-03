@@ -27,13 +27,26 @@ var person = new Person()
     Age = 12,
     FirstName = "Hadi",
     LastName = "Att",
+    Doubles = new double[65535]
 };
+
+for (int i = 0; i < person.Doubles.Length; i++)
+{
+    person.Doubles[i] = Random.Shared.NextDouble();
+}
+
 var bin = MemoryPackSerializer.Serialize(person);
 var size = MemoryPackSerializer.GetSize(person);
 // overwrite data to existing instance.
 var p2 = MemoryPackSerializer.Deserialize<Person>(bin);
 
-var x = 1;
+for (int i = 0; i < p2.Doubles.Length; i++)
+{
+    if (p2.Doubles[i] != person.Doubles[i])
+    {
+
+    }
+}
 
 [MemoryPackable(GenerateType.Collection)]
 public partial class ListGenerics<T> : List<T>
@@ -46,6 +59,7 @@ public partial class Person
     public int Age { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public double[] Doubles { get; set; }
 }
 
 

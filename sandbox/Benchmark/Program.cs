@@ -12,6 +12,7 @@ using BinaryPack.Models.Interfaces;
 using Iced.Intel;
 using MemoryPack;
 using MemoryPack.Formatters;
+using MyBenchmark;
 using System.Reflection;
 
 var config = ManualConfig.CreateMinimumViable()
@@ -48,12 +49,12 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-BenchmarkSwitcher.FromTypes(new[]{
-    typeof(SerializeTest<>),
-    typeof(DeserializeTest<>) })
-    .RunAllJoined(config);
+//BenchmarkSwitcher.FromTypes(new[]{
+//    typeof(SerializeTest<>),
+//    typeof(DeserializeTest<>) })
+//    .RunAllJoined(config);
 
-
+BenchmarkRunner.Run<BigClassTest>(config, args);
 #if DEBUG
 
 
