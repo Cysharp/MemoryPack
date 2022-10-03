@@ -336,9 +336,9 @@ Serialize has three overloads.
 
 ```csharp
 // Non generic API also available, these version is first argument is Type and value is object?
-byte[] Serialize<T>(in T? value)
-void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value)
-async ValueTask SerializeAsync<T>(Stream stream, T? value, CancellationToken cancellationToken = default)
+byte[] Serialize<T>(in T? value, MemoryPackSerializeOptions? options = default)
+void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
+async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
 ```
 
 The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
@@ -348,6 +348,16 @@ If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://gi
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
 
 If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
+
+### MemoryPackSerializeOptions
+
+`MemoryPackSerializeOptions` configures how serialize string as Utf16 or Utf8. If passing null then uses `MemoryPackSerializeOptions.Default`, it is same as `MemoryPackSerializeOptions.Utf8`, in other words, serialize the string as Utf8. If you want to serialize with Utf16, you can use `MemoryPackSerializeOptions.Utf16`.
+
+Since C#'s internal string representation is UTF16, UTF16 performs better. However, the payload tends to be larger; in UTF8, an ASCII string is one byte, while in UTF16 it is two bytes. Because the difference in size of this payload is so large, UTF8 is set by default.
+
+If the data is non-ASCII (e.g. Japanese, which can be more than 3 bytes, and UTF8 is larger), or if you have to compress it separately, UTF16 may give better results.
+
+Whether UTF8 or UTF16 is selected during serialization, it is not necessary to specify it during deserialization. It will be automatically detected and deserialized normally.
 
 Deserialize API
 ---
@@ -473,9 +483,9 @@ Payload size depends on the target value; unlike JSON, there are no keys and it 
 
 For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
 
-Also, strings are usually UTF8 for other formats, but MemoryPack is UTF16 fixed length (2 bytes), so MemoryPack is larger if the string occupies ASCII. Conversely, MemoryPack may be smaller if the string contains many UTF8 characters of 3 bytes or more, such as Japanese.
-
 float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MsgPack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
+
+String is UTF8 by default, which is similar to other serializers, but if the UTF16 option is chosen, it will be of a different nature.
 
 In any case, if the payload size is large, compression should be considered. LZ4, ZStandard and Brotli are recommended. An efficient way to combine compression and serialization will be presented at a later date.
 

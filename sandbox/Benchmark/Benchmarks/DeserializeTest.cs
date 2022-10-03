@@ -18,10 +18,10 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Benchmarks;
 
-[GenericTypeArguments(typeof(int))]
-[GenericTypeArguments(typeof(Vector3[]))]
-[GenericTypeArguments(typeof(JsonResponseModel))]
-[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+//[GenericTypeArguments(typeof(int))]
+//[GenericTypeArguments(typeof(Vector3[]))]
+//[GenericTypeArguments(typeof(JsonResponseModel))]
+//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 public class DeserializeTest<T> : SerializerTestBase<T>
 {
     //SerializerSessionPool pool;
@@ -51,13 +51,13 @@ public class DeserializeTest<T> : SerializerTestBase<T>
         payloadJson = JsonSerializer.SerializeToUtf8Bytes(value);
     }
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public T MessagePackDeserialize()
     {
         return MessagePackSerializer.Deserialize<T>(payloadMessagePack);
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public T? MemoryPackDeserialize()
     {
         return MemoryPackSerializer.Deserialize<T>(payloadMemoryPack);

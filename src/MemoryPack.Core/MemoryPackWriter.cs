@@ -208,7 +208,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(copyByteCount + 4);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)] // non default, no inline
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void WriteUtf8(string value)
     {
         // [utf8-length, utf16-length, utf8-value]
@@ -220,14 +220,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
         ref var destPointer = ref GetSpanReference(maxByteCount + 8); // header
 
-        // write utf8-length is final
+        // write utf16-length
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref destPointer, 4), source.Length);
 
         var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref destPointer, 8), maxByteCount);
-        var status = Utf8.FromUtf16(source, dest, out var _, out var bytesWritten);
+        var status = Utf8.FromUtf16(source, dest, out var _, out var bytesWritten, replaceInvalidSequences: false);
         if (status != OperationStatus.Done)
         {
-            // TODO: throw when write failed.
+            MemoryPackSerializationException.ThrowFailedEncoding(status);
         }
 
         // write written utf8-length in header, that is ~length

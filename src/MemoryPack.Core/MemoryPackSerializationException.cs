@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MemoryPack;
 
@@ -102,5 +103,11 @@ public class MemoryPackSerializationException : Exception
     public static void ThrowDeserializeObjectIsNull(string target)
     {
         throw new MemoryPackSerializationException($"Deserialized {target} is null.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowFailedEncoding(OperationStatus status)
+    {
+        throw new MemoryPackSerializationException($"Failed Utf8 encoding/decoding process, status: {status}.");
     }
 }

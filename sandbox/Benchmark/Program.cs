@@ -44,12 +44,14 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 
-BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
+//BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
 
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
 
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
-//BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
+
+
+BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
@@ -67,7 +69,7 @@ var foo = new Utf8Decoding().Utf16LengthUtf8ToUtf16();
 Console.WriteLine(foo);
 
 Check<JsonResponseModel>();
-//Check<NeuralNetworkLayerModel>();
+Check<NeuralNetworkLayerModel>();
 
 void Check<T>()
     where T : IInitializable, IEquatable<T>, new()

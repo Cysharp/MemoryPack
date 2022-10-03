@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -234,12 +235,11 @@ public ref partial struct MemoryPackReader
 
         utf8Length = ~utf8Length;
 
-        // TODO:security
-
         ref var spanRef = ref GetSpanReference(utf8Length + 4); // + read utf16 length
 
         string str;
         var utf16Length = Unsafe.ReadUnaligned<int>(ref spanRef);
+
         if (utf16Length <= 0)
         {
             var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
@@ -247,6 +247,15 @@ public ref partial struct MemoryPackReader
         }
         else
         {
+            // check malformed utf16Length
+            var max = unchecked((Remaining + 1) * 3);
+            if (max < 0) max = int.MaxValue;
+            if (max < utf16Length)
+            {
+                MemoryPackSerializationException.ThrowInsufficientBufferUnless(utf8Length);
+            }
+
+            // regular path, know decoded UTF16 length will gets faster decode result
             unsafe
             {
                 fixed (byte* p = &Unsafe.Add(ref spanRef, 4))
@@ -254,8 +263,11 @@ public ref partial struct MemoryPackReader
                     str = string.Create(utf16Length, ((IntPtr)p, utf8Length), static (dest, state) =>
                     {
                         var src = MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>((byte*)state.Item1), state.Item2);
-                        var status = Utf8.ToUtf16(src, dest, out var bytesRead, out var charsWritten);
-                        // TODO: throw when status failed
+                        var status = Utf8.ToUtf16(src, dest, out var bytesRead, out var charsWritten, replaceInvalidSequences: false);
+                        if (status != OperationStatus.Done)
+                        {
+                            MemoryPackSerializationException.ThrowFailedEncoding(status);
+                        }
                     });
                 }
             }
