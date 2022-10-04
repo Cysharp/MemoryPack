@@ -1,7 +1,11 @@
 ﻿using System.Buffers;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using static MemoryPack.Internal.ReusableLinkedArrayBufferWriter;
 
 namespace MemoryPack.Internal;
 
@@ -211,6 +215,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         ResetCore();
     }
 
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
+    }
+
     // reset without list's BufferSegment element
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void ResetCore()
@@ -230,7 +239,86 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         {
             item.Clear();
         }
+        current.Clear();
         ResetCore();
+    }
+
+    public struct Enumerator : IEnumerator<Memory<byte>>
+    {
+        ReusableLinkedArrayBufferWriter parent;
+        State state;
+        Memory<byte> current;
+        List<BufferSegment>.Enumerator buffersEnumerator;
+
+        public Enumerator(ReusableLinkedArrayBufferWriter parent)
+        {
+            this.parent = parent;
+        }
+
+        public Memory<byte> Current => current;
+
+        object IEnumerator.Current => throw new NotSupportedException();
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (state == State.FirstBuffer)
+            {
+                state = State.BuffersInit;
+
+                if (parent.UseFirstBuffer)
+                {
+                    current = parent.firstBuffer.AsMemory(0, parent.firstBufferWritten);
+                    return true;
+                }
+            }
+
+            if (state == State.BuffersInit)
+            {
+                state = State.BuffersIterate;
+
+                buffersEnumerator = parent.buffers.GetEnumerator();
+            }
+
+            if (state == State.BuffersIterate)
+            {
+                if (buffersEnumerator.MoveNext())
+                {
+                    current = buffersEnumerator.Current.WrittenMemory;
+                    return true;
+                }
+
+                buffersEnumerator.Dispose();
+                state = State.Current;
+            }
+
+            if (state == State.Current)
+            {
+                state = State.End;
+
+                current = parent.current.WrittenMemory;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+
+        enum State
+        {
+            FirstBuffer,
+            BuffersInit,
+            BuffersIterate,
+            Current,
+            End
+        }
     }
 }
 
