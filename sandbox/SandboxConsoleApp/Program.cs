@@ -14,6 +14,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -33,40 +34,69 @@ using System.Xml.Linq;
 
 
 
+
 //var arrayBufferWriter = new ArrayBufferWriter<byte>();
 
-var brotli = new BrotliBufferWriter();
+var brotli = new BrotliCompressor();
+
+
+//var writer = new ArrayBufferWriter<byte>();
+//var seq = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("hogehogehugahugahage"));
 
 
 
-var ms = new MemoryStream();
-var b = new BrotliStream(ms, CompressionLevel.Optimal);
-await MemoryPackSerializer.SerializeAsync(b, "hogehogehugahuga", MemoryPackSerializeOptions.Default);
-b.Dispose();
-ms.Flush();
-var tako = ms.ToArray();
+// PipeWriter.Create(
+//PipeWriter.Create().AsStream();
+//Write(seq, writer);
 
 
 
 
 
-MemoryPackSerializer.Serialize(brotli, "hogehogehugahuga", MemoryPackSerializeOptions.Default);
+//var compressed = writer.WrittenMemory;
+
+//var stream = new BrotliStream(new MemoryStream(compressed.ToArray()), CompressionMode.Decompress, false);
 
 
-var foobarbaz = brotli.ToArray();
 
 
-var dest2 = new byte[10];
 
-var decoder = new BrotliDecoder();
-var status = OperationStatus.DestinationTooSmall;
-while (status == OperationStatus.DestinationTooSmall)
-{
-    status = decoder.Decompress(tako, dest2, out var consumed, out var written);
-}
+//var dest = new byte[1024];
 
 
-Console.WriteLine(status);
+//var len = stream.Read(dest);
+
+
+//var len2 = stream.Read(dest);
+
+//var ok = BrotliDecoder.TryDecompress(compressed.Span, dest, out var written);
+
+
+//var seq2 = new ReadOnlySequence<byte>(compressed);
+
+//var writer2 = new ArrayBufferWriter<byte>();
+//Read(seq2, writer2);
+
+
+
+
+//MemoryPackSerializer.Serialize(brotli, "hogehogehugahuga", MemoryPackSerializeOptions.Default);
+
+
+//var foobarbaz = brotli.ToArray();
+
+
+//var dest2 = new byte[10];
+
+//var decoder = new BrotliDecoder();
+//var status = OperationStatus.DestinationTooSmall;
+//while (status == OperationStatus.DestinationTooSmall)
+//{
+//    status = decoder.Decompress(tako, dest2, out var consumed, out var written);
+//}
+
+
+//Console.WriteLine(status);
 //var status = BrotliDecoder.TryDecompress(tako, dest2, out var written2);
 //Console.WriteLine(status + ":" + written2);
 
@@ -80,59 +110,7 @@ Console.WriteLine(status);
 
 //BrotliCompression.
 
-public struct BrotliSequence : IDisposable
-{
-    ReadOnlySequence<byte> compressedSequence;
 
-    public BrotliSequence(ReadOnlySequence<byte> compressedSequence)
-    {
-        this.compressedSequence = compressedSequence;
-    }
-
-    public ReadOnlySequence<byte> Decompress()
-    {
-        // var builder = new Reusable();
-        throw new NotImplementedException();
-    }
-
-    public void Dispose()
-    {
-        // throw new NotImplementedException();
-    }
-}
-
-
-
-//public ref struct BrotliSpan
-//{
-//    ReadOnlySpan<byte> compressedBuffer;
-//    BrotliDecoder decoder;
-//    byte[] buffer;
-
-//    public BrotliSpan(ReadOnlySpan<byte> compressedBuffer)
-//    {
-//        this.compressedBuffer = compressedBuffer;
-//    }
-
-//    public ReadOnlySpan<byte> GetDecompressedSpan()
-//    {
-//        // unknown max decompressed size...
-
-//        var dest = ArrayPool<byte>.Shared.Rent(compressedBuffer.Length);
-
-//        // /// <remarks>If this method returns <see langword="false" />, <paramref name="destination" /> may be empty or contain partially decompressed data,
-//        // //with <paramref name="bytesWritten" /> being zero or greater than zero but less than the expected total.</remarks>
-//        //BrotliDecoder.TryDecompress(
-//        //var status = decoder.Decompress
-
-
-//        //decoder.Decompress(
-
-
-
-//    }
-
-//}
 
 
 

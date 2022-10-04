@@ -2,44 +2,28 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
-using System.Text;
 
 namespace MemoryPack.Compression;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-public struct BrotliBufferWriter : IBufferWriter<byte>, IDisposable
+public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
 {
     ReusableLinkedArrayBufferWriter? bufferWriter;
     readonly int quality;
     readonly int window;
 
-    public BrotliBufferWriter()
+    public BrotliCompressor()
         : this(CompressionLevel.Optimal)
     {
 
     }
 
-    public BrotliBufferWriter(CompressionLevel compressionLevel)
+    public BrotliCompressor(CompressionLevel compressionLevel)
         : this(BrotliUtils.GetQualityFromCompressionLevel(compressionLevel), BrotliUtils.WindowBits_Default)
     {
 
     }
 
-    public BrotliBufferWriter(int quality = 4, int window = 22)
+    public BrotliCompressor(int quality = 4, int window = 22)
     {
         this.bufferWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         this.quality = quality;
@@ -70,31 +54,35 @@ public struct BrotliBufferWriter : IBufferWriter<byte>, IDisposable
 
         using var encoder = new BrotliEncoder(quality, window);
 
-
         var maxLength = BrotliEncoder.GetMaxCompressedLength(bufferWriter.TotalWritten);
         var finalBuffer = ArrayPool<byte>.Shared.Rent(maxLength);
         try
         {
             var writtenCount = 0;
-            var destination = finalBuffer.AsMemory(0, maxLength);
+            var destination = finalBuffer.AsSpan(0, maxLength);
             foreach (var source in bufferWriter)
             {
-                var status = encoder.Compress(source.Span, destination.Span, out var bytesConsumed, out var bytesWritten, isFinalBlock: false);
+                var status = encoder.Compress(source.Span, destination, out var bytesConsumed, out var bytesWritten, isFinalBlock: false);
                 if (status != OperationStatus.Done)
                 {
                     // TODO: throw
                 }
                 // TODO: check bytesConsumed
 
+                if (bytesConsumed != source.Span.Length)
+                {
+                    // TODO: throw? More?
+                }
+
                 if (bytesWritten > 0)
                 {
-                    destination = destination.Slice(bytesWritten); // TODO: bytesWritten???
+                    destination = destination.Slice(bytesWritten);
                     writtenCount += bytesWritten;
                 }
             }
 
             // call BrotliEncoderOperation.Finish
-            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, destination.Span, out var consumed, out var written, isFinalBlock: true);
+            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, destination, out var consumed, out var written, isFinalBlock: true);
             writtenCount += written;
 
             return finalBuffer.AsSpan(0, writtenCount).ToArray();
@@ -102,18 +90,68 @@ public struct BrotliBufferWriter : IBufferWriter<byte>, IDisposable
         finally
         {
             ArrayPool<byte>.Shared.Return(finalBuffer);
+        }
+    }
+
+    public void CopyTo<TBufferWriter>(TBufferWriter destBufferWriter)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        ThrowIfDisposed();
+
+        var encoder = new BrotliEncoder(quality, window);
+        try
+        {
+            var writtenNotAdvanced = 0;
+            foreach (var item in bufferWriter)
+            {
+                writtenNotAdvanced = WriteCore(ref encoder, item.Span, destBufferWriter, initialLength: null, isFinalBlock: false);
+            }
+
+            // call BrotliEncoderOperation.Finish
+            var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
+            WriteCore(ref encoder, ReadOnlySpan<byte>.Empty, destBufferWriter, initialLength: finalBlockLength, isFinalBlock: true);
+        }
+        finally
+        {
             encoder.Dispose();
         }
     }
 
-    // Flush
+    static int WriteCore<TBufferWriter>(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, TBufferWriter destBufferWriter, int? initialLength, bool isFinalBlock)
+        where TBufferWriter : IBufferWriter<byte>
+    {
+        var writtenNotAdvanced = 0;
+
+        var lastResult = OperationStatus.DestinationTooSmall;
+        while (lastResult == OperationStatus.DestinationTooSmall)
+        {
+            var dest = destBufferWriter.GetSpan(initialLength ?? source.Length);
+
+            lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
+            writtenNotAdvanced += bytesConsumed;
+
+            if (lastResult == OperationStatus.InvalidData) throw new InvalidOperationException();
+            if (bytesWritten > 0)
+            {
+                destBufferWriter.Advance(bytesWritten);
+                writtenNotAdvanced = 0;
+            }
+            if (bytesConsumed > 0)
+            {
+                source = source.Slice(bytesConsumed);
+            }
+        }
+
+        return writtenNotAdvanced;
+    }
+
     public void Dispose()
     {
         if (bufferWriter == null) return;
 
         bufferWriter.Reset();
-        bufferWriter = null!;
         ReusableLinkedArrayBufferWriterPool.Return(bufferWriter);
+        bufferWriter = null!;
     }
 
     [MemberNotNull(nameof(bufferWriter))]
