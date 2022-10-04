@@ -576,14 +576,14 @@ Unmanaged struct is C# struct that no contains reference type, similar constrain
 
 ### Object
 
-`{byte memberCount, values...}`
+`(byte memberCount, [values...])`
 
 Object has 1byte unsigned byte as member count in header. Member count allows `0` to `249`, `255` represents object is `null`. Values store memorypack value for the number of member count.
 
 
 ### Collection
 
-`[int length, values...]`
+`(int length, [values...])`
 
 Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
 
