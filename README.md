@@ -487,7 +487,45 @@ float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes 
 
 String is UTF8 by default, which is similar to other serializers, but if the UTF16 option is chosen, it will be of a different nature.
 
-In any case, if the payload size is large, compression should be considered. LZ4, ZStandard and Brotli are recommended. An efficient way to combine compression and serialization will be presented at a later date.
+In any case, if the payload size is large, compression should be considered. LZ4, ZStandard and Brotli are recommended.
+
+### Compression
+
+MemoryPack provides an efficient helper for [Brotli](https://github.com/google/brotli) compression via [BrotliEncoder](https://learn.microsoft.com/en-us/dotnet/api/system.io.compression.brotliencoder) and [BrotliDecoder](https://learn.microsoft.com/en-us/dotnet/api/system.io.compression.brotlidecoder). MemoryPack's `BrotliCompressor` and `BrotliDecompressor` provide compression/decompression optimized for MemoryPack's internal behavior.
+
+```csharp
+using MemoryPack.Compression;
+
+// Compression(require using)
+using var compressor = new BrotliCompressor();
+MemoryPackSerializer.Serialize(compressor, value);
+
+// Get compressed byte[]
+var compressedBytes = compressor.ToArray();
+
+// Or write to other IBufferWriter<byte>(for example PipeWriter)
+compressor.CopyTo(response.BodyWriter);
+```
+
+```csharp
+using MemoryPack.Compression;
+
+// Decompression(require using)
+using var decompressor = new BrotliDecompressor();
+
+// Get decompressed ReadOnlySequence<byte> from ReadOnlySpan<byte> or ReadOnlySequence<byte>
+var decompressedBuffer = decompressor.Decompress(buffer);
+
+var value = MemoryPackSerializer.Deserialize<T>(decompressedBuffer);
+```
+
+Both `BrotliCompressor` and `BrotliDecompressor` are struct, it does not allocate memory on heap. Both store compressed or decompressed data in an internal memory pool for Serialize/Deserialize.  Therefore, it is necessary to release the memory pooling, don't forget to use `using`.
+
+Compression level is very important. The default is set to quality-1 (CompressionLevel.Fastest), which is different from the .NET default (CompressionLevel.Optimal, quality-4).
+
+Fastest (quality-1) will be close to the speed of [LZ4](https://github.com/lz4/lz4), but 4 is much slower. This was determined to be critical in the serializer use scenario. Be careful when using the standard `BrotliStream`(quality-4 is the default). In any case, compression/decompression speeds and sizes will result in very different results for different data. Please prepare the data to be handled by your application and test it yourself.
+
+Note that there is a several-fold speed penalty between MemoryPack's uncompressed and Brotli's added compression.
 
 Packages
 ---

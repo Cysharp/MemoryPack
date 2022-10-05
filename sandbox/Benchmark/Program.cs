@@ -11,6 +11,7 @@ using BinaryPack.Models.Helpers;
 using BinaryPack.Models.Interfaces;
 using Iced.Intel;
 using MemoryPack;
+using MemoryPack.Compression;
 using MemoryPack.Formatters;
 using System.Reflection;
 
@@ -54,8 +55,8 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
-//BenchmarkRunner.Run<Compression<JsonResponseModel>>(config, args);
-BenchmarkRunner.Run<Compression<Vector3[]>>(config, args);
+BenchmarkRunner.Run<Compression<JsonResponseModel>>(config, args);
+//BenchmarkRunner.Run<Compression<Vector3[]>>(config, args);
 //BenchmarkRunner.Run<Compression<NeuralNetworkLayerModel>>(config, args);
 
 
@@ -70,8 +71,16 @@ BenchmarkRunner.Run<Compression<Vector3[]>>(config, args);
 
 #if DEBUG
 
-var foo = new Utf8Decoding().Utf16LengthUtf8ToUtf16();
-Console.WriteLine(foo);
+var model = new JsonResponseModel(true);
+var model2 = Enumerable.Repeat(new Vector3 { X = 10.3f, Y = 40.5f, Z = 13411.3f }, 1000).ToArray();
+
+using var compressor = new BrotliCompressor();
+MemoryPackSerializer.Serialize(compressor, model2);
+var foo = compressor.ToArray();
+
+using var decompressor = new BrotliDecompressor();
+
+var foo2 = decompressor.Decompress(foo);
 
 Check<JsonResponseModel>();
 Check<NeuralNetworkLayerModel>();

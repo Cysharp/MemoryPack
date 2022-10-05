@@ -12,7 +12,7 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
     readonly int window;
 
     public BrotliCompressor()
-        : this(CompressionLevel.Optimal)
+        : this(CompressionLevel.Fastest)
     {
 
     }
@@ -23,7 +23,7 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
 
     }
 
-    public BrotliCompressor(int quality = 4, int window = 22)
+    public BrotliCompressor(int quality = 1, int window = 22)
     {
         this.bufferWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         this.quality = quality;
@@ -65,13 +65,12 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
                 var status = encoder.Compress(source.Span, destination, out var bytesConsumed, out var bytesWritten, isFinalBlock: false);
                 if (status != OperationStatus.Done)
                 {
-                    // TODO: throw
+                    MemoryPackSerializationException.ThrowCompressionFailed(status);
                 }
-                // TODO: check bytesConsumed
 
                 if (bytesConsumed != source.Span.Length)
                 {
-                    // TODO: throw? More?
+                    MemoryPackSerializationException.ThrowCompressionFailed();
                 }
 
                 if (bytesWritten > 0)
@@ -104,12 +103,12 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
             var writtenNotAdvanced = 0;
             foreach (var item in bufferWriter)
             {
-                writtenNotAdvanced = WriteCore(ref encoder, item.Span, destBufferWriter, initialLength: null, isFinalBlock: false);
+                writtenNotAdvanced = CompressCore(ref encoder, item.Span, destBufferWriter, initialLength: null, isFinalBlock: false);
             }
 
             // call BrotliEncoderOperation.Finish
             var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
-            WriteCore(ref encoder, ReadOnlySpan<byte>.Empty, destBufferWriter, initialLength: finalBlockLength, isFinalBlock: true);
+            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, destBufferWriter, initialLength: finalBlockLength, isFinalBlock: true);
         }
         finally
         {
@@ -117,7 +116,7 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
         }
     }
 
-    static int WriteCore<TBufferWriter>(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, TBufferWriter destBufferWriter, int? initialLength, bool isFinalBlock)
+    static int CompressCore<TBufferWriter>(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, TBufferWriter destBufferWriter, int? initialLength, bool isFinalBlock)
         where TBufferWriter : IBufferWriter<byte>
     {
         var writtenNotAdvanced = 0;
@@ -130,7 +129,7 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
             lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
             writtenNotAdvanced += bytesConsumed;
 
-            if (lastResult == OperationStatus.InvalidData) throw new InvalidOperationException();
+            if (lastResult == OperationStatus.InvalidData) MemoryPackSerializationException.ThrowCompressionFailed();
             if (bytesWritten > 0)
             {
                 destBufferWriter.Advance(bytesWritten);

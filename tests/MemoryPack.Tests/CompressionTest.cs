@@ -2,6 +2,8 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,53 +13,66 @@ namespace MemoryPack.Tests;
 public class CompressionTest
 {
     [Fact]
-    public void Foo()
+    public void CompressDecompress()
     {
-        using var brotli = new BrotliCompressor();
+        // pattern1, huge compression
+        var pattern1 = Enumerable.Range(1, 1000).Select(_ => string.Concat(Enumerable.Repeat("http://", 1000)))
+            .Prepend("hogehogehugahugahugahugahogehoge!")
+            .ToArray();
 
-        MemoryPackSerializer.Serialize(brotli, "http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://http://");
+        // pattern2, small compression
+        var pattern2 = new string[] { "a", "b", "c" };
 
+        var texts = new[] { pattern1, pattern2 };
+        foreach (var text in texts)
+        {
+            using var brotli = new BrotliCompressor();
 
+            MemoryPackSerializer.Serialize(brotli, text);
 
-        var arrayWriter = new FixedBufferWriter();
+            var originalSerialized = MemoryPackSerializer.Serialize(text);
 
-        var array1 = brotli.ToArray();
+            var array1 = brotli.ToArray();
 
-        brotli.CopyTo(arrayWriter);
+            var arrayWriter = new ArrayBufferWriter<byte>();
+            brotli.CopyTo(arrayWriter);
 
-        var array2 = brotli.ToArray();
+            var array2 = arrayWriter.WrittenMemory;
 
-        using var decompressor = new BrotliMemoryDecompressor();
+            // check BrotliCompressor ToArray()/CopyTo returns same result.
+            array1.AsSpan().SequenceEqual(array2.Span).Should().BeTrue();
 
+            using var decompressor = new BrotliDecompressor();
 
-        var two = decompressor.Decompress(array1.AsMemory());
+            var decompressed = decompressor.Decompress(array1);
 
+            var referenceDecompress = ReferenceDecompress(array1);
+            var decompressedArray = decompressed.ToArray();
 
-        var hoge = MemoryPackSerializer.Deserialize<string>(two.Span);
+            // check decompress results correct
+            referenceDecompress.SequenceEqual(decompressedArray).Should().BeTrue();
 
+            originalSerialized.AsSpan().SequenceEqual(decompressed.ToArray()).Should().BeTrue();
+
+            // deserialized check
+            var more = MemoryPackSerializer.Deserialize<string[]>(decompressed);
+
+            text.Length.Should().Be(more!.Length);
+            foreach (var (first, second) in text.Zip(more))
+            {
+                first.AsSpan().SequenceEqual(second).Should().BeTrue();
+            }
+        }
     }
-}
 
-file class FixedBufferWriter : IBufferWriter<byte>
-{
-    byte[] buffer = new byte[10000];
-    int written;
-
-    public ReadOnlySpan<byte> WrittenSpan => buffer.AsSpan(0, written);
-
-    public void Advance(int count)
+    byte[] ReferenceDecompress(byte[] bytes)
     {
-        written += count;
-    }
-
-    public Memory<byte> GetMemory(int sizeHint = 0)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Span<byte> GetSpan(int sizeHint = 0)
-    {
-        if (sizeHint == 0) sizeHint = 1;
-        return buffer.AsSpan(written, sizeHint);
+        using (var ms = new MemoryStream(bytes))
+        using (var brotli = new BrotliStream(ms, CompressionMode.Decompress))
+        {
+            var dest = new MemoryStream();
+            brotli.CopyTo(dest);
+            return dest.ToArray();
+        }
     }
 }

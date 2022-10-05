@@ -24,6 +24,16 @@ using System.Text;
 using System.Xml.Linq;
 
 
+var newArgs = "--foo a,b,c".Split(' ');
+
+ConsoleApp.RunAsync(newArgs, (string[] foo) =>
+{
+    foreach (var item in foo)
+    {
+        Console.WriteLine(item);
+    }
+});
+
 
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
 //var takotako = MemoryPackSerializer.Deserialize<string>(bin);
@@ -37,7 +47,7 @@ using System.Xml.Linq;
 
 //var arrayBufferWriter = new ArrayBufferWriter<byte>();
 
-var brotli = new BrotliCompressor();
+
 
 
 //var writer = new ArrayBufferWriter<byte>();
