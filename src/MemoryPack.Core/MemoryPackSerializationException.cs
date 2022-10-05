@@ -108,6 +108,24 @@ public class MemoryPackSerializationException : Exception
     [DoesNotReturn]
     public static void ThrowFailedEncoding(OperationStatus status)
     {
-        throw new MemoryPackSerializationException($"Failed Utf8 encoding/decoding process, status: {status}.");
+        throw new MemoryPackSerializationException($"Failed in Utf8 encoding/decoding process, status: {status}.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowCompressionFailed(OperationStatus status)
+    {
+        throw new MemoryPackSerializationException($"Failed in Brotli compression/decompression process, status: {status}.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowCompressionFailed()
+    {
+        throw new MemoryPackSerializationException($"Failed in Brotli compression/decompression process.");
+    }
+
+    [DoesNotReturn]
+    public static void ThrowAlreadyDecompressed()
+    {
+        throw new MemoryPackSerializationException($"BrotliDecompressor can not invoke Decompress twice, already invoked.");
     }
 }
