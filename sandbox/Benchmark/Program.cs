@@ -55,7 +55,9 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
-BenchmarkRunner.Run<Compression<JsonResponseModel>>(config, args);
+BenchmarkRunner.Run<StaticAbstractVsFormatter>(config, args);
+
+//BenchmarkRunner.Run<Compression<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<Compression<Vector3[]>>(config, args);
 //BenchmarkRunner.Run<Compression<NeuralNetworkLayerModel>>(config, args);
 
