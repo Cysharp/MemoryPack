@@ -59,6 +59,16 @@ internal sealed class ReusableReadOnlySequenceBuilder
 
     public ReadOnlySequence<byte> Build()
     {
+        if (list.Count == 0)
+        {
+            return ReadOnlySequence<byte>.Empty;
+        }
+
+        if (list.Count == 1)
+        {
+            return new ReadOnlySequence<byte>(list[0].Memory);
+        }
+
         long running = 0;
         var span = CollectionsMarshal.AsSpan(list);
         for (int i = 0; i < span.Length; i++)
