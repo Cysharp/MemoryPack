@@ -83,6 +83,7 @@ public static partial class MemoryPackFormatterProvider
 <# foreach(var item in unmanagedTypeNames) { #>
         Register(new UnmanagedFormatter<<#= item #>>());
         Register(new UnmanagedArrayFormatter<<#= item #>>());
+        Register(new NullableFormatter<<#= item #>>());
 <# } #>
 
 <# foreach(var item in knownTypesNames) { #>

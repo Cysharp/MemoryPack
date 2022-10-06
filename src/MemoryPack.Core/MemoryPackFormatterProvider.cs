@@ -226,7 +226,7 @@ public static partial class MemoryPackFormatterProvider
             {
                 if (!typeIsReferenceOrContainsReferences)
                 {
-                    formatterType = typeof(UnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                    formatterType = typeof(DangerousUnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
                     goto CREATE;
                 }
                 else
@@ -257,7 +257,7 @@ public static partial class MemoryPackFormatterProvider
 
         if (type.IsEnum || !typeIsReferenceOrContainsReferences)
         {
-            formatterType = typeof(UnmanagedFormatter<>).MakeGenericType(type);
+            formatterType = typeof(DangerousUnmanagedFormatter<>).MakeGenericType(type);
             goto CREATE;
         }
 

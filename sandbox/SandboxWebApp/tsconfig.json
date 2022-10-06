@@ -1,8 +1,10 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": false,
+    "strict": true,
     "sourceMap": true,
     "target": "ES2022"
   },
