@@ -214,7 +214,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         // [utf8-length, utf16-length, utf8-value]
 
         var source = value.AsSpan();
-
+        
         // UTF8.GetMaxByteCount -> (length + 1) * 3
         var maxByteCount = (source.Length + 1) * 3;
 

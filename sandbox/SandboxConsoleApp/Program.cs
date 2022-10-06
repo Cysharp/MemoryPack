@@ -24,15 +24,6 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var newArgs = "--foo a,b,c".Split(' ');
-
-ConsoleApp.RunAsync(newArgs, (string[] foo) =>
-{
-    foreach (var item in foo)
-    {
-        Console.WriteLine(item);
-    }
-});
 
 
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
@@ -119,7 +110,6 @@ ConsoleApp.RunAsync(newArgs, (string[] foo) =>
 
 
 //BrotliCompression.
-
 
 
 

@@ -119,6 +119,7 @@ public static partial class MemoryPackSerializer
         {
             Serialize(tempWriter, value, options);
             await tempWriter.WriteToAndResetAsync(stream, cancellationToken).ConfigureAwait(false);
+            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {

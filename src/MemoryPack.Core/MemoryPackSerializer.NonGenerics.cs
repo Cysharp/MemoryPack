@@ -101,7 +101,7 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream)
+    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, CancellationToken cancellationToken = default)
     {
         var builder = ReusableReadOnlySequenceBuilderPool.Rent();
         try
@@ -120,7 +120,7 @@ public static partial class MemoryPackSerializer
                 int read = 0;
                 try
                 {
-                    read = await stream.ReadAsync(buffer, offset, buffer.Length - offset).ConfigureAwait(false);
+                    read = await stream.ReadAsync(buffer.AsMemory(offset, buffer.Length - offset), cancellationToken).ConfigureAwait(false);
                 }
                 catch
                 {

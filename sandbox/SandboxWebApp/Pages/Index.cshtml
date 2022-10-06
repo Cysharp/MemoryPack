@@ -4,7 +4,12 @@
     ViewData["Title"] = "Home page";
 }
 
+<script type="module">
+    import { hoge } from "./js/file.js";
+
+    hoge();
+</script>
+
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <input type="button" value="button" onclick="do()">
 </div>

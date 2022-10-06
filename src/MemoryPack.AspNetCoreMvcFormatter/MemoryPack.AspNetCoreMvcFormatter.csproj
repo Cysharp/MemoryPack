@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <OutputType>Library</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <EnablePreviewFeatures>True</EnablePreviewFeatures>
+
+        <!-- NuGet Packaging -->
+        <SignAssembly>true</SignAssembly>
+        <!--TODO: not yet pack. -->
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
+        <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
+    </ItemGroup>
+
+</Project>
