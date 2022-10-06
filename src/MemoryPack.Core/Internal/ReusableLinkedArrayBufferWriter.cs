@@ -136,7 +136,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
-            foreach (var item in CollectionsMarshal.AsSpan(buffers))
+            foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
             {
                 item.WrittenBuffer.CopyTo(dest);
                 dest = dest.Slice(item.WrittenCount);
@@ -168,7 +168,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
-            foreach (var item in CollectionsMarshal.AsSpan(buffers))
+            foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
             {
                 ref var spanRef = ref writer.GetSpanReference(item.WrittenCount);
                 item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
@@ -235,7 +235,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     public void Reset()
     {
         if (totalWritten == 0) return;
-        foreach (var item in CollectionsMarshal.AsSpan(buffers))
+        foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
         {
             item.Clear();
         }
