@@ -3,6 +3,10 @@ const nullCollection = -1;
 const union = 254;
 const nullObject = 255;
 
+// bool
+const TRUE = 1;
+const FALSE = 0;
+
 // DateTimeOffset.FromUnixTimeMilliseconds(0).Ticks
 const unixEpochTicks = 621355968000000000n;
 
@@ -13,15 +17,15 @@ const dateTimeMask = 0b00111111_11111111_11111111_11111111_11111111_11111111_111
 export class MemoryPackReader {
     private buffer: ArrayBuffer
     private dataView: DataView
-    private utf8Decoder: TextDecoder
-    private utf16Decoder: TextDecoder
+    private utf8Decoder: TextDecoder | null
+    private utf16Decoder: TextDecoder | null
     private offset: number
 
     public constructor(buffer: ArrayBuffer) {
         this.buffer = buffer;
         this.dataView = new DataView(this.buffer);
-        this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
-        this.utf16Decoder = new TextDecoder("utf-16", { ignoreBOM: true });
+        this.utf8Decoder = null;
+        this.utf16Decoder = null;
         this.offset = 0;
     }
 
@@ -48,12 +52,24 @@ export class MemoryPackReader {
             return [false, 0];
         }
 
-        // TODO: if (Remaining < length) { throw Error }
+        if ((this.buffer.byteLength - this.offset) < length) {
+            throw new Error("header length is too large, length: " + length);
+        }
 
         return [true, length];
     }
 
-    // TODO: read primitives, nullable primitive
+    public readBoolean(): boolean {
+        return this.readUint8() != 0;
+    }
+
+    public readNullableBoolean(): boolean | null {
+        if (this.readUint8() == FALSE) {
+            this.offset += 1;
+            return null;
+        }
+        return this.readUint8() == TRUE;
+    }
 
     public readUint8(): number {
         const v = this.dataView.getUint8(this.offset);
@@ -61,24 +77,148 @@ export class MemoryPackReader {
         return v;
     }
 
+    public readNullableUint8(): number | null {
+        if (this.readUint8() == FALSE) {
+            this.offset += 1;
+            return null;
+        }
+
+        return this.readUint8();
+    }
+
+    public readUint16(): number {
+        const v = this.dataView.getUint16(this.offset);
+        this.offset += 2;
+        return v;
+    }
+
+    public readNullableUint16(): number | null {
+        if (this.readUint16() == FALSE) {
+            this.offset += 2;
+            return null;
+        }
+
+        return this.readUint16();
+    }
+
+    public readUint32(): number {
+        const v = this.dataView.getUint32(this.offset);
+        this.offset += 4;
+        return v;
+    }
+
+    public readNullableUint32(): number | null {
+        if (this.readUint32() == FALSE) {
+            this.offset += 4;
+            return null;
+        }
+
+        return this.readUint32();
+    }
+
+    public readInt8(): number {
+        const v = this.dataView.getInt8(this.offset);
+        this.offset += 1;
+        return v;
+    }
+
+    public readNullableInt8(): number | null {
+        if (this.readInt8() == FALSE) {
+            this.offset += 1;
+            return null;
+        }
+
+        return this.readInt8();
+    }
+
+    public readInt16(): number {
+        const v = this.dataView.getInt16(this.offset);
+        this.offset += 2;
+        return v;
+    }
+
+    public readNullableInt16(): number | null {
+        if (this.readInt16() == FALSE) {
+            this.offset += 2;
+            return null;
+        }
+
+        return this.readInt16();
+    }
+
     public readInt32(): number {
-        const v = this.dataView.getInt32(this.offset, true);
+        const v = this.dataView.getInt32(this.offset);
         this.offset += 4;
         return v;
     }
 
     public readNullableInt32(): number | null {
-        const hasValue = this.readInt32();
-        const value = this.readInt32();
-        return (hasValue == 0)
-            ? null
-            : value;
+        if (this.readInt32() == FALSE) {
+            this.offset += 4;
+            return null;
+        }
+
+        return this.readInt32();
+    }
+
+    public readInt64(): bigint {
+        const v = this.dataView.getBigInt64(this.offset);
+        this.offset += 8;
+        return v;
+    }
+
+    public readNullableInt64(): bigint | null {
+        if (this.readInt64() == 0n) {
+            this.offset += 8;
+            return null;
+        }
+
+        return this.readInt64();
     }
 
     public readUint64(): bigint {
-        const v = this.dataView.getBigUint64(this.offset, true);
+        const v = this.dataView.getBigUint64(this.offset);
         this.offset += 8;
         return v;
+    }
+
+    public readNullableUint64(): bigint | null {
+        if (this.readUint64() == 0n) {
+            this.offset += 8;
+            return null;
+        }
+
+        return this.readUint64();
+    }
+
+    public readFloat32(): number {
+        const v = this.dataView.getFloat32(this.offset);
+        this.offset += 4;
+        return v;
+    }
+
+    public readNullableFloat32(): number | null {
+        if (this.readFloat32() == FALSE) {
+            this.offset += 4;
+            return null;
+        }
+
+        return this.readFloat32();
+    }
+
+    public readFloat64(): number {
+        const v = this.dataView.getFloat64(this.offset);
+        this.offset += 8;
+        return v;
+    }
+
+    public readNullableFloat64(): number | null {
+        if (this.readFloat64() == FALSE) {
+            this.offset += 8;
+            return null;
+        }
+
+        return this.readFloat64();
     }
 
     public readString(): string | null {
@@ -92,12 +232,20 @@ export class MemoryPackReader {
         }
 
         if (length > 0) {
+            if (this.utf16Decoder == null) {
+                this.utf16Decoder = new TextDecoder("utf-16", { ignoreBOM: true });
+            }
+
             const byteLength = length * 2;
             const v = this.utf16Decoder.decode(this.buffer.slice(this.offset, this.offset + byteLength));
             this.offset += byteLength;
             return v;
         }
         else {
+            if (this.utf8Decoder == null) {
+                this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+            }
+
             // [utf8-length, utf16-length, utf8-value]
             const utf8Length = ~length;
             this.offset += 4; // utf16-length, no use
@@ -121,9 +269,35 @@ export class MemoryPackReader {
         return result;
     }
 
-    // TODO: readMap, readSet
+    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V): Map<K, V> | null {
+        const [ok, length] = this.tryReadCollectionHeader();
+        if (!ok) {
+            return null;
+        }
 
-    // TODO: readNullableGuid
+        const result = new Map<K, V>();
+
+        for (var i = 0; i < length; i++) {
+            const key = keyReader(this);
+            const value = valueReader(this);
+            result.set(key, value);
+        }
+
+        return result;
+    }
+
+    public readSet<T>(elementReader: (reader: MemoryPackReader) => T): Set<T> | null {
+        const [ok, length] = this.tryReadCollectionHeader();
+        if (!ok) {
+            return null;
+        }
+
+        const result = new Set<T>();
+        for (var i = 0; i < length; i++) {
+            result.add(elementReader(this));
+        }
+        return result;
+    }
 
     public readGuid(): string {
         // e.g. "CA761232-ED42-11CE-BACD-00AA0057B223"
@@ -170,7 +344,14 @@ export class MemoryPackReader {
             + b15.toString(16).padStart(2, "0") + b16.toString(16).padStart(2, "0"); // j k
     }
 
-    // TODO: readDate, readNullableDate
+    public readNullableGuid(): string | null {
+        if (this.readInt32() == FALSE) {
+            this.offset += 16;
+            return null;
+        }
+
+        return this.readGuid();
+    }
 
     public readDate(): Date {
         // Date.getTime is UTC Unix time of millisecond
@@ -180,5 +361,22 @@ export class MemoryPackReader {
         return new Date(Number(unixMillisecond));
     }
 
-    // TODO: readBytes
+    public readNullableDate(): Date | null {
+        if (this.readInt64() == 0n) {
+            this.offset += 8;
+            return null;
+        }
+
+        return this.readDate();
+    }
+
+    public readBytes(): Uint8Array | null {
+        const [ok, length] = this.tryReadCollectionHeader();
+        if (!ok) {
+            return null;
+        }
+
+        const span = this.buffer.slice(this.offset, this.offset + length);
+        return new Uint8Array(span); // TODO: copy? view?
+    }
 }

@@ -23,7 +23,7 @@ export class MemoryPackWriter {
     constructor(initialCapacity = 256) {
         this.buffer = new Uint8Array(initialCapacity);
         this.dataView = new DataView(this.buffer.buffer);
-        this.utf8Encoder = new TextEncoder();
+        this.utf8Encoder = null;
         this.offset = 0;
     }
     ensureCapacity(count) {
@@ -219,6 +219,9 @@ export class MemoryPackWriter {
         }
         // [utf8-length, utf16-length, utf8-value]
         this.ensureCapacity(8 + ((value.length + 1) * 3));
+        if (this.utf8Encoder == null) {
+            this.utf8Encoder = new TextEncoder();
+        }
         var encodeResult = this.utf8Encoder.encodeInto(value, this.buffer.subarray(this.offset + 8));
         if (encodeResult.written === undefined || encodeResult.read === undefined) {
             throw new Error("failed utf8 TextEncoder.encodeInto.");

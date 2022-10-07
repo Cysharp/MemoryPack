@@ -10,6 +10,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="MemoryPackLogs\**" />
+      <EmbeddedResource Remove="MemoryPackLogs\**" />
+      <None Remove="MemoryPackLogs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="ConsoleAppFramework" Version="4.2.3" />
         <PackageReference Include="MessagePack" Version="2.4.35" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
