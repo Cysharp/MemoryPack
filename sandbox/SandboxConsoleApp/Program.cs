@@ -25,7 +25,7 @@ using System.Xml.Linq;
 
 
 
-
+Console.WriteLine("foo");
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
 //var takotako = MemoryPackSerializer.Deserialize<string>(bin);
 
