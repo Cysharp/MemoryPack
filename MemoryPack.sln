@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "sandbox\Benchm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxWebApp", "sandbox\SandboxWebApp\SandboxWebApp.csproj", "{F9D66CB1-8D28-426B-BB12-C9F5D30EC6A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemoryPack.AspNetCoreMvcFormatter", "src\MemoryPack.AspNetCoreMvcFormatter\MemoryPack.AspNetCoreMvcFormatter.csproj", "{64B20612-4990-40C7-8191-E2A033CD1EF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack.AspNetCoreMvcFormatter", "src\MemoryPack.AspNetCoreMvcFormatter\MemoryPack.AspNetCoreMvcFormatter.csproj", "{64B20612-4990-40C7-8191-E2A033CD1EF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

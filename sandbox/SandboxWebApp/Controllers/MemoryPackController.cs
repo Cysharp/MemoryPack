@@ -24,5 +24,6 @@ public partial class Person
 {
     public int? Age { get; set; }
     public string? Name { get; set; }
+    public Guid Guid { get; set; }
     public int[]? Seq { get; set; }
 }
