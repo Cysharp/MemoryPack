@@ -21,7 +21,7 @@ export class MemoryPackReader {
         this.offset = 0;
     }
     tryReadObjectHeader() {
-        const memberCount = this.readInt32();
+        const memberCount = this.readUint8();
         return (memberCount == nullObject)
             ? [false, 0]
             : [true, memberCount];
@@ -53,6 +53,13 @@ export class MemoryPackReader {
         this.offset += 4;
         return v;
     }
+    readNullableInt32() {
+        const hasValue = this.readInt32();
+        const value = this.readInt32();
+        return (hasValue == 0)
+            ? null
+            : value;
+    }
     readUint64() {
         const v = this.dataView.getBigUint64(this.offset, true);
         this.offset += 8;
@@ -75,7 +82,7 @@ export class MemoryPackReader {
         else {
             // [utf8-length, utf16-length, utf8-value]
             const utf8Length = ~length;
-            const utf16Length = this.readInt32(); // no use
+            this.offset += 4; // utf16-length, no use
             const v = this.utf8Decoder.decode(this.buffer.slice(this.offset, this.offset + utf8Length));
             this.offset += utf8Length;
             return v;

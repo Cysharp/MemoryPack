@@ -26,7 +26,7 @@ export class MemoryPackReader {
     }
 
     public tryReadObjectHeader(): [boolean, number] {
-        const memberCount = this.readInt32();
+        const memberCount = this.readUint8();
         return (memberCount == nullObject)
             ? [false, 0]
             : [true, memberCount];
@@ -67,6 +67,14 @@ export class MemoryPackReader {
         return v;
     }
 
+    public readNullableInt32(): number | null {
+        const hasValue = this.readInt32();
+        const value = this.readInt32();
+        return (hasValue == 0)
+            ? null
+            : value;
+    }
+
     public readUint64(): bigint {
         const v = this.dataView.getBigUint64(this.offset, true);
         this.offset += 8;
@@ -92,7 +100,7 @@ export class MemoryPackReader {
         else {
             // [utf8-length, utf16-length, utf8-value]
             const utf8Length = ~length;
-            const utf16Length = this.readInt32(); // no use
+            this.offset += 4; // utf16-length, no use
 
             const v = this.utf8Decoder.decode(this.buffer.slice(this.offset, this.offset + utf8Length));
             this.offset += utf8Length;
@@ -100,13 +108,13 @@ export class MemoryPackReader {
         }
     }
 
-    public readArray<T>(elementReader: (reader: MemoryPackReader) => T | null): (T | null)[] | null {
+    public readArray<T>(elementReader: (reader: MemoryPackReader) => T): T[] | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
 
-        const result = new Array<T | null>(length);
+        const result = new Array<T>(length);
         for (var i = 0; i < result.length; i++) {
             result[i] = elementReader(this);
         }

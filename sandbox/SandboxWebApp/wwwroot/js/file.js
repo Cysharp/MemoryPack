@@ -1,5 +1,5 @@
-import { MemoryPackWriter } from "./MemoryPackWriter";
-import { MemoryPackReader } from "./MemoryPackReader";
+import { MemoryPackWriter } from "./MemoryPackWriter.js";
+import { MemoryPackReader } from "./MemoryPackReader.js";
 export async function hoge() {
     var f = new Foo();
     f.age = 32;
@@ -49,8 +49,12 @@ export class Foo {
         if (!ok) {
             return null;
         }
+        // TODO: how handle memberCount?
         var value = new Foo();
-        value.age = reader.readInt32();
+        value.age = reader.readNullableInt32();
+        value.name = reader.readString();
+        value.guid = reader.readGuid();
+        value.seq = reader.readArray(reader => reader.readInt32());
         return value;
     }
 }
