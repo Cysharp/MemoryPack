@@ -150,7 +150,7 @@ public class TypeScriptMember
                 break;
         }
 
-        if (symbol.IsWillImplementIMemoryPackable(references))
+        if (symbol.IsWillImplementIMemoryPackable(references) || symbol.IsWillImplementMemoryPackUnion(references))
         {
             return new TypeScriptType
             {
@@ -159,15 +159,7 @@ public class TypeScriptMember
                 WriteMethodTemplate = $"{symbol.Name}.serializeCore(writer, {{0}})",
                 ReadMethodTemplate = $"{symbol.Name}.deserializeCore(reader)"
             };
-
-            // return MemberKind.MemoryPackable;
         }
-
-        // TODO: union
-        //else if (memberType.IsWillImplementMemoryPackUnion(references))
-        //{
-        //    return MemberKind.MemoryPackUnion;
-        //}
 
         // standard
         {
@@ -197,7 +189,7 @@ public class TypeScriptMember
             case SpecialType.System_String:
                 typeName = "string | null";
                 binaryOperationMethod = "String";
-                defaultValue = "\"\"";
+                defaultValue = "null";
                 break;
             case SpecialType.System_SByte:
                 typeName = "number";

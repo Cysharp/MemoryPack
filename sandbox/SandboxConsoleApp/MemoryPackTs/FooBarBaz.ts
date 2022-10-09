@@ -12,7 +12,7 @@ export class FooBarBaz {
     sonotaProp: Sonota1 | null;
 
     public constructor() {
-        this.yoStarDearYomoda = "";
+        this.yoStarDearYomoda = null;
         this.myPropertyArray = null;
         this.myPropertyArray2 = null;
         this.myProperty4 = null;

@@ -10,7 +10,9 @@ namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static void GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context)
+    static void GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
+        ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap
+        )
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -25,7 +27,6 @@ partial class MemoryPackGenerator
 
 
 
-        var reference = new ReferenceSymbols(compilation);
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
         // TODO: not GenerateType.Object, error.
@@ -40,16 +41,7 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 """);
 
-        var imports = typeMeta.Members
-            .Where(x => x.Kind is MemberKind.MemoryPackable or MemberKind.MemoryPackUnion or MemberKind.Enum)
-            .ToArray();
-        foreach (var item in imports)
-        {
-            sb.AppendLine($"import {{ {item.MemberType.Name} }} from \"./{item.MemberType.Name}.js\"; ");
-        }
-
-        sb.AppendLine();
-        typeMeta.EmitTypescript(sb);
+        typeMeta.EmitTypescript(sb, unionMap);
 
         // save to file
         try
@@ -70,18 +62,31 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
 
 public partial class TypeMeta
 {
-    public void EmitTypescript(StringBuilder sb)
+    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
     {
         if (IsUnion)
         {
-            // writer.WriteLine(EmitUnionTemplate());
+            EmitTypeScriptUnion(sb);
             return;
         }
 
+        var imports = Members.Where(x => x.Kind is MemberKind.MemoryPackable or MemberKind.MemoryPackUnion or MemberKind.Enum);
+        foreach (var item in imports)
+        {
+            sb.AppendLine($"import {{ {item.MemberType.Name} }} from \"./{item.MemberType.Name}.js\"; ");
+        }
+        if (unionMap.TryGetValue(Symbol, out var union))
+        {
+            sb.AppendLine($"import {{ {union.Name} }} from \"./{union.Name}.js\"; ");
+        }
+        sb.AppendLine();
+
+
         var tsMembers = Members.Select(x => new TypeScriptMember(x, reference)).ToArray();
+        var impl = (union != null) ? $"implements {union.Name} " : "";
 
         var code = $$"""
-export class {{TypeName}} {
+export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptMembers(tsMembers)}}
     public constructor() {
 {{EmitTypeScriptMembersInit(tsMembers)}}
@@ -127,6 +132,83 @@ export class {{TypeName}} {
 }
 """;
 
+        sb.AppendLine(code);
+    }
+
+    public void EmitTypeScriptUnion(StringBuilder sb)
+    {
+        string EmitUnionSerialize()
+        {
+            var sb = new StringBuilder();
+            foreach (var item in UnionTags)
+            {
+                sb.AppendLine($$"""
+        else if (value instanceof {{item.Type.Name}}) {
+            writer.writeUnionHeader({{item.Tag}});
+            {{item.Type.Name}}.serializeCore(writer, value);
+            return;
+        }
+""");
+            }
+            return sb.ToString();
+        }
+
+        string EmitUnionDeserialize()
+        {
+            var sb = new StringBuilder();
+            foreach (var item in UnionTags)
+            {
+                sb.AppendLine($$"""
+            case {{item.Tag}}:
+                return {{item.Type.Name}}.deserializeCore(reader);
+""");
+            }
+            return sb.ToString();
+        }
+
+        foreach (var item in UnionTags)
+        {
+            sb.AppendLine($"import {{ {item.Type.Name} }} from \"./{item.Type.Name}.js\"; ");
+        }
+        sb.AppendLine();
+
+        var code = $$"""
+export abstract class {{TypeName}} {
+    static serialize(value: {{TypeName}} | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeCore(writer: MemoryPackWriter, value: {{TypeName}} | null): void {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+{{EmitUnionSerialize()}}
+        else {
+            throw new Error("Concrete type is not in MemoryPackUnion");
+        }
+    }
+
+    static deserialize(buffer: ArrayBuffer): {{TypeName}} | null {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeCore(reader: MemoryPackReader): {{TypeName}} | null {
+        const [ok, tag] = reader.tryReadUnionHeader();
+        if (!ok) {
+            return null;
+        }
+
+        switch (tag) {
+{{EmitUnionDeserialize()}}
+            default:
+                throw new Error("Tag is not found in this MemoryPackUnion");
+        }
+    }
+}
+""";
         sb.AppendLine(code);
     }
 

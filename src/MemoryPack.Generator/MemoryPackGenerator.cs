@@ -78,6 +78,11 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         });
 
         // TypeScript generation
+        RegisterTypeScript(context);
+    }
+
+    void RegisterTypeScript(IncrementalGeneratorInitializationContext context)
+    {
         var typeScriptEnabled = context.AnalyzerConfigOptionsProvider
             .Select((configOptions, token) =>
             {
@@ -111,13 +116,48 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
 
         context.RegisterImplementationSourceOutput(typeScriptGenerateSource, static (context, source) =>
         {
+            ReferenceSymbols? reference = null;
+
+            var unionMap = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default); // <impl, base>
+            foreach (var item in source)
+            {
+                var syntax = item.Left.Item1;
+                var compilation = item.Left.Item2;
+                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                var typeSymbol = semanticModel.GetDeclaredSymbol(syntax, context.CancellationToken) as ITypeSymbol;
+                if (typeSymbol == null) continue;
+                if (reference == null)
+                {
+                    reference = new ReferenceSymbols(compilation);
+                }
+
+                var isUnion = typeSymbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
+
+                if (isUnion)
+                {
+                    var unionTags = typeSymbol.GetAttributes()
+                        .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPackUnionAttribute))
+                        .Where(x => x.ConstructorArguments.Length == 2)
+                        .Select(x => (INamedTypeSymbol)x.ConstructorArguments[1].Value!);
+                    foreach (var implType in unionTags)
+                    {
+                        unionMap[implType] = typeSymbol;
+                    }
+                }
+            }
+
             foreach (var item in source)
             {
                 var typeDeclaration = item.Left.Item1;
                 var compilation = item.Left.Item2;
                 var path = item.Right!;
 
-                GenerateTypeScript(typeDeclaration, compilation, path, context);
+                if (reference == null)
+                {
+                    reference = new ReferenceSymbols(compilation);
+                }
+
+                GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
             }
 
             // TODO: generate enum

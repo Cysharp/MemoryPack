@@ -126,4 +126,101 @@ export class FooBarBaz {
         return value;
     }
 }
+export class IMyUnion1 {
+    static serialize(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeCore(writer, value) {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+        if (value instanceof SampleUnion1) {
+            writer.writeUnionHeader(0);
+            SampleUnion1.serializeCore(writer, value);
+            return;
+        }
+        else if (value instanceof SampleUnion2) {
+            writer.writeUnionHeader(1);
+            SampleUnion2.serializeCore(writer, value);
+            return;
+        }
+        else {
+            throw new Error( /* ThrowNotFoundInUnionType */);
+        }
+    }
+    static deserialize(buffer) {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+    static deserializeCore(reader) {
+        const [ok, tag] = reader.tryReadUnionHeader();
+        if (!ok) {
+            return null;
+        }
+        switch (tag) {
+            case 0:
+                return SampleUnion1.deserializeCore(reader);
+            case 1:
+                return SampleUnion2.deserializeCore(reader);
+            default:
+                throw new Error("ThrowInvalidTag");
+        }
+    }
+}
+export class SampleUnion1 {
+    constructor() {
+    }
+    static serialize(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeCore(writer, value) {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+        writer.writeObjectHeader(0);
+    }
+    static deserialize(buffer) {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+    static deserializeCore(reader) {
+        const [ok, memberCount] = reader.tryReadObjectHeader();
+        if (!ok) {
+            return null;
+        }
+        var value = new SampleUnion1();
+        return value;
+    }
+}
+export class SampleUnion2 {
+    constructor() {
+    }
+    static serialize(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeCore(writer, value) {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+        writer.writeObjectHeader(0);
+    }
+    static deserialize(buffer) {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+    static deserializeCore(reader) {
+        const [ok, memberCount] = reader.tryReadObjectHeader();
+        if (!ok) {
+            return null;
+        }
+        var value = new SampleUnion2();
+        return value;
+    }
+}
 //# sourceMappingURL=file.js.map

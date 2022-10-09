@@ -78,7 +78,7 @@ export class Foo {
         if (!ok) {
             return null;
         }
-        
+
         // TODO: how handle memberCount?
 
         var value = new Foo();
@@ -169,6 +169,136 @@ export class FooBarBaz {
         value.myProperty4 = reader.readInt32();
         value.dictman = reader.readMap(reader => reader.readInt32(), reader => reader.readArray(reader => reader.readNullableInt32()));
         value.setMan = reader.readSet(reader => reader.readInt32());
+        return value;
+
+    }
+}
+
+
+
+export abstract class IMyUnion1 {
+    static serialize(value: IMyUnion1 | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeCore(writer: MemoryPackWriter, value: IMyUnion1 | null): void {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+
+        if (value instanceof SampleUnion1) {
+            writer.writeUnionHeader(0);
+            SampleUnion1.serializeCore(writer, value);
+            return;
+        }
+        else if (value instanceof SampleUnion2) {
+            writer.writeUnionHeader(1);
+            SampleUnion2.serializeCore(writer, value);
+            return;
+        }
+        else {
+            throw new Error(/* ThrowNotFoundInUnionType */);
+        }
+    }
+
+    static deserialize(buffer: ArrayBuffer): IMyUnion1 | null {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeCore(reader: MemoryPackReader): IMyUnion1 | null {
+        const [ok, tag] = reader.tryReadUnionHeader();
+        if (!ok) {
+            return null;
+        }
+
+        switch (tag) {
+            case 0:
+                return SampleUnion1.deserializeCore(reader);
+            case 1:
+                return SampleUnion2.deserializeCore(reader);
+            default:
+                throw new Error("ThrowInvalidTag");
+        }
+    }
+}
+
+
+export class SampleUnion1 implements IMyUnion1 {
+
+    public constructor() {
+
+    }
+
+    static serialize(value: SampleUnion1 | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeCore(writer: MemoryPackWriter, value: SampleUnion1 | null): void {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+
+        writer.writeObjectHeader(0);
+
+    }
+
+    static deserialize(buffer: ArrayBuffer): SampleUnion1 | null {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeCore(reader: MemoryPackReader): SampleUnion1 | null {
+        const [ok, memberCount] = reader.tryReadObjectHeader();
+        if (!ok) {
+            return null;
+        }
+
+        var value = new SampleUnion1();
+        return value;
+
+    }
+}
+
+
+
+export class SampleUnion2 implements IMyUnion1 {
+
+    public constructor() {
+
+    }
+
+    static serialize(value: SampleUnion2 | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeCore(writer: MemoryPackWriter, value: SampleUnion2 | null): void {
+        if (value == null) {
+            writer.writeNullObjectHeader();
+            return;
+        }
+
+        writer.writeObjectHeader(0);
+
+    }
+
+    static deserialize(buffer: ArrayBuffer): SampleUnion2 | null {
+        return this.deserializeCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeCore(reader: MemoryPackReader): SampleUnion2 | null {
+        const [ok, memberCount] = reader.tryReadObjectHeader();
+        if (!ok) {
+            return null;
+        }
+
+        var value = new SampleUnion2();
         return value;
 
     }

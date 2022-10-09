@@ -78,13 +78,13 @@ public class MemoryPackSerializationException : Exception
     [DoesNotReturn]
     public static void ThrowNotFoundInUnionType(Type actualType, Type baseType)
     {
-        throw new MemoryPackSerializationException($"Type {actualType.FullName} is not annotated in {baseType.FullName} MessagePackUnion.");
+        throw new MemoryPackSerializationException($"Type {actualType.FullName} is not annotated in {baseType.FullName} MemoryPackUnion.");
     }
 
     [DoesNotReturn]
     public static void ThrowInvalidTag(byte tag, Type baseType)
     {
-        throw new MemoryPackSerializationException($"Data read tag: {tag} but not found in {baseType.FullName} MessagePackUnion annotations.");
+        throw new MemoryPackSerializationException($"Data read tag: {tag} but not found in {baseType.FullName} MemoryPackUnion annotations.");
     }
 
     [DoesNotReturn]

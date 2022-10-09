@@ -200,8 +200,32 @@ public partial class FooBarBaz
     //public Hoge? MyProperty3 { get; set; }
 }
 
+
 public enum Hoge : sbyte
 {
+
+}
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(SampleUnion1))]
+[MemoryPackUnion(1, typeof(SampleUnion2))]
+[GenerateTypeScript]
+public partial interface IMogeUnion
+{
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class SampleUnion1 : IMogeUnion
+{
+    public int? MyProperty { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class SampleUnion2 : IMogeUnion
+{
+    public string? MyProperty { get; set; }
 
 }
 
