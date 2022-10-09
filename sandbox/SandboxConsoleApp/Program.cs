@@ -185,6 +185,8 @@ public partial class FooBarBaz
 {
     //public int[] MyPropertyArray { get; set; } = default!;
     //public int[] MyPropertyArray { get; set; } = default!;
+
+    public byte[]? BytesProp { get; set; }
     public string? YoStarDearYomoda { get; private set; }
     public int[] MyPropertyArray { get; set; } = default!;
     public int[][] MyPropertyArray2 { get; set; } = default!;

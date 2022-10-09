@@ -77,6 +77,18 @@ public class TypeScriptMember
             if (symbol is IArrayTypeSymbol array && array.IsSZArray)
             {
                 var elemType = array.ElementType;
+                if (elemType.SpecialType == SpecialType.System_Byte)
+                {
+                    // byte[] is special, TODO:rename writeUint8Array?
+                    return new TypeScriptType
+                    {
+                        TypeName = $"Uint8Array | null",
+                        DefaultValue = "null",
+                        WriteMethodTemplate = $"writer.writeBytes({{0}})",
+                        ReadMethodTemplate = $"reader.readBytes()"
+                    };
+                }
+
                 var innerType = ConvertToTypeScriptType(elemType, references);
                 var typeName = innerType.TypeName.Contains("null") ? $"({innerType.TypeName})" : innerType.TypeName;
 
