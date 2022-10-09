@@ -303,3 +303,10 @@ export class SampleUnion2 implements IMyUnion1 {
 
     }
 }
+
+export const enum Hoge {
+    Huga = 0,
+    Haga = 1,
+    Hoga = 2,
+    Hxga = 3,
+}

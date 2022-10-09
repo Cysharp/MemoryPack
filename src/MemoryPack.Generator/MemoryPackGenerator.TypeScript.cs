@@ -10,7 +10,7 @@ namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static void GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
+    static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
         ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap
         )
     {
@@ -19,7 +19,7 @@ partial class MemoryPackGenerator
         var typeSymbol = semanticModel.GetDeclaredSymbol(syntax, context.CancellationToken);
         if (typeSymbol == null)
         {
-            return;
+            return null;
         }
 
         // TODO: check has MemoryPackable attribute
@@ -56,6 +56,43 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
         catch (Exception ex)
         {
             Trace.WriteLine(ex.ToString());
+        }
+
+        return typeMeta;
+    }
+
+    static void GenerateEnums(IEnumerable<ISymbol?>? enums, string typeScriptOutputDirectoryPath)
+    {
+        if (enums == null) return;
+        if (!Directory.Exists(typeScriptOutputDirectoryPath))
+        {
+            Directory.CreateDirectory(typeScriptOutputDirectoryPath);
+        }
+
+        foreach (var e in enums)
+        {
+            if (e is INamedTypeSymbol typeSymbol)
+            {
+                if (typeSymbol.TypeKind != TypeKind.Enum) continue;
+
+                var sb = new StringBuilder();
+                foreach (var member in typeSymbol.GetMembers())
+                {
+                    // (ok[0] as IFieldSymbol).ConstantValue
+                    var fs = member as IFieldSymbol;
+                    if (fs == null) continue;
+                    var value = fs.HasConstantValue ? $" = {fs.ConstantValue}" : "";
+                    sb.AppendLine($"    {fs.Name}{value},");
+                }
+
+                var code = $$"""
+export const enum {{typeSymbol.Name}} {
+{{sb.ToString()}}
+}
+""";
+
+                File.WriteAllText(Path.Combine(typeScriptOutputDirectoryPath, $"{typeSymbol.Name}.ts"), code, new UTF8Encoding(false));
+            }
         }
     }
 }

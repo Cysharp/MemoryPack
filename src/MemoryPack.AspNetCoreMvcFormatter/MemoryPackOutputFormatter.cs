@@ -18,6 +18,12 @@ public class MemoryPackOutputFormatter : OutputFormatter
         SupportedMediaTypes.Add(ContentType);
     }
 
+    public override bool CanWriteResult(OutputFormatterCanWriteContext context)
+    {
+        // TODO: check this?
+        return base.CanWriteResult(context);
+    }
+
     public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
     {
         if (context.Object == null)

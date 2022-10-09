@@ -117,6 +117,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         context.RegisterImplementationSourceOutput(typeScriptGenerateSource, static (context, source) =>
         {
             ReferenceSymbols? reference = null;
+            string? generatePath = null;
 
             var unionMap = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default); // <impl, base>
             foreach (var item in source)
@@ -146,21 +147,35 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
             }
 
+            var generatedTypes = new List<TypeMeta>();
             foreach (var item in source)
             {
                 var typeDeclaration = item.Left.Item1;
                 var compilation = item.Left.Item2;
-                var path = item.Right!;
+                var path = generatePath = item.Right!;
 
                 if (reference == null)
                 {
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
+                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
+                if (meta != null)
+                {
+                    generatedTypes.Add(meta);
+                }
             }
 
-            // TODO: generate enum
+            var enums = generatedTypes.SelectMany(x => x.Members)
+                .Where(x => x.Kind == MemberKind.Enum)
+                .Select(x => x.MemberType)
+                .Distinct(SymbolEqualityComparer.Default);
+
+            if (generatePath != null)
+            {
+                GenerateEnums(enums, generatePath);
+            }
+
             // TODO: generate reader/writer
             // TODO: generate memorypackSerializer
         });

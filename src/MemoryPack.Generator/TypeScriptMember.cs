@@ -188,6 +188,8 @@ public class TypeScriptMember
 
     TypeScriptTypeCore ConvertFromSpecialType(SpecialType specialType)
     {
+        // TODO: Guid, Date, Enum
+
         var defaultValue = "";
         var typeName = "";
         string binaryOperationMethod = "";

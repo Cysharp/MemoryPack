@@ -11,6 +11,12 @@ public class MemoryPackInputFormatter : InputFormatter
         SupportedMediaTypes.Add(ContentType);
     }
 
+    public override bool CanRead(InputFormatterContext context)
+    {
+        // TODO: check this?
+        return base.CanRead(context);
+    }
+
     public override async Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
     {
         var request = context.HttpContext.Request;

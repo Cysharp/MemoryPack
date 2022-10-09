@@ -185,7 +185,7 @@ public partial class FooBarBaz
 {
     //public int[] MyPropertyArray { get; set; } = default!;
     //public int[] MyPropertyArray { get; set; } = default!;
-
+    public Hoge HogeDozo { get; set; }
     public byte[]? BytesProp { get; set; }
     public string? YoStarDearYomoda { get; private set; }
     public int[] MyPropertyArray { get; set; } = default!;
@@ -195,6 +195,7 @@ public partial class FooBarBaz
     public HashSet<int> SetMan { get; set; } = default!;
 
     public Sonota1 SonotaProp { get; set; } = default!;
+    // public Huga? Nuga { get; set; } = default!;
 
     // TODO: check GUID, Date
     //public int MyProperty1 { get; set; }
@@ -205,7 +206,16 @@ public partial class FooBarBaz
 
 public enum Hoge : sbyte
 {
+    Huga,
+    Yo,
+    SOSOSO
+}
 
+public enum Huga : int
+{
+    ZZZ = 10,
+    NONUM,
+    HOKEPON
 }
 
 [MemoryPackable]
