@@ -24,6 +24,14 @@ using System.Text;
 using System.Xml.Linq;
 
 
+var sb = new StringBuilder();
+
+var foo = "tako";
+sb.AppendLine($"hogemog{foo}e");
+
+sb.AppendLine($$"""
+hogemoge{{foo}}e
+""");
 
 Console.WriteLine("foo");
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
@@ -171,8 +179,29 @@ Console.WriteLine("foo");
 //encoder.Dispose();
 
 
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class FooBarBaz
+{
+    //public int[] MyPropertyArray { get; set; } = default!;
+    //public int[] MyPropertyArray { get; set; } = default!;
+    public string? YoStarDearYomoda { get;private set; }
+    public int[] MyPropertyArray { get; set; } = default!;
+    public int[][] MyPropertyArray2 { get; set; } = default!;
+    public int? MyProperty4 { get; set; }
+    public Dictionary<int, List<int?>> Dictman { get; set; } = default!;
+    public HashSet<int> SetMan { get; set; } = default!;
 
+    // TODO: check GUID, Date
+    //public int MyProperty1 { get; set; }
+    //public int? MyProperty2 { get; set; }
+    //public Hoge? MyProperty3 { get; set; }
+}
 
+public enum Hoge : sbyte
+{
+
+}
 
 
 [MemoryPackable(GenerateType.Object)]

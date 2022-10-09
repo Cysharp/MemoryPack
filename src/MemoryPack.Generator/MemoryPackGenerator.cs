@@ -30,6 +30,7 @@ namespace MemoryPack.Generator;
 public partial class MemoryPackGenerator : IIncrementalGenerator
 {
     public const string MemoryPackableAttributeFullName = "MemoryPack.MemoryPackableAttribute";
+    public const string GenerateTypeScriptAttributeFullName = "MemoryPack.GenerateTypeScriptAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -74,6 +75,54 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             var logPath = source.Right;
 
             Generate(typeDeclaration, compilation, logPath, context);
+        });
+
+        // TypeScript generation
+        var typeScriptEnabled = context.AnalyzerConfigOptionsProvider
+            .Select((configOptions, token) =>
+            {
+                if (configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptOutputDirectory", out var path))
+                {
+                    return path;
+                }
+
+                return (string?)null;
+            });
+
+        var typeScriptDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
+                GenerateTypeScriptAttributeFullName,
+                predicate: static (node, token) =>
+                {
+                    return (node is ClassDeclarationSyntax
+                                 or RecordDeclarationSyntax
+                                 or InterfaceDeclarationSyntax);
+                },
+                transform: static (context, token) =>
+                {
+                    return (TypeDeclarationSyntax)context.TargetNode;
+                });
+
+        var typeScriptGenerateSource = typeScriptDeclarations
+            .Combine(context.CompilationProvider)
+            .WithComparer(Comparer.Instance)
+            .Combine(typeScriptEnabled)
+            .Where(x => x.Right != null) // filter, exists TypeScriptOutputDirectory
+            .Collect();
+
+        context.RegisterImplementationSourceOutput(typeScriptGenerateSource, static (context, source) =>
+        {
+            foreach (var item in source)
+            {
+                var typeDeclaration = item.Left.Item1;
+                var compilation = item.Left.Item2;
+                var path = item.Right!;
+
+                GenerateTypeScript(typeDeclaration, compilation, path, context);
+            }
+
+            // TODO: generate enum
+            // TODO: generate reader/writer
+            // TODO: generate memorypackSerializer
         });
     }
 

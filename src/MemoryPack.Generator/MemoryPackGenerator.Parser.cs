@@ -186,12 +186,14 @@ partial class TypeMeta
             .ToArray();
     }
 
-    (CollectionKind, INamedTypeSymbol?) ParseCollectionKind()
+    public static (CollectionKind, INamedTypeSymbol?) ParseCollectionKind(INamedTypeSymbol? symbol, ReferenceSymbols reference)
     {
+        if (symbol == null) goto NONE;
+
         INamedTypeSymbol? dictionary = default;
         INamedTypeSymbol? set = default;
         INamedTypeSymbol? collection = default;
-        foreach (var item in this.Symbol.AllInterfaces)
+        foreach (var item in symbol.AllInterfaces)
         {
             if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_IDictionary_T))
             {
@@ -220,6 +222,7 @@ partial class TypeMeta
             return (CollectionKind.Collection, collection);
         }
 
+    NONE:
         return (CollectionKind.None, null);
     }
 
@@ -234,7 +237,7 @@ partial class TypeMeta
                 return false;
             }
 
-            var (kind, symbol) = ParseCollectionKind();
+            var (kind, symbol) = ParseCollectionKind(Symbol, reference);
             if (kind == CollectionKind.None)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CollectionGenerateNotImplementedInterface, syntax.Identifier.GetLocation(), Symbol.Name));

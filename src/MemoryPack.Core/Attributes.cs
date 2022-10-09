@@ -86,21 +86,28 @@ public sealed class MemoryPackConstructorAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerializing : Attribute
+public sealed class MemoryPackOnSerializingAttribute : Attribute
 {
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerialized : Attribute
+public sealed class MemoryPackOnSerializedAttribute : Attribute
 {
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserializing : Attribute
+public sealed class MemoryPackOnDeserializingAttribute : Attribute
 {
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserialized : Attribute
+public sealed class MemoryPackOnDeserializedAttribute : Attribute
+{
+}
+
+// Others
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
+public sealed class GenerateTypeScriptAttribute : Attribute
 {
 }

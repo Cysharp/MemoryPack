@@ -18,6 +18,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackOnSerializedAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializingAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializedAttribute { get; }
+    public INamedTypeSymbol GenerateTypeScriptAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
 
     public WellKnownTypes KnownTypes { get; }
@@ -34,10 +35,11 @@ public class ReferenceSymbols
         MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");
         MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");
         MemoryPackIncludeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute");
-        MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializing");
-        MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerialized");
-        MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializing");
-        MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserialized");
+        MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializingAttribute");
+        MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializedAttribute");
+        MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializingAttribute");
+        MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializedAttribute");
+        GenerateTypeScriptAttribute = GetTypeByMetadataName(MemoryPackGenerator.GenerateTypeScriptAttributeFullName);
         IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
         KnownTypes = new WellKnownTypes(this);
     }

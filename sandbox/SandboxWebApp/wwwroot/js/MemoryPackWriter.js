@@ -25,6 +25,7 @@ export class MemoryPackWriter {
         this.dataView = new DataView(this.buffer.buffer);
         this.utf8Encoder = null;
         this.offset = 0;
+        var foo;
     }
     ensureCapacity(count) {
         if (this.buffer.length - this.offset < count) {
