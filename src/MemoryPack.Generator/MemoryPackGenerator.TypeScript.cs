@@ -29,6 +29,7 @@ partial class MemoryPackGenerator
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
         // TODO: not GenerateType.Object, error.
+        // all target code GenerateTypeScript
 
         // TODO: Validate FOr TypeScript
 
@@ -37,9 +38,17 @@ partial class MemoryPackGenerator
         sb.AppendLine("""
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-
 """);
 
+        var imports = typeMeta.Members
+            .Where(x => x.Kind is MemberKind.MemoryPackable or MemberKind.MemoryPackUnion or MemberKind.Enum)
+            .ToArray();
+        foreach (var item in imports)
+        {
+            sb.AppendLine($"import {{ {item.MemberType.Name} }} from \"./{item.MemberType.Name}.js\"; ");
+        }
+
+        sb.AppendLine();
         typeMeta.EmitTypescript(sb);
 
         // save to file
@@ -98,12 +107,22 @@ export class {{TypeName}} {
     }
 
     static deserializeCore(reader: MemoryPackReader): {{TypeName}} | null {
-        const [ok, memberCount] = reader.tryReadObjectHeader();
+        const [ok, count] = reader.tryReadObjectHeader();
         if (!ok) {
             return null;
         }
 
-{{EmitTypeScriptDeserializeBody(tsMembers)}}
+        var value = new {{TypeName}}();
+        if (count == {{tsMembers.Length}}) {
+{{EmitTypeScriptDeserializeBody(tsMembers, false)}}
+        }
+        else if (count > {{tsMembers.Length}}) {
+            throw new Error("Current object's property count is larger than type schema, can't deserialize about versioning.");
+        }
+        else {
+{{EmitTypeScriptDeserializeBody(tsMembers, true)}}
+        }
+        return value;
     }
 }
 """;
@@ -115,10 +134,9 @@ export class {{TypeName}} {
     {
         var sb = new StringBuilder();
 
-        // age: number | null
         foreach (var item in members)
         {
-            sb.AppendLine($"    {item.MemberName}: {item.TypeName}");
+            sb.AppendLine($"    {item.MemberName}: {item.TypeName};");
         }
 
         return sb.ToString();
@@ -149,17 +167,27 @@ export class {{TypeName}} {
         return sb.ToString();
     }
 
-    public string EmitTypeScriptDeserializeBody(TypeScriptMember[] members)
+    public string EmitTypeScriptDeserializeBody(TypeScriptMember[] members, bool emitSkip)
     {
         var sb = new StringBuilder();
 
-        // TODO: handle memberCount
-        sb.AppendLine($"        var value = new {TypeName}();");
-        foreach (var item in members)
+        if (!emitSkip)
         {
-            sb.AppendLine($"        value.{item.MemberName} = {item.ReadMethodTemplate};");
+            foreach (var item in members)
+            {
+                sb.AppendLine($"            value.{item.MemberName} = {item.ReadMethodTemplate};");
+            }
         }
-        sb.AppendLine("        return value;");
+        else
+        {
+            sb.AppendLine("            if (count == 0) return value;");
+            for (int i = 0; i < members.Length; i++)
+            {
+                var item = members[i];
+                sb.AppendLine($"            value.{item.MemberName} = {item.ReadMethodTemplate}; if (count == {i + 1}) return value;");
+            }
+        }
+
 
         return sb.ToString();
     }

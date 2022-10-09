@@ -185,12 +185,14 @@ public partial class FooBarBaz
 {
     //public int[] MyPropertyArray { get; set; } = default!;
     //public int[] MyPropertyArray { get; set; } = default!;
-    public string? YoStarDearYomoda { get;private set; }
+    public string? YoStarDearYomoda { get; private set; }
     public int[] MyPropertyArray { get; set; } = default!;
     public int[][] MyPropertyArray2 { get; set; } = default!;
     public int? MyProperty4 { get; set; }
     public Dictionary<int, List<int?>> Dictman { get; set; } = default!;
     public HashSet<int> SetMan { get; set; } = default!;
+
+    public Sonota1 SonotaProp { get; set; } = default!;
 
     // TODO: check GUID, Date
     //public int MyProperty1 { get; set; }
@@ -205,9 +207,11 @@ public enum Hoge : sbyte
 
 
 [MemoryPackable(GenerateType.Object)]
+[GenerateTypeScript]
 public partial class Sonota1
 {
     // public NoSerializableObject? MyProperty { get; set; }
+    public int HokuHoku { get; set; }
 }
 
 public class NoSerializableObject

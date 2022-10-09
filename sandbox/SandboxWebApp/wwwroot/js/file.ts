@@ -78,7 +78,7 @@ export class Foo {
         if (!ok) {
             return null;
         }
-
+        
         // TODO: how handle memberCount?
 
         var value = new Foo();

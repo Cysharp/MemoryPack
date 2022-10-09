@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Reflection.PortableExecutable;
+using System;
 
 namespace MemoryPack.Generator;
 
@@ -150,7 +152,13 @@ public class TypeScriptMember
 
         if (symbol.IsWillImplementIMemoryPackable(references))
         {
-
+            return new TypeScriptType
+            {
+                TypeName = $"{symbol.Name} | null",
+                DefaultValue = "null",
+                WriteMethodTemplate = $"{symbol.Name}.serializeCore(writer, {{0}})",
+                ReadMethodTemplate = $"{symbol.Name}.deserializeCore(reader)"
+            };
 
             // return MemberKind.MemoryPackable;
         }

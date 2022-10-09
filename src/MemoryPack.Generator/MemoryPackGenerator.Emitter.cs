@@ -62,6 +62,8 @@ partial class MemoryPackGenerator
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Possible null reference assignment
 #pragma warning disable CS8604 // Possible null reference argument for parameter
+#pragma warning disable CS8619
+#pragma warning disable CS8620
 #pragma warning disable CS8631 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.
 #pragma warning disable CA1050 // Declare types in namespaces.
 
@@ -756,7 +758,7 @@ public partial class MemberMeta
             case MemberKind.UnmanagedArray:
                 return $"writer.WriteUnmanagedArray(value.{Name});";
             case MemberKind.Array:
-                return $"writer.WritedArray(value.{Name});";
+                return $"writer.WriteArray(value.{Name});";
             default:
                 return $"writer.WriteValue(value.{Name});";
         }
