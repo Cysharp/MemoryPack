@@ -19,6 +19,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    // [Orleans.GenerateSerializer]
     public sealed partial class JsonResponseModel : IInitializable, IEquatable<JsonResponseModel>
     {
         [MemoryPackConstructor]

@@ -43,7 +43,7 @@ namespace MemoryPack.Formatters
         }
     }
 
-    public sealed class DangerousUnmanagedTypeArrayFormatter<T> : MemoryPackFormatter<T[]>
+    public sealed class DangerousUnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T[]? value)
         {

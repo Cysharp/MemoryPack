@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
 
 namespace MemoryPack.Generator;
 
@@ -30,6 +31,7 @@ namespace MemoryPack.Generator;
 public partial class MemoryPackGenerator : IIncrementalGenerator
 {
     public const string MemoryPackableAttributeFullName = "MemoryPack.MemoryPackableAttribute";
+    public const string GenerateTypeScriptAttributeFullName = "MemoryPack.GenerateTypeScriptAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -74,6 +76,117 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             var logPath = source.Right;
 
             Generate(typeDeclaration, compilation, logPath, context);
+        });
+
+        // TypeScript generation
+        RegisterTypeScript(context);
+    }
+
+    void RegisterTypeScript(IncrementalGeneratorInitializationContext context)
+    {
+        var typeScriptEnabled = context.AnalyzerConfigOptionsProvider
+            .Select((configOptions, token) =>
+            {
+                if (configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptOutputDirectory", out var path))
+                {
+                    return path;
+                }
+
+                return (string?)null;
+            });
+
+        var typeScriptDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
+                GenerateTypeScriptAttributeFullName,
+                predicate: static (node, token) =>
+                {
+                    return (node is ClassDeclarationSyntax
+                                 or RecordDeclarationSyntax
+                                 or InterfaceDeclarationSyntax);
+                },
+                transform: static (context, token) =>
+                {
+                    return (TypeDeclarationSyntax)context.TargetNode;
+                });
+
+        var typeScriptGenerateSource = typeScriptDeclarations
+            .Combine(context.CompilationProvider)
+            .WithComparer(Comparer.Instance)
+            .Combine(typeScriptEnabled)
+            .Where(x => x.Right != null) // filter, exists TypeScriptOutputDirectory
+            .Collect();
+
+        context.RegisterSourceOutput(typeScriptGenerateSource, static (context, source) =>
+        {
+            ReferenceSymbols? reference = null;
+            string? generatePath = null;
+
+            var unionMap = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default); // <impl, base>
+            foreach (var item in source)
+            {
+                var syntax = item.Left.Item1;
+                var compilation = item.Left.Item2;
+                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                var typeSymbol = semanticModel.GetDeclaredSymbol(syntax, context.CancellationToken) as ITypeSymbol;
+                if (typeSymbol == null) continue;
+                if (reference == null)
+                {
+                    reference = new ReferenceSymbols(compilation);
+                }
+
+                var isUnion = typeSymbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
+
+                if (isUnion)
+                {
+                    var unionTags = typeSymbol.GetAttributes()
+                        .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPackUnionAttribute))
+                        .Where(x => x.ConstructorArguments.Length == 2)
+                        .Select(x => (INamedTypeSymbol)x.ConstructorArguments[1].Value!);
+                    foreach (var implType in unionTags)
+                    {
+                        unionMap[implType] = typeSymbol;
+                    }
+                }
+            }
+
+            var generatedEnums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+            var generatedTypes = new List<TypeMeta>();
+            foreach (var item in source)
+            {
+                var typeDeclaration = item.Left.Item1;
+                var compilation = item.Left.Item2;
+                var path = generatePath = item.Right!;
+
+                if (reference == null)
+                {
+                    reference = new ReferenceSymbols(compilation);
+                }
+
+                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap, generatedEnums);
+                if (meta != null)
+                {
+                    generatedTypes.Add(meta);
+                }
+            }
+
+            if (generatePath != null && generatedTypes.Count != 0)
+            {
+                GenerateEnums(generatedEnums, generatePath);
+
+                // generate runtime
+                var runtime = new[]{
+                    ("MemoryPackWriter.ts", TypeScriptRuntime.MemoryPackWriter),
+                    ("MemoryPackReader.ts", TypeScriptRuntime.MemoryPackReader),
+                };
+
+                foreach (var item in runtime)
+                {
+                    var filePath = Path.Combine(generatePath, item.Item1);
+                    if (!File.Exists(filePath))
+                    {
+                        File.WriteAllText(filePath, item.Item2, new UTF8Encoding(false));
+                    }
+                }
+            }
         });
     }
 

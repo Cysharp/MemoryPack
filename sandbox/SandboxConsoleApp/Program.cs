@@ -24,15 +24,28 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var newArgs = "--foo a,b,c".Split(' ');
+var v = new Subset();
+v.MyBool = true;
+v.MyByte = 10;
+v.MySByte = -99;
+v.MyShort = -1000;
 
-ConsoleApp.RunAsync(newArgs, (string[] foo) =>
+
+var bin = MemoryPackSerializer.Serialize(v);
+
+Console.WriteLine(bin);
+
+
+
+
+[MemoryPackable]
+public partial class Subset
 {
-    foreach (var item in foo)
-    {
-        Console.WriteLine(item);
-    }
-});
+    public bool MyBool { get; set; }
+    public byte MyByte { get; set; }
+    public sbyte MySByte { get; set; }
+    public short MyShort { get; set; }
+}
 
 
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
@@ -125,7 +138,6 @@ ConsoleApp.RunAsync(newArgs, (string[] foo) =>
 
 
 
-
 //var decoder = new BrotliDecoder();
 
 //decoder.Decompress(
@@ -181,14 +193,80 @@ ConsoleApp.RunAsync(newArgs, (string[] foo) =>
 //encoder.Dispose();
 
 
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class FooBarBaz
+{
+    //public int[] MyPropertyArray { get; set; } = default!;
+    //public int[] MyPropertyArray { get; set; } = default!;
+    public Hoge HogeDozo { get; set; }
+    public byte[]? BytesProp { get; set; }
+    public string? YoStarDearYomoda { get; private set; }
+    public int[] MyPropertyArray { get; set; } = default!;
+    public int[][] MyPropertyArray2 { get; set; } = default!;
+    public int? MyProperty4 { get; set; }
+    public Dictionary<int, List<int?>> Dictman { get; set; } = default!;
+    public HashSet<int> SetMan { get; set; } = default!;
+
+    public Sonota1 SonotaProp { get; set; } = default!;
+
+    public Guid guid { get; set; } = default!;
+    public Guid? NullTtoguid { get; set; } = default!;
+    public DateTime dtt { get; set; } = default!;
+    public Sonota2 SonotaProp2 { get; set; } = default!;
+    // public Huga? Nuga { get; set; } = default!;
+
+    // TODO: check GUID, Date
+    //public int MyProperty1 { get; set; }
+    //public int? MyProperty2 { get; set; }
+    //public Hoge? MyProperty3 { get; set; }
+}
 
 
+public enum Hoge : sbyte
+{
+    Huga,
+    Yo,
+    SOSOSO
+}
+
+public enum Huga : int
+{
+    ZZZ = 10,
+    NONUM,
+    HOKEPON
+}
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(SampleUnion1))]
+[MemoryPackUnion(1, typeof(SampleUnion2))]
+[GenerateTypeScript]
+public partial interface IMogeUnion
+{
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class SampleUnion1 : IMogeUnion
+{
+    public int? MyProperty { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class SampleUnion2 : IMogeUnion
+{
+    public string? MyProperty { get; set; }
+
+}
 
 
 [MemoryPackable(GenerateType.Object)]
+[GenerateTypeScript]
 public partial class Sonota1
 {
     // public NoSerializableObject? MyProperty { get; set; }
+    public int HokuHoku { get; set; }
 }
 
 public class NoSerializableObject
@@ -197,6 +275,7 @@ public class NoSerializableObject
 }
 
 [MemoryPackable(SerializeLayout.Explicit)]
+[GenerateTypeScript]
 public partial class Sonota2
 {
     [MemoryPackOrder(1)]

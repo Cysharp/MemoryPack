@@ -120,3 +120,4 @@ nuget/*.unitypackage
 __packages/
 
 sandbox/SandboxConsoleApp/MemoryPackLogs/
+/sandbox/SandboxWebApp/node_modules

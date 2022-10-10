@@ -1,13 +1,12 @@
 {
   "profiles": {
-    "http": {
+    "MemoryPack.AspNetCoreMvcFormatter": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5260",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "applicationUrl": "https://localhost:50975;http://localhost:50976"
     }
   }
 }

@@ -1,7 +1,16 @@
+﻿using MemoryPack;
+using MemoryPack.AspNetCoreMvcFormatter;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddControllers(options =>
+{
+    options.InputFormatters.Insert(0, new MemoryPackInputFormatter());
+    options.OutputFormatters.Insert(0, new MemoryPackOutputFormatter());
+});
+
 
 var app = builder.Build();
 
@@ -17,5 +26,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapControllers();
 
 app.Run();

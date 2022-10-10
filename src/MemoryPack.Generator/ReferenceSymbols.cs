@@ -18,6 +18,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackOnSerializedAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializingAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializedAttribute { get; }
+    public INamedTypeSymbol GenerateTypeScriptAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
 
     public WellKnownTypes KnownTypes { get; }
@@ -34,10 +35,11 @@ public class ReferenceSymbols
         MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");
         MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");
         MemoryPackIncludeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute");
-        MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializing");
-        MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerialized");
-        MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializing");
-        MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserialized");
+        MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializingAttribute");
+        MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializedAttribute");
+        MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializingAttribute");
+        MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializedAttribute");
+        GenerateTypeScriptAttribute = GetTypeByMetadataName(MemoryPackGenerator.GenerateTypeScriptAttributeFullName);
         IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
         KnownTypes = new WellKnownTypes(this);
     }
@@ -62,6 +64,7 @@ public class ReferenceSymbols
         public INamedTypeSymbol System_Collections_Generic_ISet_T { get; }
         public INamedTypeSymbol System_Collections_Generic_IDictionary_T { get; }
 
+        public INamedTypeSymbol System_Guid { get; }
         public INamedTypeSymbol System_Version { get; }
         public INamedTypeSymbol System_Uri { get; }
 
@@ -93,6 +96,7 @@ public class ReferenceSymbols
             System_Collections_Generic_ICollection_T = GetTypeByMetadataName("System.Collections.Generic.ICollection`1").ConstructUnboundGenericType();
             System_Collections_Generic_ISet_T = GetTypeByMetadataName("System.Collections.Generic.ISet`1").ConstructUnboundGenericType();
             System_Collections_Generic_IDictionary_T = GetTypeByMetadataName("System.Collections.Generic.IDictionary`2").ConstructUnboundGenericType();
+            System_Guid = GetTypeByMetadataName("System.Guid");
             System_Version = GetTypeByMetadataName("System.Version");
             System_Uri = GetTypeByMetadataName("System.Uri");
             System_Numerics_BigInteger = GetTypeByMetadataName("System.Numerics.BigInteger");

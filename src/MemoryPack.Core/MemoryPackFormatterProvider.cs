@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace MemoryPack;
 
@@ -130,6 +131,21 @@ public static partial class MemoryPackFormatterProvider
             return formatter;
         }
 
+        if (TryInvokeRegisterFormatter(type))
+        {
+            // try again
+            if (formatters.TryGetValue(type, out formatter))
+            {
+                return formatter;
+            }
+        }
+
+        if (TypeHelpers.IsAnonymous(type))
+        {
+            formatter = new ErrorMemoryPackFormatter(type, "Serialize anonymous type is not supported, use record or tuple instead.");
+            goto END;
+        }
+
         // non registered, try to create generic formatter
         // can not detect IsReferenceOrContainsReference but it only uses array type select so safe).
         var formatter2 = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences: true) as IMemoryPackFormatter;
@@ -139,8 +155,22 @@ public static partial class MemoryPackFormatterProvider
         }
         formatter = formatter2;
 
+    END:
         formatters[type] = formatter;
         return formatter;
+    }
+
+    static bool TryInvokeRegisterFormatter(Type type)
+    {
+        if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+        {
+            // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
+            var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            m!.Invoke(null, null); // Cache<T>.formatter will set from method
+            return true;
+        }
+
+        return false;
     }
 
     static class Check<T>
@@ -159,11 +189,8 @@ public static partial class MemoryPackFormatterProvider
             try
             {
                 var type = typeof(T);
-                if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+                if (TryInvokeRegisterFormatter(type))
                 {
-                    // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
-                    var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                    m!.Invoke(null, null); // Cache<T>.formatter will set from method
                     return;
                 }
 
@@ -199,7 +226,7 @@ public static partial class MemoryPackFormatterProvider
             {
                 if (!typeIsReferenceOrContainsReferences)
                 {
-                    formatterType = typeof(UnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                    formatterType = typeof(DangerousUnmanagedArrayFormatter<>).MakeGenericType(type.GetElementType()!);
                     goto CREATE;
                 }
                 else
@@ -230,7 +257,7 @@ public static partial class MemoryPackFormatterProvider
 
         if (type.IsEnum || !typeIsReferenceOrContainsReferences)
         {
-            formatterType = typeof(UnmanagedFormatter<>).MakeGenericType(type);
+            formatterType = typeof(DangerousUnmanagedFormatter<>).MakeGenericType(type);
             goto CREATE;
         }
 
@@ -300,10 +327,18 @@ public static partial class MemoryPackFormatterProvider
 internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
 {
     readonly Type type;
+    readonly string? message;
 
     public ErrorMemoryPackFormatter(Type type)
     {
         this.type = type;
+        this.message = null;
+    }
+
+    public ErrorMemoryPackFormatter(Type type, string message)
+    {
+        this.type = type;
+        this.message = message;
     }
 
     public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
@@ -320,7 +355,14 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
     [DoesNotReturn]
     void Throw()
     {
-        MemoryPackSerializationException.ThrowNotRegisteredInProvider(type);
+        if (message != null)
+        {
+            MemoryPackSerializationException.ThrowMessage(message);
+        }
+        else
+        {
+            MemoryPackSerializationException.ThrowNotRegisteredInProvider(type);
+        }
     }
 }
 
