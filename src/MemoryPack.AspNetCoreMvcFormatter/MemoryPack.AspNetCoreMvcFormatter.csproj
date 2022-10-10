@@ -6,11 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
-
-        <!-- NuGet Packaging -->
-        <SignAssembly>true</SignAssembly>
-        <!--TODO: not yet pack. -->
-        <IsPackable>false</IsPackable>
+        <Description>ASP.NET Input/Output Formatter of MemoryPack.</Description>
     </PropertyGroup>
 
     <ItemGroup>

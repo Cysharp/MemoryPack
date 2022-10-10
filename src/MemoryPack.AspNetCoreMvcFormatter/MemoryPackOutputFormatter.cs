@@ -4,12 +4,14 @@ namespace MemoryPack.AspNetCoreMvcFormatter;
 
 public class MemoryPackOutputFormatter : OutputFormatter
 {
-    private const string ContentType = "application/x-memorypack";
-    private readonly MemoryPackSerializeOptions? options;
+    const string ContentType = "application/x-memorypack";
+    readonly MemoryPackSerializeOptions? options;
+    readonly bool checkContentType = false;
 
-    public MemoryPackOutputFormatter()
+    public MemoryPackOutputFormatter(bool checkContentType = false)
         : this(null!)
     {
+        this.checkContentType = checkContentType;
     }
 
     public MemoryPackOutputFormatter(MemoryPackSerializeOptions options)
@@ -20,12 +22,20 @@ public class MemoryPackOutputFormatter : OutputFormatter
 
     public override bool CanWriteResult(OutputFormatterCanWriteContext context)
     {
-        // TODO: check this?
-        return base.CanWriteResult(context);
+        if (checkContentType)
+        {
+            return (context.ContentType == ContentType);
+        }
+        else
+        {
+            return true;
+        }
     }
 
     public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
     {
+        context.HttpContext.Response.ContentType = ContentType;
+
         if (context.Object == null)
         {
             var writer = context.HttpContext.Response.BodyWriter;

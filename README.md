@@ -9,7 +9,7 @@ For standard object, MemoryPack is x3 faster than MessagePack for C#. For struct
 
 MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator.
 
-Other serializers performs many encoding operations such as VarInt encoding, tag, UTF8 Encoding, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. zero-encoding is similar as FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
+Other serializers performs many encoding operations such as VarInt encoding, tag, string, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. zero-encoding is similar as FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
 
 Other than performance, MemoryPack has these features.
 
@@ -19,6 +19,7 @@ Other than performance, MemoryPack has these features.
 * Deserialize into existing instance
 * Polymorphism(Union) serialization
 * PipeWriter/Reader based streaming serialization
+* TypeScript code generation and ASP.NET Core Formatter
 
 Installation
 ---
@@ -445,7 +446,7 @@ Serialization info
 Which members are serialized, you can check IntelliSense in type. There is an option to write that information to a file at compile time. Set `MemoryPackGenerator_SerializationInfoOutputDirectory` as follows.
 
 ```xml
-<!-- output memoerypack serialization info to directory -->
+<!-- output memorypack serialization info to directory -->
 <ItemGroup>
     <CompilerVisibleProperty Include="MemoryPackGenerator_SerializationInfoOutputDirectory" />
 </ItemGroup>
@@ -529,14 +530,166 @@ Note that there is a several-fold speed penalty between MemoryPack's uncompresse
 
 Packages
 ---
-MemoryPack has four packages.
+MemoryPack has thesed packages.
 
 * MemoryPack
 * MemoryPack.Core
 * MemoryPack.Generator
 * MemoryPack.Streaming
+* MemoryPack.AspNetCoreMvcFormatter
 
-Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionaly use `MemoryPack.Streaming`.
+Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionaly use `MemoryPack.Streaming`. `MemoryPack.AspNetCoreMvcFormatter` is input/output formatter for ASP.NET Core.
+
+TypeScript and ASP.NET Core Formatter
+---
+MemoryPack supports TypeScript code generation. It generates class and serialization code from C#, In other words, you can share types with the Browser without using OpenAPI, proto, etc.
+
+Code generation is integrated with Source Generator, the following options(`MemoryPackGenerator_TypeScriptOutputDirectory`) set the output directory for TypeScript code. Runtime code is output at the same time, so no additional dependencies are required.
+
+```xml
+<!-- output memorypack TypeScript code to directory -->
+<ItemGroup>
+    <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
+</ItemGroup>
+<PropertyGroup>
+    <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
+</PropertyGroup>
+```
+
+At first, require to annotate `[GenerateTypeScript]` to C# MemoryPackable type.
+
+```csharp
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Person
+{
+    public required Guid Id { get; init; }
+    public required int Age { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required DateTime DateOfBirth { get; init; }
+    public required Gender Gender { get; init; }
+    public required string[] Emails { get; init; }
+}
+
+public enum Gender
+{
+    Male, Female, Other
+}
+```
+
+Runtime code and TypeScript type will generate to target directory.
+
+![image](https://user-images.githubusercontent.com/46207/194916544-1b6bb5ed-966b-43c3-a378-3eac297c2b40.png)
+
+The generated code is as follows, with simple fields and static methods for serialize and deserialize.
+
+```typescript
+import { MemoryPackWriter } from "./MemoryPackWriter.js";
+import { MemoryPackReader } from "./MemoryPackReader.js";
+import { Gender } from "./Gender.js"; 
+
+export class Person {
+    id: string;
+    age: number;
+    firstName: string | null;
+    lastName: string | null;
+    dateOfBirth: Date;
+    gender: Gender;
+    emails: (string | null)[] | null;
+
+    constructor() {
+        // snip...
+    }
+
+    static serialize(value: Person | null): Uint8Array {
+        // snip...
+    }
+
+    static serializeCore(writer: MemoryPackWriter, value: Person | null): void {
+        // snip...
+
+    }
+
+    static deserialize(buffer: ArrayBuffer): Person | null {
+        // snip...
+    }
+
+    static deserializeCore(reader: MemoryPackReader): Person | null {
+        // snip...
+    }
+}
+```
+
+You can use this type like following.
+
+```typescript
+let person = new Person();
+person.id = crypto.randomUUID();
+person.age = 30;
+person.firstName = "foo";
+person.lastName = "bar";
+person.dateOfBirth = new Date(1999, 12, 31, 0, 0, 0);
+person.gender = Gender.Other;
+person.emails = ["foo@bar.com", "zoo@bar.net"];
+
+// serialize to Uint8Array
+let bin = Person.serialize(person);
+
+let blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
+
+let response = await fetch("http://localhost:5260/api",
+    { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+
+let buffer = await response.arrayBuffer();
+
+// deserialize from ArrayBuffer 
+let person2 = Person.deserialize(buffer);
+```
+
+We're also providing `MemoryPack.AspNetCoreMvcFormatter` package, you can add `MemoryPackInputFormatter`, `MemoryPackOutputFormatter` to ASP.NET Core MVC.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRazorPages();
+
+builder.Services.AddControllers(options =>
+{
+    options.InputFormatters.Insert(0, new MemoryPackInputFormatter());
+    options.OutputFormatters.Insert(0, new MemoryPackOutputFormatter());
+});
+```
+
+### TypeScript Type Mapping
+
+There are a few restrictions on the types that can be generated. Among the primitives, `char` and `decimal` are not supported. Also, OpenGenerics type cannot be used.
+
+|  C#  |  TypeScript  | Description |
+| ---- | ---- | ---- |
+| bool |  boolean  |
+| byte |  number  |
+| sbyte |  number  |
+| int |  number |
+| uint |  number |
+| short |  number |
+| ushort |  number |
+| long |  bigint |
+| ulong |  bigint |
+| float |  number |
+| double |  number |
+| string |  string \| null  | 
+| Guid |  string  | In TypeScript, represents as string but serialize/deserialize as 16byte binary
+| DateTime | Date | DateTimeKind will be ignored
+| enum | const enum | `long` and `ulong` underlying type is not supported
+| T? | T \| null |
+| T[] | T[] \| null |
+| byte[] | Uint8Array |
+| `: ICollection<T>` | T[] | Supports all `ICollection<T>` implemented type like `List<T>`
+| `: ISet<T>` | `Set<T>` | Supports all `ISet<T>` implemented type like `HashSet<T>`
+| `: IDictionary<K,V>` | `Map<K, V>` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`
+
+`[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
 
 Streaming Serialization
 ---

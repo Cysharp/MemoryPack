@@ -682,7 +682,7 @@ export class MemoryPackReader {
 
         if (length > 0) {
             if (this.utf16Decoder == null) {
-                this.utf16Decoder = new TextDecoder("utf-16", { ignoreBOM: true });
+                this.utf16Decoder = new TextDecoder("utf-16", { ignoreBOM: true, fatal: true });
             }
 
             const byteLength = length * 2;
@@ -693,7 +693,7 @@ export class MemoryPackReader {
         }
         else {
             if (this.utf8Decoder == null) {
-                this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+                this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
             }
 
             // [utf8-length, utf16-length, utf8-value]

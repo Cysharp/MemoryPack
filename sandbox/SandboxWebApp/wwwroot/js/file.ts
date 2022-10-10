@@ -8,32 +8,36 @@ import { IMogeUnion } from "./memorypack/IMogeUnion.js";
 import { SampleUnion1 } from "./memorypack/SampleUnion1.js";
 import { Subset } from "./memorypack/Subset.js";
 import { SampleUnion2 } from "./memorypack/SampleUnion2.js";
+import { Person } from "./memorypack/Person.js";
+import { Gender } from "./memorypack/Gender.js";
 
 export async function hoge() {
 
-    //var f = new Foo();
-    //f.age = 32;
-    //f.name = "hogemoge";
-    //f.guid = "CA761232-ED42-11CE-BACD-00AA0057B223";
-    //f.seq = [1, 10, 200, 300];
-
-    //var bin = Foo.serialize(f);
-
-    //var blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
-
-    //var v = await fetch("http://localhost:5260/api", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
 
 
+    let person = new Person();
+    person.id = crypto.randomUUID();
+    person.age = 30;
+    person.firstName = "foo";
+    person.lastName = "bar";
+    person.dateOfBirth = new Date(1999, 12, 31, 0, 0, 0);
+    person.gender = Gender.Other;
+    person.emails = ["foo@bar.com", "zoo@bar.net"];
 
-    //var buffer = await v.arrayBuffer();
+    // serialize to Uint8Array
+    let bin = Person.serialize(person);
 
-    //var foo = Foo.deserialize(buffer);
+    let blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
 
-    //var a = Tako.Huga;
+    let response = await fetch("http://localhost:5260/api",
+        { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+
+    let buffer = await response.arrayBuffer();
+
+    // deserialize from ArrayBuffer 
+    let person2 = Person.deserialize(buffer);
 
 
-    //var map = new Map<number, string>();
-    //map.set(100, "foo");
 }
 
 

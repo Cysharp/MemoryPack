@@ -115,7 +115,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             .Where(x => x.Right != null) // filter, exists TypeScriptOutputDirectory
             .Collect();
 
-        context.RegisterImplementationSourceOutput(typeScriptGenerateSource, static (context, source) =>
+        context.RegisterSourceOutput(typeScriptGenerateSource, static (context, source) =>
         {
             ReferenceSymbols? reference = null;
             string? generatePath = null;

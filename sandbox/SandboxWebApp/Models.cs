@@ -1,4 +1,5 @@
 ﻿using MemoryPack;
+using System.ComponentModel;
 using System.Security.Principal;
 
 namespace SandboxWebApp;
@@ -127,4 +128,46 @@ public partial class Subset
     public byte MyByte { get; set; }
     public sbyte MySByte { get; set; }
     public short MyShort { get; set; }
+}
+
+
+
+// https://raw.githubusercontent.com/endel/msgpack-benchmark/master/sample-large.json
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class SampleLarge
+{
+    public string? _id { get; set; }
+    public string? author { get; set; }
+    public string? created_at { get; set; }
+    public string? description { get; set; }
+    public string? image { get; set; }
+    public string[]? keywords { get; set; }
+    public string? language { get; set; }
+    public string? permalink { get; set; }
+    public bool published { get; set; }
+    public string? title { get; set; }
+    public string? updated_at { get; set; }
+    public string? url { get; set; }
+}
+
+
+
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Person
+{
+    public required Guid Id { get; init; }
+    public required int Age { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required DateTime DateOfBirth { get; init; }
+    public required Gender Gender { get; init; }
+    public required string[] Emails { get; init; }
+}
+
+public enum Gender
+{
+    Male, Female, Other
 }
