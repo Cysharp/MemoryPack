@@ -11,7 +11,8 @@ namespace MemoryPack.Generator;
 partial class MemoryPackGenerator
 {
     static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
-        ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap
+        ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap,
+        HashSet<ITypeSymbol> enumCollection
         )
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
@@ -22,17 +23,26 @@ partial class MemoryPackGenerator
             return null;
         }
 
-        // TODO: check has MemoryPackable attribute
-
-
+        // require [MemoryPackable]
+        if (!typeSymbol.ContainsAttribute(reference.MemoryPackableAttribute))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptMustBeMemoryPackable, syntax.Identifier.GetLocation(), typeSymbol.Name));
+            return null;
+        }
 
 
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
-        // TODO: not GenerateType.Object, error.
-        // all target code GenerateTypeScript
+        if (typeMeta.GenerateType != GenerateType.Object)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptOnlyAllowsGenerateTypeObject, syntax.Identifier.GetLocation(), typeSymbol.Name));
+            return null;
+        }
 
-        // TODO: Validate FOr TypeScript
+        if (!Validate(typeMeta, syntax, context, reference))
+        {
+            return null;
+        }
 
         var sb = new StringBuilder();
 
@@ -41,7 +51,29 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 """);
 
-        typeMeta.EmitTypescript(sb, unionMap);
+        try
+        {
+            typeMeta.EmitTypescript(sb, unionMap, enumCollection);
+        }
+        catch (NotSupportedTypeException ex)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptNotSupportedType, ex.MemberMeta!.GetLocation(syntax),
+                typeMeta.Symbol.Name, ex.MemberMeta.Name, ex.MemberMeta.MemberType.FullyQualifiedToString()));
+            return null;
+        }
+
+        // validate invalid enum
+        foreach (var item in enumCollection)
+        {
+            if (item.TypeKind == TypeKind.Enum && item is INamedTypeSymbol nts)
+            {
+                if (nts.EnumUnderlyingType!.SpecialType is SpecialType.System_Int64 or SpecialType.System_UInt64)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptDoesNotAllowLongEnum, syntax.Identifier.GetLocation(), typeSymbol.Name, item.FullyQualifiedToString()));
+                    return null;
+                }
+            }
+        }
 
         // save to file
         try
@@ -95,11 +127,24 @@ export const enum {{typeSymbol.Name}} {
             }
         }
     }
+
+    static bool Validate(TypeMeta type, TypeDeclarationSyntax syntax, in SourceProductionContext context, ReferenceSymbols reference)
+    {
+        var typeSymbol = type.Symbol;
+
+        if (type.Symbol.IsGenericType)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptDoesNotAllowGenerics, syntax.Identifier.GetLocation(), typeSymbol.Name));
+            return false;
+        }
+
+        return true;
+    }
 }
 
 public partial class TypeMeta
 {
-    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
+    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, HashSet<ITypeSymbol> enumCollection)
     {
         if (IsUnion)
         {
@@ -119,7 +164,7 @@ public partial class TypeMeta
         sb.AppendLine();
 
 
-        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference)).ToArray();
+        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference, enumCollection)).ToArray();
         var impl = (union != null) ? $"implements {union.Name} " : "";
 
         var code = $$"""

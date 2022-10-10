@@ -60,6 +60,15 @@ public partial class AllConvertableType
     // memory-packable
     public NestedObject? Nested1 { get; set; }
     public IMogeUnion? Union1 { get; set; }
+
+    // not supported type
+    // public LongEnumBow NonSupportLongEnumBow { get; set; }
+    // public Dictionary<int, NOBOU?> ddd { get; set; }
+}
+
+public enum NOBOU : int
+{
+    AP = 99
 }
 
 

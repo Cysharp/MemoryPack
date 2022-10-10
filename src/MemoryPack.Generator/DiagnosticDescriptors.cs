@@ -220,4 +220,44 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptMustBeMemoryPackable = new(
+        id: "MEMPACK027",
+        title: "GenerateTypeScript must be MemoryPackable",
+        messageFormat: "Type '{0}' is annotated GenerateTypeScript but not annotated MemoryPackable",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptOnlyAllowsGenerateTypeObject = new(
+        id: "MEMPACK028",
+        title: "GenerateTypeScript must be MemoryPackable(GenerateType.Object)",
+        messageFormat: "Type '{0}' is annotated GenerateTypeScript, its MemoryPackable only allows GenerateType.Object",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptDoesNotAllowGenerics = new(
+        id: "MEMPACK029",
+        title: "GenerateTypeScript type does not allow generics",
+        messageFormat: "Type '{0}' is annotated GenerateTypeScript that does not allow generics parameter",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptDoesNotAllowLongEnum = new(
+        id: "MEMPACK030",
+        title: "GenerateTypeScript type does not allow 64bit enum",
+        messageFormat: "GenerateTypeScript type '{0}' has not support 64bit(long/ulong) enum type '{1}', 64bit enum is not supported in typescript generation",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptNotSupportedType = new(
+        id: "MEMPACK031",
+        title: "not allow GenerateTypeScript type",
+        messageFormat: "GenerateTypeScript type '{0}' member '{1}' type '{2}' is not supported type in typescript generation",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

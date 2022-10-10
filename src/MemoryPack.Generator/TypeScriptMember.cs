@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Reflection.PortableExecutable;
-using System;
 
 namespace MemoryPack.Generator;
 
@@ -19,6 +17,17 @@ internal class TypeScriptTypeCore
     public string BinaryOperationMethod { get; set; } = default!;
 }
 
+internal class NotSupportedTypeException : Exception
+{
+    public ITypeSymbol ErrorTypeSymbol { get; }
+    public MemberMeta? MemberMeta { get; set; }
+
+    public NotSupportedTypeException(ITypeSymbol typeSymbol)
+    {
+        this.ErrorTypeSymbol = typeSymbol;
+    }
+}
+
 public class TypeScriptMember
 {
     public MemberMeta Member { get; }
@@ -28,12 +37,21 @@ public class TypeScriptMember
     public string WriteMethodTemplate { get; }
     public string ReadMethodTemplate { get; }
 
-    public TypeScriptMember(MemberMeta member, ReferenceSymbols references)
+    public TypeScriptMember(MemberMeta member, ReferenceSymbols references, HashSet<ITypeSymbol> enumCollection)
     {
         this.Member = member;
         this.MemberName = Char.ToLowerInvariant(member.Name[0]) + member.Name.Substring(1);
 
-        var tsType = ConvertToTypeScriptType(member.MemberType, references);
+        TypeScriptType tsType;
+        try
+        {
+            tsType = ConvertToTypeScriptType(member.MemberType, references, enumCollection);
+        }
+        catch (NotSupportedTypeException ex)
+        {
+            ex.MemberMeta = member;
+            throw;
+        }
 
         this.TypeName = tsType.TypeName;
         this.DefaultValue = tsType.DefaultValue;
@@ -41,11 +59,11 @@ public class TypeScriptMember
         this.ReadMethodTemplate = tsType.ReadMethodTemplate;
     }
 
-    TypeScriptType ConvertToTypeScriptType(ITypeSymbol symbol, ReferenceSymbols references)
+    TypeScriptType ConvertToTypeScriptType(ITypeSymbol symbol, ReferenceSymbols references, HashSet<ITypeSymbol> enumCollection)
     {
         if (symbol.TypeKind == TypeKind.Enum)
         {
-            var primitiveType = ConvertFromSymbol(symbol, references)!;
+            var primitiveType = ConvertFromSymbol(symbol, references, enumCollection)!;
 
             // enum uses self typename(convert to const enum)
             return new TypeScriptType
@@ -73,7 +91,7 @@ public class TypeScriptMember
                     };
                 }
 
-                var innerType = ConvertToTypeScriptType(elemType, references);
+                var innerType = ConvertToTypeScriptType(elemType, references, enumCollection);
                 var typeName = innerType.TypeName.Contains("null") ? $"({innerType.TypeName})" : innerType.TypeName;
 
                 var elementWriter = string.Format(innerType.WriteMethodTemplate, "x");
@@ -96,7 +114,7 @@ public class TypeScriptMember
         {
             case CollectionKind.Collection:
                 {
-                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
+                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, enumCollection);
                     // same as Array
                     var typeName = innerType.TypeName.Contains("null") ? $"({innerType.TypeName})" : innerType.TypeName;
 
@@ -113,7 +131,7 @@ public class TypeScriptMember
                 }
             case CollectionKind.Set:
                 {
-                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
+                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, enumCollection);
                     var elementWriter = string.Format(innerType.WriteMethodTemplate, "x");
                     var elementReader = string.Format(innerType.ReadMethodTemplate);
 
@@ -127,8 +145,8 @@ public class TypeScriptMember
                 }
             case CollectionKind.Dictionary:
                 {
-                    var keyType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
-                    var valueType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[1], references);
+                    var keyType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, enumCollection);
+                    var valueType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[1], references, enumCollection);
                     var keyWriter = string.Format(keyType.WriteMethodTemplate, "x");
                     var keyReader = string.Format(keyType.ReadMethodTemplate);
                     var valueWriter = string.Format(valueType.WriteMethodTemplate, "x");
@@ -164,7 +182,7 @@ public class TypeScriptMember
         var isNullable = (symbol is INamedTypeSymbol nts && nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T));
         if (isNullable)
         {
-            var primitiveType = ConvertFromSymbol(((INamedTypeSymbol)symbol).TypeArguments[0], references)!;
+            var primitiveType = ConvertFromSymbol(((INamedTypeSymbol)symbol).TypeArguments[0], references, enumCollection)!;
 
             return new TypeScriptType
             {
@@ -177,7 +195,7 @@ public class TypeScriptMember
 
         // others
         {
-            var primitiveType = ConvertFromSymbol(symbol, references)!;
+            var primitiveType = ConvertFromSymbol(symbol, references, enumCollection)!;
             return new TypeScriptType
             {
                 TypeName = $"{primitiveType.TypeName}",
@@ -188,18 +206,19 @@ public class TypeScriptMember
         }
     }
 
-    TypeScriptTypeCore? ConvertFromSymbol(ITypeSymbol typeSymbol, ReferenceSymbols reference)
+    TypeScriptTypeCore ConvertFromSymbol(ITypeSymbol typeSymbol, ReferenceSymbols reference, HashSet<ITypeSymbol> enumCollection)
     {
         var fromSpecial = ConvertFromSpecialType(typeSymbol.SpecialType);
         if (fromSpecial != null) return fromSpecial;
 
         // + Guid or Enum
         var namedType = typeSymbol as INamedTypeSymbol;
-        if (namedType == null) return null;
+        if (namedType == null) throw new NotSupportedTypeException(typeSymbol);
 
         if (namedType.TypeKind == TypeKind.Enum)
         {
             var specialType = namedType.EnumUnderlyingType!.SpecialType;
+            enumCollection.Add(namedType); // add collected enum
             return ConvertFromSpecialType(specialType)!;
         }
 
@@ -213,7 +232,7 @@ public class TypeScriptMember
             };
         }
 
-        return null;
+        throw new NotSupportedTypeException(typeSymbol);
     }
 
     TypeScriptTypeCore? ConvertFromSpecialType(SpecialType specialType)

@@ -1,6 +1,7 @@
 ﻿using MemoryPack.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -36,16 +37,20 @@ public static class CSharpGeneratorRunner
         baseCompilation = compilation;
     }
 
-    public static Diagnostic[] RunGenerator(string source)
+    public static Diagnostic[] RunGenerator(string source, AnalyzerConfigOptionsProvider? options = null)
     {
         var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator());
+        if (options != null)
+        {
+            driver = (Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
+        }
 
         var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp11))); // use C#11
 
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
 
-        // combine diagnostics as result.
+        // combine diagnostics as result.(ignore warning)
         var compilationDiagnostics = newCompilation.GetDiagnostics();
-        return diagnostics.Concat(compilationDiagnostics).ToArray();
+        return diagnostics.Concat(compilationDiagnostics).Where(x => x.Severity == DiagnosticSeverity.Error).ToArray();
     }
 }

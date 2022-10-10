@@ -147,6 +147,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
             }
 
+            var generatedEnums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
             var generatedTypes = new List<TypeMeta>();
             foreach (var item in source)
             {
@@ -159,21 +160,16 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
+                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap, generatedEnums);
                 if (meta != null)
                 {
                     generatedTypes.Add(meta);
                 }
             }
 
-            var enums = generatedTypes.SelectMany(x => x.Members)
-                .Where(x => x.Kind == MemberKind.Enum)
-                .Select(x => x.MemberType)
-                .Distinct(SymbolEqualityComparer.Default);
-
             if (generatePath != null)
             {
-                GenerateEnums(enums, generatePath);
+                GenerateEnums(generatedEnums, generatePath);
             }
 
             // TODO: generate reader/writer

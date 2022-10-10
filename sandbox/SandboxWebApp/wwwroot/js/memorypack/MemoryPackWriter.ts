@@ -37,7 +37,7 @@ export class MemoryPackWriter {
         if (this.buffer.length - this.offset < count) {
             var nextCapacity = this.buffer.length;
             var to = this.offset + count;
-
+            
             while (nextCapacity < to) {
                 nextCapacity = nextCapacity * 2;
             }
