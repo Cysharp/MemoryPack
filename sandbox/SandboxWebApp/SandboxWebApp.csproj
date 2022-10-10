@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
