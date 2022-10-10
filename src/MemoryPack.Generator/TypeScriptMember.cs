@@ -64,13 +64,12 @@ public class TypeScriptMember
                 var elemType = array.ElementType;
                 if (elemType.SpecialType == SpecialType.System_Byte)
                 {
-                    // byte[] is special, TODO:rename writeUint8Array?
                     return new TypeScriptType
                     {
                         TypeName = $"Uint8Array | null",
                         DefaultValue = "null",
-                        WriteMethodTemplate = $"writer.writeBytes({{0}})",
-                        ReadMethodTemplate = $"reader.readBytes()"
+                        WriteMethodTemplate = $"writer.writeUint8Array({{0}})",
+                        ReadMethodTemplate = $"reader.readUint8Array()"
                     };
                 }
 
@@ -135,12 +134,16 @@ public class TypeScriptMember
                     var valueWriter = string.Format(valueType.WriteMethodTemplate, "x");
                     var valueReader = string.Format(valueType.ReadMethodTemplate);
 
+                    // v & k both unamnaged struct, does not write object-header, otherwise, require to write object header.
+                    var bothUnmanaged = (collectionSymbol!.TypeArguments[0].IsUnmanagedType && collectionSymbol!.TypeArguments[1].IsUnmanagedType)
+                        .ToString().ToLower();
+
                     return new TypeScriptType
                     {
                         TypeName = $"Map<{keyType.TypeName}, {valueType.TypeName}> | null",
                         DefaultValue = "null",
-                        WriteMethodTemplate = $"writer.writeMap({{0}}, (writer, x) => {keyWriter}, (writer, x) => {valueWriter})",
-                        ReadMethodTemplate = $"reader.readMap(reader => {keyReader}, reader => {valueReader})"
+                        WriteMethodTemplate = $"writer.writeMap({{0}}, (writer, x) => {keyWriter}, (writer, x) => {valueWriter}, {bothUnmanaged})",
+                        ReadMethodTemplate = $"reader.readMap(reader => {keyReader}, reader => {valueReader}, {bothUnmanaged})"
                     };
                 }
             default:
@@ -202,11 +205,10 @@ public class TypeScriptMember
 
         if (SymbolEqualityComparer.Default.Equals(namedType, reference.KnownTypes.System_Guid))
         {
-            var primitive = ConvertFromSpecialType(SpecialType.System_String)!;
             return new TypeScriptTypeCore
             {
-                TypeName = primitive.TypeName,
-                DefaultValue = primitive.DefaultValue,
+                TypeName = "string",
+                DefaultValue = "\"00000000-0000-0000-0000-000000000000\"",
                 BinaryOperationMethod = "Guid"
             };
         }

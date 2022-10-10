@@ -15,6 +15,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
+    </ItemGroup>
+    <PropertyGroup>
+        <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
+    </PropertyGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.AspNetCoreMvcFormatter\MemoryPack.AspNetCoreMvcFormatter.csproj" />
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
         <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">

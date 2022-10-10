@@ -24,16 +24,30 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var sb = new StringBuilder();
+var v = new Subset();
+v.MyBool = true;
+v.MyByte = 10;
+v.MySByte = -99;
+v.MyShort = -1000;
 
-var foo = "tako";
-sb.AppendLine($"hogemog{foo}e");
 
-sb.AppendLine($$"""
-hogemoge{{foo}}e
-""");
+var bin = MemoryPackSerializer.Serialize(v);
 
-Console.WriteLine("foo");
+Console.WriteLine(bin);
+
+
+
+
+[MemoryPackable]
+public partial class Subset
+{
+    public bool MyBool { get; set; }
+    public byte MyByte { get; set; }
+    public sbyte MySByte { get; set; }
+    public short MyShort { get; set; }
+}
+
+
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
 //var takotako = MemoryPackSerializer.Deserialize<string>(bin);
 
@@ -197,6 +211,7 @@ public partial class FooBarBaz
     public Sonota1 SonotaProp { get; set; } = default!;
 
     public Guid guid { get; set; } = default!;
+    public Guid? NullTtoguid { get; set; } = default!;
     public DateTime dtt { get; set; } = default!;
     public Sonota2 SonotaProp2 { get; set; } = default!;
     // public Huga? Nuga { get; set; } = default!;

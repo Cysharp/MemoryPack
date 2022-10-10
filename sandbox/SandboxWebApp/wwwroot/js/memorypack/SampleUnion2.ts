@@ -2,44 +2,44 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 import { IMogeUnion } from "./IMogeUnion.js"; 
 
-export class SampleUnion1 implements IMogeUnion {
-    myProperty: number | null;
+export class SampleUnion2 implements IMogeUnion {
+    myProperty: string | null;
 
-    public constructor() {
+    constructor() {
         this.myProperty = null;
 
     }
 
-    static serialize(value: SampleUnion1 | null): Uint8Array {
+    static serialize(value: SampleUnion2 | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeCore(writer: MemoryPackWriter, value: SampleUnion1 | null): void {
+    static serializeCore(writer: MemoryPackWriter, value: SampleUnion2 | null): void {
         if (value == null) {
             writer.writeNullObjectHeader();
             return;
         }
 
         writer.writeObjectHeader(1);
-        writer.writeNullableInt32(value.myProperty);
+        writer.writeString(value.myProperty);
 
     }
 
-    static deserialize(buffer: ArrayBuffer): SampleUnion1 | null {
+    static deserialize(buffer: ArrayBuffer): SampleUnion2 | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
 
-    static deserializeCore(reader: MemoryPackReader): SampleUnion1 | null {
+    static deserializeCore(reader: MemoryPackReader): SampleUnion2 | null {
         const [ok, count] = reader.tryReadObjectHeader();
         if (!ok) {
             return null;
         }
 
-        var value = new SampleUnion1();
+        const value = new SampleUnion2();
         if (count == 1) {
-            value.myProperty = reader.readNullableInt32();
+            value.myProperty = reader.readString();
 
         }
         else if (count > 1) {
@@ -47,7 +47,7 @@ export class SampleUnion1 implements IMogeUnion {
         }
         else {
             if (count == 0) return value;
-            value.myProperty = reader.readNullableInt32(); if (count == 1) return value;
+            value.myProperty = reader.readString(); if (count == 1) return value;
 
         }
         return value;

@@ -6,24 +6,9 @@ namespace SandboxWebApp.Controllers;
 [Route("api/")]
 public class MemoryPackController : Controller
 {
-    [HttpGet]
-    public Person Get()
-    {
-        return new Person { Age = 99, Name = "hoge" };
-    }
-
     [HttpPost]
-    public Person Post([FromBody] Person person)
+    public AllConvertableType Post([FromBody] AllConvertableType value)
     {
-        return person;
+        return value;
     }
-}
-
-[MemoryPackable]
-public partial class Person
-{
-    public int? Age { get; set; }
-    public string? Name { get; set; }
-    public Guid Guid { get; set; }
-    public int[]? Seq { get; set; }
 }

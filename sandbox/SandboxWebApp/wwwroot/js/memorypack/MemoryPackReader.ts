@@ -1,196 +1,244 @@
-// Code of MemoryPack
+﻿// Code of MemoryPack
 const nullCollection = -1;
 const union = 254;
 const nullObject = 255;
+
 // bool
 const TRUE = 1;
 const FALSE = 0;
+
 // DateTimeOffset.FromUnixTimeMilliseconds(0).Ticks
 const unixEpochTicks = 621355968000000000n;
+
 // 01-62 bit represents ticks
 // 63-64 bit represents DateTimeKind(we trim kind)
-const dateTimeMask = 4611686018427387903n;
+const dateTimeMask = 0b00111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111n;
+
 export class MemoryPackReader {
-    buffer;
-    dataView;
-    utf8Decoder;
-    utf16Decoder;
-    offset;
-    constructor(buffer) {
+    private buffer: ArrayBuffer
+    private dataView: DataView
+    private utf8Decoder: TextDecoder | null
+    private utf16Decoder: TextDecoder | null
+    private offset: number
+
+    public constructor(buffer: ArrayBuffer) {
         this.buffer = buffer;
         this.dataView = new DataView(this.buffer);
         this.utf8Decoder = null;
         this.utf16Decoder = null;
         this.offset = 0;
     }
-    tryReadObjectHeader() {
+
+    public tryReadObjectHeader(): [boolean, number] {
         const memberCount = this.readUint8();
         return (memberCount == nullObject)
             ? [false, 0]
             : [true, memberCount];
     }
-    tryReadUnionHeader() {
+
+    public tryReadUnionHeader(): [boolean, number] {
         const code = this.readUint8();
         if (code != union) {
             return [false, 0];
         }
+
         const tag = this.readUint8();
         return [true, tag];
     }
-    tryReadCollectionHeader() {
+
+    public tryReadCollectionHeader(): [boolean, number] {
         const length = this.readInt32();
         if (length == nullCollection) {
             return [false, 0];
         }
+
         if ((this.buffer.byteLength - this.offset) < length) {
             throw new Error("header length is too large, length: " + length);
         }
+
         return [true, length];
     }
-    readBoolean() {
+
+    public readBoolean(): boolean {
         return this.readUint8() != 0;
     }
-    readNullableBoolean() {
+
+    public readNullableBoolean(): boolean | null {
         if (this.readUint8() == FALSE) {
             this.offset += 1;
             return null;
         }
         return this.readUint8() == TRUE;
     }
-    readUint8() {
+
+    public readUint8(): number {
         const v = this.dataView.getUint8(this.offset);
         this.offset += 1;
         return v;
     }
-    readNullableUint8() {
+
+    public readNullableUint8(): number | null {
         if (this.readUint8() == FALSE) {
             this.offset += 1;
             return null;
         }
+
         return this.readUint8();
     }
-    readUint16() {
-        const v = this.dataView.getUint16(this.offset);
+
+    public readUint16(): number {
+        const v = this.dataView.getUint16(this.offset, true);
         this.offset += 2;
         return v;
     }
-    readNullableUint16() {
+
+    public readNullableUint16(): number | null {
         if (this.readUint16() == FALSE) {
             this.offset += 2;
             return null;
         }
+
         return this.readUint16();
     }
-    readUint32() {
-        const v = this.dataView.getUint32(this.offset);
+
+    public readUint32(): number {
+        const v = this.dataView.getUint32(this.offset, true);
         this.offset += 4;
         return v;
     }
-    readNullableUint32() {
+
+    public readNullableUint32(): number | null {
         if (this.readUint32() == FALSE) {
             this.offset += 4;
             return null;
         }
+
         return this.readUint32();
     }
-    readInt8() {
+
+    public readInt8(): number {
         const v = this.dataView.getInt8(this.offset);
         this.offset += 1;
         return v;
     }
-    readNullableInt8() {
+
+    public readNullableInt8(): number | null {
         if (this.readInt8() == FALSE) {
             this.offset += 1;
             return null;
         }
+
         return this.readInt8();
     }
-    readInt16() {
-        const v = this.dataView.getInt16(this.offset);
+
+    public readInt16(): number {
+        const v = this.dataView.getInt16(this.offset, true);
         this.offset += 2;
         return v;
     }
-    readNullableInt16() {
+
+    public readNullableInt16(): number | null {
         if (this.readInt16() == FALSE) {
             this.offset += 2;
             return null;
         }
+
         return this.readInt16();
     }
-    readInt32() {
-        const v = this.dataView.getInt32(this.offset);
+
+    public readInt32(): number {
+        const v = this.dataView.getInt32(this.offset, true);
         this.offset += 4;
         return v;
     }
-    readNullableInt32() {
+
+    public readNullableInt32(): number | null {
         if (this.readInt32() == FALSE) {
             this.offset += 4;
             return null;
         }
+
         return this.readInt32();
     }
-    readInt64() {
-        const v = this.dataView.getBigInt64(this.offset);
+
+    public readInt64(): bigint {
+        const v = this.dataView.getBigInt64(this.offset, true);
         this.offset += 8;
         return v;
     }
-    readNullableInt64() {
+
+    public readNullableInt64(): bigint | null {
         if (this.readInt64() == 0n) {
             this.offset += 8;
             return null;
         }
+
         return this.readInt64();
     }
-    readUint64() {
-        const v = this.dataView.getBigUint64(this.offset);
+
+    public readUint64(): bigint {
+        const v = this.dataView.getBigUint64(this.offset, true);
         this.offset += 8;
         return v;
     }
-    readNullableUint64() {
+
+    public readNullableUint64(): bigint | null {
         if (this.readUint64() == 0n) {
             this.offset += 8;
             return null;
         }
+
         return this.readUint64();
     }
-    readFloat32() {
-        const v = this.dataView.getFloat32(this.offset);
+
+    public readFloat32(): number {
+        const v = this.dataView.getFloat32(this.offset, true);
         this.offset += 4;
         return v;
     }
-    readNullableFloat32() {
+
+    public readNullableFloat32(): number | null {
         if (this.readFloat32() == FALSE) {
             this.offset += 4;
             return null;
         }
+
         return this.readFloat32();
     }
-    readFloat64() {
-        const v = this.dataView.getFloat64(this.offset);
+
+    public readFloat64(): number {
+        const v = this.dataView.getFloat64(this.offset, true);
         this.offset += 8;
         return v;
     }
-    readNullableFloat64() {
+
+    public readNullableFloat64(): number | null {
         if (this.readFloat64() == FALSE) {
             this.offset += 8;
             return null;
         }
+
         return this.readFloat64();
     }
-    readString() {
+
+    public readString(): string | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
+
         if (length == 0) {
             return "";
         }
+
         if (length > 0) {
             if (this.utf16Decoder == null) {
                 this.utf16Decoder = new TextDecoder("utf-16", { ignoreBOM: true });
             }
+
             const byteLength = length * 2;
-            const v = this.utf16Decoder.decode(this.buffer.slice(this.offset, this.offset + byteLength));
+            const view = new Uint8Array(this.buffer, this.offset, byteLength); // don't use slice, it makes copy
+            const v = this.utf16Decoder.decode(view);
             this.offset += byteLength;
             return v;
         }
@@ -198,51 +246,70 @@ export class MemoryPackReader {
             if (this.utf8Decoder == null) {
                 this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
             }
+
             // [utf8-length, utf16-length, utf8-value]
             const utf8Length = ~length;
             this.offset += 4; // utf16-length, no use
-            const v = this.utf8Decoder.decode(this.buffer.slice(this.offset, this.offset + utf8Length));
+
+            const view = new Uint8Array(this.buffer, this.offset, utf8Length); // don't use slice, it makes copy
+            const v = this.utf8Decoder.decode(view);
             this.offset += utf8Length;
             return v;
         }
     }
-    readArray(elementReader) {
+
+    public readArray<T>(elementReader: (reader: MemoryPackReader) => T): T[] | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
-        const result = new Array(length);
+
+        const result = new Array<T>(length);
         for (var i = 0; i < result.length; i++) {
             result[i] = elementReader(this);
         }
         return result;
     }
-    readMap(keyReader, valueReader) {
+
+    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V, unmanagedStruct: boolean): Map<K, V> | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
-        const result = new Map();
+
+        const result = new Map<K, V>();
+
         for (var i = 0; i < length; i++) {
+            if (!unmanagedStruct) {
+                const [headerOk, headerLength] = this.tryReadObjectHeader();
+                if (!headerOk || headerLength != 2) {
+                    throw new Error("Invalid header in map elements deserialize.");
+                }
+            }
             const key = keyReader(this);
             const value = valueReader(this);
             result.set(key, value);
         }
+
         return result;
     }
-    readSet(elementReader) {
+
+    public readSet<T>(elementReader: (reader: MemoryPackReader) => T): Set<T> | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
-        const result = new Set();
+
+        const result = new Set<T>();
         for (var i = 0; i < length; i++) {
             result.add(elementReader(this));
         }
         return result;
     }
-    readGuid() {
+
+    public readGuid(): string {
         // e.g. "CA761232-ED42-11CE-BACD-00AA0057B223"
+
         // int _a;
         // short _b;
         // short _c;
@@ -254,6 +321,7 @@ export class MemoryPackReader {
         // byte _i;
         // byte _j;
         // byte _k;
+
         const b1 = this.readUint8();
         const b2 = this.readUint8();
         const b3 = this.readUint8();
@@ -270,6 +338,7 @@ export class MemoryPackReader {
         const b14 = this.readUint8();
         const b15 = this.readUint8();
         const b16 = this.readUint8();
+
         return b4.toString(16).padStart(2, "0") + b3.toString(16).padStart(2, "0") + b2.toString(16).padStart(2, "0") + b1.toString(16).padStart(2, "0") // a
             + "-"
             + b6.toString(16).padStart(2, "0") + b5.toString(16).padStart(2, "0") // b
@@ -282,34 +351,41 @@ export class MemoryPackReader {
             + b13.toString(16).padStart(2, "0") + b14.toString(16).padStart(2, "0") // h i
             + b15.toString(16).padStart(2, "0") + b16.toString(16).padStart(2, "0"); // j k
     }
-    readNullableGuid() {
+
+    public readNullableGuid(): string | null {
         if (this.readInt32() == FALSE) {
             this.offset += 16;
             return null;
         }
+
         return this.readGuid();
     }
-    readDate() {
+
+    public readDate(): Date {
         // Date.getTime is UTC Unix time of millisecond
         // .NET Ticks(ulong dateData) is 100-nanosecond from 1/1/0001 12:00am
         const ticks = this.readUint64() & dateTimeMask;
         const unixMillisecond = (ticks - unixEpochTicks) / 10000n;
         return new Date(Number(unixMillisecond));
     }
-    readNullableDate() {
+
+    public readNullableDate(): Date | null {
         if (this.readInt64() == 0n) {
             this.offset += 8;
             return null;
         }
+
         return this.readDate();
     }
-    readBytes() {
+
+    public readUint8Array(): Uint8Array | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
-        const span = this.buffer.slice(this.offset, this.offset + length);
-        return new Uint8Array(span); // TODO: copy? view?
+
+        const span = this.buffer.slice(this.offset, this.offset + length); // slice is copy
+        this.offset += length;
+        return new Uint8Array(span);
     }
 }
-//# sourceMappingURL=MemoryPackReader.js.map

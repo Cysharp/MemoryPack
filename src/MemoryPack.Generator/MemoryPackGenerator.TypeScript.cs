@@ -125,7 +125,7 @@ public partial class TypeMeta
         var code = $$"""
 export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptMembers(tsMembers)}}
-    public constructor() {
+    constructor() {
 {{EmitTypeScriptMembersInit(tsMembers)}}
     }
 
@@ -154,7 +154,7 @@ export class {{TypeName}} {{impl}}{
             return null;
         }
 
-        var value = new {{TypeName}}();
+        const value = new {{TypeName}}();
         if (count == {{tsMembers.Length}}) {
 {{EmitTypeScriptDeserializeBody(tsMembers, false)}}
         }
