@@ -667,27 +667,27 @@ There are a few restrictions on the types that can be generated. Among the primi
 
 |  C#  |  TypeScript  | Description |
 | ---- | ---- | ---- |
-| bool |  boolean  |
-| byte |  number  |
-| sbyte |  number  |
-| int |  number |
-| uint |  number |
-| short |  number |
-| ushort |  number |
-| long |  bigint |
-| ulong |  bigint |
-| float |  number |
-| double |  number |
-| string |  string \| null  | 
-| Guid |  string  | In TypeScript, represents as string but serialize/deserialize as 16byte binary
-| DateTime | Date | DateTimeKind will be ignored
-| enum | const enum | `long` and `ulong` underlying type is not supported
-| T? | T \| null |
-| T[] | T[] \| null |
-| byte[] | Uint8Array |
-| `: ICollection<T>` | T[] | Supports all `ICollection<T>` implemented type like `List<T>`
-| `: ISet<T>` | `Set<T>` | Supports all `ISet<T>` implemented type like `HashSet<T>`
-| `: IDictionary<K,V>` | `Map<K, V>` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`
+| `bool` |  `boolean`  |
+| `byte` |  `number`  |
+| `sbyte` |  `number`  |
+| `int` |  `number` |
+| `uint` |  `number` |
+| `short` |  `number` |
+| `ushort` |  `number` |
+| `long` |  `bigint` |
+| `ulong` |  `bigint` |
+| `float` |  `number` |
+| `double` |  `number` |
+| `string` |  `string \| null`  | 
+| `Guid` |  `string`  | In TypeScript, represents as string but serialize/deserialize as 16byte binary
+| `DateTime` | `Date` | DateTimeKind will be ignored
+| `enum` | `const enum` | `long` and `ulong` underlying type is not supported
+| `T?` | `T \| null` |
+| `T[]` | `T[] \| null` |
+| `byte[]` | `Uint8Array \| null` |
+| `: ICollection<T>` | `T[] \| null` | Supports all `ICollection<T>` implemented type like `List<T>`
+| `: ISet<T>` | `Set<T> \| null` | Supports all `ISet<T>` implemented type like `HashSet<T>`
+| `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`
 
 `[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
 
