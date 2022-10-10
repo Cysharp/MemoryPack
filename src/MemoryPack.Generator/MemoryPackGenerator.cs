@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
 
 namespace MemoryPack.Generator;
 
@@ -167,13 +168,25 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
             }
 
-            if (generatePath != null)
+            if (generatePath != null && generatedTypes.Count != 0)
             {
                 GenerateEnums(generatedEnums, generatePath);
-            }
 
-            // TODO: generate reader/writer
-            // TODO: generate memorypackSerializer
+                // generate runtime
+                var runtime = new[]{
+                    ("MemoryPackWriter.ts", TypeScriptRuntime.MemoryPackWriter),
+                    ("MemoryPackReader.ts", TypeScriptRuntime.MemoryPackReader),
+                };
+
+                foreach (var item in runtime)
+                {
+                    var filePath = Path.Combine(generatePath, item.Item1);
+                    if (!File.Exists(filePath))
+                    {
+                        File.WriteAllText(filePath, item.Item2, new UTF8Encoding(false));
+                    }
+                }
+            }
         });
     }
 

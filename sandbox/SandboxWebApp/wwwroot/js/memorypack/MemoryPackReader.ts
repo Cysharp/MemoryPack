@@ -1,4 +1,4 @@
-﻿// Code of MemoryPack
+// Code of MemoryPack
 const nullCollection = -1;
 const union = 254;
 const nullObject = 255;

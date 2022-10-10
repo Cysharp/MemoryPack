@@ -7,7 +7,6 @@ import { NestedObject } from "./memorypack/NestedObject.js";
 import { IMogeUnion } from "./memorypack/IMogeUnion.js";
 import { SampleUnion1 } from "./memorypack/SampleUnion1.js";
 import { Subset } from "./memorypack/Subset.js";
-import { NoMarkLongEnum } from "./memorypack/NoMarkLongEnum.js";
 import { SampleUnion2 } from "./memorypack/SampleUnion2.js";
 
 export async function hoge() {
@@ -154,6 +153,8 @@ export async function test2() {
 
     // call
 
+    const bin2 = MemoryPackSerializer.serialize(v);
+
     const bin = AllConvertableType.serialize(v);
     const blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
 
@@ -243,25 +244,4 @@ function ok(v1: any, v2: any): void {
     if (v1 === v2) return;
     throw new Error("Invalid v1:" + v1 + " v2:" + v2);
 }
-
-
-
-//type MemoryPackable = Foo | Nano
-
-//export class MemoryPackSerializer {
-//    static Serialize(value: MemoryPackable | null): Uint8Array {
-//        var writer = MemoryPackWriter.getSharedInstance();
-//        this.serializeCore(writer, value);
-//        return writer.toArray();
-//    }
-
-//    static serializeCore(writer: MemoryPackWriter, value: MemoryPackable | null): void {
-//        if (value == null) {
-//            writer.writeNullObjectHeader();
-//        }
-//        else if (value instanceof Foo) { // TODO: instanceof......
-//            Foo.serializeCore(writer, value);
-//        }
-//    }
-//}
 
