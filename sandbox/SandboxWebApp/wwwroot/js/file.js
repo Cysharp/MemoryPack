@@ -1,4 +1,3 @@
-import { MemoryPackWriter } from "./memorypack/MemoryPackWriter.js";
 import { AllConvertableType } from "./memorypack/AllConvertableType.js";
 import { NestedObject } from "./memorypack/NestedObject.js";
 import { SampleUnion1 } from "./memorypack/SampleUnion1.js";
@@ -112,7 +111,6 @@ export async function test2() {
     vv.myProperty = "hogetakoあおえ";
     v.union1 = vv;
     // call
-    const bin2 = MemoryPackSerializer.serialize(v);
     const bin = AllConvertableType.serialize(v);
     const blob = new Blob([bin.buffer], { type: "application/x-memorypack" });
     const response = await fetch("http://localhost:5260/api/", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
@@ -188,23 +186,5 @@ function ok(v1, v2) {
     if (v1 === v2)
         return;
     throw new Error("Invalid v1:" + v1 + " v2:" + v2);
-}
-export class MemoryPackSerializer {
-    static serialize(value) {
-        var writer = MemoryPackWriter.getSharedInstance();
-        this.serializeCore(writer, value);
-        return writer.toArray();
-    }
-    static serializeCore(writer, value) {
-        if (value == null) {
-            writer.writeNullObjectHeader();
-        }
-        else if (value instanceof AllConvertableType) { // TODO: instanceof......
-            AllConvertableType.serializeCore(writer, value);
-        }
-    }
-    static deserializeCore(reader) {
-        return null;
-    }
 }
 //# sourceMappingURL=file.js.map

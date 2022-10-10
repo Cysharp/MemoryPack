@@ -152,9 +152,6 @@ export async function test2() {
     v.union1 = vv;
 
     // call
-
-    const bin2 = MemoryPackSerializer.serialize(v);
-
     const bin = AllConvertableType.serialize(v);
     const blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
 
