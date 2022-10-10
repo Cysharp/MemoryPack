@@ -43,24 +43,9 @@ public class TypeScriptMember
 
     TypeScriptType ConvertToTypeScriptType(ITypeSymbol symbol, ReferenceSymbols references)
     {
-        var isNullable = (symbol is INamedTypeSymbol nts && nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T));
-        if (isNullable)
-        {
-            var primitiveType = ConvertFromSpecialType(((INamedTypeSymbol)symbol).TypeArguments[0].SpecialType);
-
-            return new TypeScriptType
-            {
-                TypeName = $"{primitiveType.TypeName} | null",
-                DefaultValue = "null",
-                WriteMethodTemplate = $"writer.writeNullable{primitiveType.BinaryOperationMethod}({{0}})",
-                ReadMethodTemplate = $"reader.readNullable{primitiveType.BinaryOperationMethod}()"
-            };
-        }
-
         if (symbol.TypeKind == TypeKind.Enum)
         {
-            var specialType = ((INamedTypeSymbol)symbol).EnumUnderlyingType!.SpecialType;
-            var primitiveType = ConvertFromSpecialType(specialType);
+            var primitiveType = ConvertFromSymbol(symbol, references)!;
 
             // enum uses self typename(convert to const enum)
             return new TypeScriptType
@@ -173,9 +158,23 @@ public class TypeScriptMember
             };
         }
 
-        // standard
+        var isNullable = (symbol is INamedTypeSymbol nts && nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T));
+        if (isNullable)
         {
-            var primitiveType = ConvertFromSpecialType(symbol.SpecialType);
+            var primitiveType = ConvertFromSymbol(((INamedTypeSymbol)symbol).TypeArguments[0], references)!;
+
+            return new TypeScriptType
+            {
+                TypeName = $"{primitiveType.TypeName} | null",
+                DefaultValue = "null",
+                WriteMethodTemplate = $"writer.writeNullable{primitiveType.BinaryOperationMethod}({{0}})",
+                ReadMethodTemplate = $"reader.readNullable{primitiveType.BinaryOperationMethod}()"
+            };
+        }
+
+        // others
+        {
+            var primitiveType = ConvertFromSymbol(symbol, references)!;
             return new TypeScriptType
             {
                 TypeName = $"{primitiveType.TypeName}",
@@ -186,10 +185,37 @@ public class TypeScriptMember
         }
     }
 
-    TypeScriptTypeCore ConvertFromSpecialType(SpecialType specialType)
+    TypeScriptTypeCore? ConvertFromSymbol(ITypeSymbol typeSymbol, ReferenceSymbols reference)
     {
-        // TODO: Guid, Date, Enum
+        var fromSpecial = ConvertFromSpecialType(typeSymbol.SpecialType);
+        if (fromSpecial != null) return fromSpecial;
 
+        // + Guid or Enum
+        var namedType = typeSymbol as INamedTypeSymbol;
+        if (namedType == null) return null;
+
+        if (namedType.TypeKind == TypeKind.Enum)
+        {
+            var specialType = namedType.EnumUnderlyingType!.SpecialType;
+            return ConvertFromSpecialType(specialType)!;
+        }
+
+        if (SymbolEqualityComparer.Default.Equals(namedType, reference.KnownTypes.System_Guid))
+        {
+            var primitive = ConvertFromSpecialType(SpecialType.System_String)!;
+            return new TypeScriptTypeCore
+            {
+                TypeName = primitive.TypeName,
+                DefaultValue = primitive.DefaultValue,
+                BinaryOperationMethod = "Guid"
+            };
+        }
+
+        return null;
+    }
+
+    TypeScriptTypeCore? ConvertFromSpecialType(SpecialType specialType)
+    {
         var defaultValue = "";
         var typeName = "";
         string binaryOperationMethod = "";
@@ -256,15 +282,12 @@ public class TypeScriptMember
                 defaultValue = "0n";
                 break;
             case SpecialType.System_DateTime:
-                typeName = "Data";
+                typeName = "Date";
                 binaryOperationMethod = "Date";
                 defaultValue = "new Date(0)";
                 break;
             default:
-                // Guid
-                // 00000000-0000-0000-0000-000000000000
-                // not special, use itself.
-                break;
+                return null;
         }
 
         return new TypeScriptTypeCore { TypeName = typeName, DefaultValue = defaultValue, BinaryOperationMethod = binaryOperationMethod };

@@ -64,6 +64,7 @@ public class ReferenceSymbols
         public INamedTypeSymbol System_Collections_Generic_ISet_T { get; }
         public INamedTypeSymbol System_Collections_Generic_IDictionary_T { get; }
 
+        public INamedTypeSymbol System_Guid { get; }
         public INamedTypeSymbol System_Version { get; }
         public INamedTypeSymbol System_Uri { get; }
 
@@ -95,6 +96,7 @@ public class ReferenceSymbols
             System_Collections_Generic_ICollection_T = GetTypeByMetadataName("System.Collections.Generic.ICollection`1").ConstructUnboundGenericType();
             System_Collections_Generic_ISet_T = GetTypeByMetadataName("System.Collections.Generic.ISet`1").ConstructUnboundGenericType();
             System_Collections_Generic_IDictionary_T = GetTypeByMetadataName("System.Collections.Generic.IDictionary`2").ConstructUnboundGenericType();
+            System_Guid = GetTypeByMetadataName("System.Guid");
             System_Version = GetTypeByMetadataName("System.Version");
             System_Uri = GetTypeByMetadataName("System.Uri");
             System_Numerics_BigInteger = GetTypeByMetadataName("System.Numerics.BigInteger");

@@ -195,6 +195,10 @@ public partial class FooBarBaz
     public HashSet<int> SetMan { get; set; } = default!;
 
     public Sonota1 SonotaProp { get; set; } = default!;
+
+    public Guid guid { get; set; } = default!;
+    public DateTime dtt { get; set; } = default!;
+    public Sonota2 SonotaProp2 { get; set; } = default!;
     // public Huga? Nuga { get; set; } = default!;
 
     // TODO: check GUID, Date
@@ -256,6 +260,7 @@ public class NoSerializableObject
 }
 
 [MemoryPackable(SerializeLayout.Explicit)]
+[GenerateTypeScript]
 public partial class Sonota2
 {
     [MemoryPackOrder(1)]

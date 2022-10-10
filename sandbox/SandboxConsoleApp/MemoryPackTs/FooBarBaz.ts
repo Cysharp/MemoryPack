@@ -2,6 +2,7 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 import { Hoge } from "./Hoge.js"; 
 import { Sonota1 } from "./Sonota1.js"; 
+import { Sonota2 } from "./Sonota2.js"; 
 
 export class FooBarBaz {
     hogeDozo: Hoge;
@@ -13,6 +14,9 @@ export class FooBarBaz {
     dictman: Map<number, (number | null)[] | null> | null;
     setMan: Set<number> | null;
     sonotaProp: Sonota1 | null;
+    guid: string | null;
+    dtt: Date;
+    sonotaProp2: Sonota2 | null;
 
     public constructor() {
         this.hogeDozo = 0;
@@ -24,6 +28,9 @@ export class FooBarBaz {
         this.dictman = null;
         this.setMan = null;
         this.sonotaProp = null;
+        this.guid = null;
+        this.dtt = new Date(0);
+        this.sonotaProp2 = null;
 
     }
 
@@ -39,7 +46,7 @@ export class FooBarBaz {
             return;
         }
 
-        writer.writeObjectHeader(9);
+        writer.writeObjectHeader(12);
         writer.writeInt8(value.hogeDozo);
         writer.writeBytes(value.bytesProp);
         writer.writeString(value.yoStarDearYomoda);
@@ -49,6 +56,9 @@ export class FooBarBaz {
         writer.writeMap(value.dictman, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeArray(x, (writer, x) => writer.writeNullableInt32(x)));
         writer.writeSet(value.setMan, (writer, x) => writer.writeInt32(x));
         Sonota1.serializeCore(writer, value.sonotaProp);
+        writer.writeGuid(value.guid);
+        writer.writeDate(value.dtt);
+        Sonota2.serializeCore(writer, value.sonotaProp2);
 
     }
 
@@ -63,7 +73,7 @@ export class FooBarBaz {
         }
 
         var value = new FooBarBaz();
-        if (count == 9) {
+        if (count == 12) {
             value.hogeDozo = reader.readInt8();
             value.bytesProp = reader.readBytes();
             value.yoStarDearYomoda = reader.readString();
@@ -73,9 +83,12 @@ export class FooBarBaz {
             value.dictman = reader.readMap(reader => reader.readInt32(), reader => reader.readArray(reader => reader.readNullableInt32()));
             value.setMan = reader.readSet(reader => reader.readInt32());
             value.sonotaProp = Sonota1.deserializeCore(reader);
+            value.guid = reader.readGuid();
+            value.dtt = reader.readDate();
+            value.sonotaProp2 = Sonota2.deserializeCore(reader);
 
         }
-        else if (count > 9) {
+        else if (count > 12) {
             throw new Error("Current object's property count is larger than type schema, can't deserialize about versioning.");
         }
         else {
@@ -89,6 +102,9 @@ export class FooBarBaz {
             value.dictman = reader.readMap(reader => reader.readInt32(), reader => reader.readArray(reader => reader.readNullableInt32())); if (count == 7) return value;
             value.setMan = reader.readSet(reader => reader.readInt32()); if (count == 8) return value;
             value.sonotaProp = Sonota1.deserializeCore(reader); if (count == 9) return value;
+            value.guid = reader.readGuid(); if (count == 10) return value;
+            value.dtt = reader.readDate(); if (count == 11) return value;
+            value.sonotaProp2 = Sonota2.deserializeCore(reader); if (count == 12) return value;
 
         }
         return value;
