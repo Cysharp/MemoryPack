@@ -688,6 +688,8 @@ There are a few restrictions on the types that can be generated. Among the primi
 | `: ICollection<T>` | `T[] \| null` | Supports all `ICollection<T>` implemented type like `List<T>`
 | `: ISet<T>` | `Set<T> \| null` | Supports all `ISet<T>` implemented type like `HashSet<T>`
 | `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`
+| `[MemoryPackable]` | `class` | Supports class only
+| `[MemoryPackUnion]` | `abstract class` |
 
 `[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
 
