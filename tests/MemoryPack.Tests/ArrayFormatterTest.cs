@@ -156,7 +156,7 @@ public class ArrayFormatterTest
     }
 
     [Fact]
-    public void MultiDimentionalOverwrite()
+    public void MultiDimensionalOverwrite()
     {
         var two = new int[3, 3];
         two[0, 0] = 0;
