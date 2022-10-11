@@ -26,7 +26,9 @@ namespace MemoryPack
             { typeof(Queue<>), typeof(QueueFormatter<>) },
             { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
             { typeof(HashSet<>), typeof(HashSetFormatter<>) },
+#if NET7_0_OR_GREATER
             { typeof(PriorityQueue<,>), typeof(PriorityQueueFormatter<,>) },
+#endif
             { typeof(ObservableCollection<>), typeof(ObservableCollectionFormatter<>) },
             { typeof(Collection<>), typeof(CollectionFormatter<>) },
             { typeof(ConcurrentQueue<>), typeof(ConcurrentQueueFormatter<>) },
@@ -151,7 +153,9 @@ namespace MemoryPack.Formatters
             else
             {
                 value.Clear();
+#if NET7_0_OR_GREATER
                 value.EnsureCapacity(length);
+#endif
             }
 
             var formatter = reader.GetFormatter<T?>();
@@ -256,6 +260,8 @@ namespace MemoryPack.Formatters
         }
     }
 
+#if NET7_0_OR_GREATER
+
     public sealed class PriorityQueueFormatter<TElement, TPriority> : MemoryPackFormatter<PriorityQueue<TElement?, TPriority?>>
     {
         static PriorityQueueFormatter()
@@ -310,6 +316,8 @@ namespace MemoryPack.Formatters
             }
         }
     }
+
+#endif
 
     public sealed class CollectionFormatter<T> : MemoryPackFormatter<Collection<T?>>
     {

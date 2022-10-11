@@ -8,7 +8,11 @@ public record MemoryPackSerializeOptions
     public static readonly MemoryPackSerializeOptions Utf8 = Default with { StringEncoding = StringEncoding.Utf8 };
     public static readonly MemoryPackSerializeOptions Utf16 = Default with { StringEncoding = StringEncoding.Utf16 };
 
-    public StringEncoding StringEncoding { get; init; }
+    public StringEncoding StringEncoding { get; private set; }
+
+    MemoryPackSerializeOptions()
+    {
+    }
 }
 
 public enum StringEncoding : byte

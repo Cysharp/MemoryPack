@@ -5,6 +5,10 @@ using System.IO.Compression;
 
 namespace MemoryPack.Compression;
 
+#if !NET7_0_OR_GREATER
+#pragma warning disable CS8602
+#endif
+
 public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
 {
     ReusableLinkedArrayBufferWriter? bufferWriter;
@@ -153,7 +157,9 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
         bufferWriter = null!;
     }
 
+#if NET7_0_OR_GREATER
     [MemberNotNull(nameof(bufferWriter))]
+#endif
     void ThrowIfDisposed()
     {
         if (bufferWriter == null)
@@ -179,7 +185,9 @@ file static partial class BrotliUtils
             CompressionLevel.NoCompression => Quality_Min,
             CompressionLevel.Fastest => 1,
             CompressionLevel.Optimal => Quality_Default,
+#if NET7_0_OR_GREATER
             CompressionLevel.SmallestSize => Quality_Max,
+#endif
             _ => throw new ArgumentException()
         };
 }

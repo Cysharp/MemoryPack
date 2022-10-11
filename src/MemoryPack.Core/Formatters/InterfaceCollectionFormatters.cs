@@ -26,7 +26,9 @@ namespace MemoryPack
             { typeof(ILookup<,>), typeof(InterfaceLookupFormatter<,>) },
             { typeof(IGrouping<,>), typeof(InterfaceGroupingFormatter<,>) },
             { typeof(ISet<>), typeof(InterfaceSetFormatter<>) },
+#if NET7_0_OR_GREATER
             { typeof(IReadOnlySet<>), typeof(InterfaceReadOnlySetFormatter<>) },
+#endif
         };
     }
 }
@@ -488,6 +490,8 @@ namespace MemoryPack.Formatters
         }
     }
 
+#if NET7_0_OR_GREATER
+
     public sealed class InterfaceReadOnlySetFormatter<T> : MemoryPackFormatter<IReadOnlySet<T?>>
     {
         static InterfaceReadOnlySetFormatter()
@@ -536,6 +540,8 @@ namespace MemoryPack.Formatters
             value = set;
         }
     }
+
+#endif
 
     internal sealed class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
