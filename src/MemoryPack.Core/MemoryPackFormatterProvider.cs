@@ -241,13 +241,13 @@ public static partial class MemoryPackFormatterProvider
                 switch (rank)
                 {
                     case 2:
-                        formatterType = typeof(TwoDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        formatterType = typeof(TwoDimensionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
                         goto CREATE;
                     case 3:
-                        formatterType = typeof(ThreeDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        formatterType = typeof(ThreeDimensionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
                         goto CREATE;
                     case 4:
-                        formatterType = typeof(FourDimentionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
+                        formatterType = typeof(FourDimensionalArrayFormatter<>).MakeGenericType(type.GetElementType()!);
                         goto CREATE;
                     default:
                         return null; // not supported

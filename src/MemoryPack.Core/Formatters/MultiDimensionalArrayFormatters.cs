@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace MemoryPack.Formatters;
 
-public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
+public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 {
     // {i-length, j-length, [totallength, values]}
 
@@ -108,7 +108,7 @@ public sealed class TwoDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
     }
 }
 
-public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,]>
+public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,]>
 {
     // {i-length, j-length, k-length, [totallength, values]}
 
@@ -221,7 +221,7 @@ public sealed class ThreeDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,
     }
 }
 
-public sealed class FourDimentionalArrayFormatter<T> : MemoryPackFormatter<T?[,,,]>
+public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,,]>
 {
     // {i-length, j-length, k-length, l-length, [totallength, values]}
 
