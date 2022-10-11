@@ -747,7 +747,7 @@ Unity support
 ---
 Currently MemoryPack dependents .NET 7 runtime, incremental generator and C# 11. Therefore it will not work in Unity. .NET 7 support is planned for Unity 2025.
 
-If you request it, there is a possibility to make a detuned Unity version. Please send your request to Issues with the case you wish to use.
+Howver, now working for .NET Standard 2.1 support(see [PR #27](https://github.com/Cysharp/MemoryPack/pull/27), it can run on Unity 2021. Stay tuned.
 
 Binary wire format specification
 ---
