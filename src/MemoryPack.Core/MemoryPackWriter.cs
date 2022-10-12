@@ -128,13 +128,6 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     // Write methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteNullObjectHeader()
-    {
-        GetSpanReference(1) = MemoryPackCode.NullObject;
-        Advance(1);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObjectHeader(byte memberCount)
     {
         if (memberCount >= MemoryPackCode.Reserved1)
@@ -146,12 +139,22 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteNullObjectHeader()
+    {
+        GetSpanReference(1) = MemoryPackCode.NullObject;
+        Advance(1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUnionHeader(byte tag)
     {
-        ref var spanRef = ref GetSpanReference(2);
-        spanRef = MemoryPackCode.Union;
-        Unsafe.Add(ref spanRef, 1) = tag;
-        Advance(2);
+        WriteObjectHeader(tag);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteNullUnionHeader()
+    {
+        WriteNullObjectHeader();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -211,10 +214,10 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void WriteUtf8(string value)
     {
-        // [utf8-length, utf16-length, utf8-value]
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
 
         var source = value.AsSpan();
-        
+
         // UTF8.GetMaxByteCount -> (length + 1) * 3
         var maxByteCount = (source.Length + 1) * 3;
 

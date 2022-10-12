@@ -623,7 +623,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         return $$"""
             if (value == null)
             {
-                writer.WriteNullObjectHeader();
+                writer.WriteNullUnionHeader();
 {{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
                 return;
             }

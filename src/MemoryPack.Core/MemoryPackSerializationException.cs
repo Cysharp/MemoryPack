@@ -54,7 +54,7 @@ public class MemoryPackSerializationException : Exception
     [DoesNotReturn]
     public static void ThrowWriteInvalidMemberCount(byte memberCount)
     {
-        throw new MemoryPackSerializationException($"MemberCount count allows < 250 but try to write {memberCount}.");
+        throw new MemoryPackSerializationException($"MemberCount/Tag allows < 250 but try to write {memberCount}.");
     }
 
     [DoesNotReturn]

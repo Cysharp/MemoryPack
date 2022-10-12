@@ -751,14 +751,15 @@ Howver, now working for .NET Standard 2.1 support(see [PR #27](https://github.co
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Five types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Six types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
-There are no endian specifications. It is not possible to convert on machines with different endianness. However modern computers are usually little-endian.
+Endian must be `Little Endian`. However reference C# implementation does not care endianness so can not use on big-endian machine. However modern computers are usually little-endian.
 
-There are five value types of format.
+There are six types of format.
 
 * Unmanaged struct
 * Object
+* Tuple
 * Collection
 * String
 * Union
@@ -773,6 +774,11 @@ Unmanaged struct is C# struct that no contains reference type, similar constrain
 
 Object has 1byte unsigned byte as member count in header. Member count allows `0` to `249`, `255` represents object is `null`. Values store memorypack value for the number of member count.
 
+### Tuple
+
+`[values...]`
+
+Tuple is fixed-size, non-nullable value collection. In .NET, `KeyValuePair<TKey, TValue>` and `ValueTuple<T,...>` are serialized as Tuple.
 
 ### Collection
 
@@ -783,15 +789,15 @@ Collection has 4byte signed interger as data count in header, `-1` represents `n
 ### String
 
 `(int utf16-length, utf16-value)`  
-`(int ~utf8-length, int utf16-length, utf8-value)`
+`(int ~utf8-byte-count, int utf16-length, utf8-bytes)`
 
-String has two-form, UTF16 and UTF8. If first 4byte signed integer is `-1`, represents null. `0`, represents empty. UTF16 is same as collection(serialize as `ReadOnlySpan<char>`, utf16-value's byte count is utf16-length * 2). If first signed integer <= `-2`, value is encoded by UTF8. utf8-length is encoded in complement, `~utf8-length` to retrieve length. Next signed integer is utf16-length, it allows `-1` that represents unknown length. utf8-value store byte value for the number of utf8-length.
+String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, represents null. `0`, represents empty. UTF16 is same as collection(serialize as `ReadOnlySpan<char>`, utf16-value's byte count is utf16-length * 2). If first signed integer <= `-2`, value is encoded by UTF8. utf8-byte-count is encoded in complement, `~utf8-byte-count` to retrieve count of bytes. Next signed integer is utf16-length, it allows `-1` that represents unknown length. utf8-bytes store bytes for the number of utf8-byte-count.
 
 ### Union
 
-`((byte)254, byte tag, value)`
+`(byte tag, value)`
 
-Union has 2 byte unsgined byte in header, First byte `254` is marker as Union, next unsgined byte is tag that for discriminated value type. When marker byte is `255` represents null.
+First unsigned byte is tag that for discriminated value type, tag allows `0` to `249`, `255` represents union is `null`.
 
 License
 ---

@@ -76,7 +76,7 @@ public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
 // Annotate inheritance types
 [MemoryPackable]
 [MemoryPackUnion(0, typeof(FooClass))]
-[MemoryPackUnion(1, typeof(BarClass))]
+[MemoryPackUnion(249, typeof(BarClass))]
 public partial interface IUnionSample
 {
 }
@@ -148,3 +148,4 @@ public partial class SampleExplicitOrder
     [MemoryPackOrder(0)]
     public int Prop0 { get; set; }
 }
+

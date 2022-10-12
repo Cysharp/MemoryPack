@@ -1,55 +1,51 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-import { NoMarkByteEnum } from "./NoMarkByteEnum.js"; 
-import { NumberedUShortEnum } from "./NumberedUShortEnum.js"; 
-import { NestedObject } from "./NestedObject.js"; 
-import { IMogeUnion } from "./IMogeUnion.js"; 
-
+import { NestedObject } from "./NestedObject.js";
+import { IMogeUnion } from "./IMogeUnion.js";
 export class AllConvertableType {
-    myBool: boolean;
-    myByte: number;
-    mySByte: number;
-    myShort: number;
-    myInt: number;
-    myLong: bigint;
-    myUShort: number;
-    myUInt: number;
-    myULong: bigint;
-    myFloat: number;
-    myDouble: number;
-    myGuid: string;
-    myDate: Date;
-    myEnum1: NoMarkByteEnum;
-    myEnum2: NumberedUShortEnum;
-    nullMyBool: boolean | null;
-    nullMyByte: number | null;
-    nullMySByte: number | null;
-    nullMyShort: number | null;
-    nullMyInt: number | null;
-    nullMyLong: bigint | null;
-    nullMyUShort: number | null;
-    nullMyUInt: number | null;
-    nullMyULong: bigint | null;
-    nullMyFloat: number | null;
-    nullMyDouble: number | null;
-    nullMyGuid: string | null;
-    nullMyDate: Date | null;
-    nullMyEnum1: number | null;
-    nullMyEnum2: number | null;
-    myString: string | null;
-    myBytes: Uint8Array | null;
-    myIntArray: number[] | null;
-    myStringArray: (string | null)[] | null;
-    myList: number[] | null;
-    myDictionary: Map<number, number> | null;
-    mySet: Set<number> | null;
-    myNestedNested: (Map<number, Set<(string | null)[] | null> | null> | null)[] | null;
-    dictCheck2: Map<NoMarkByteEnum, boolean> | null;
-    dictCheck3: Map<string, number | null> | null;
-    dictCheck4X: Map<number, string | null> | null;
-    nested1: NestedObject | null;
-    union1: IMogeUnion | null;
-
+    myBool;
+    myByte;
+    mySByte;
+    myShort;
+    myInt;
+    myLong;
+    myUShort;
+    myUInt;
+    myULong;
+    myFloat;
+    myDouble;
+    myGuid;
+    myDate;
+    myEnum1;
+    myEnum2;
+    nullMyBool;
+    nullMyByte;
+    nullMySByte;
+    nullMyShort;
+    nullMyInt;
+    nullMyLong;
+    nullMyUShort;
+    nullMyUInt;
+    nullMyULong;
+    nullMyFloat;
+    nullMyDouble;
+    nullMyGuid;
+    nullMyDate;
+    nullMyEnum1;
+    nullMyEnum2;
+    myString;
+    myBytes;
+    myIntArray;
+    myStringArray;
+    myList;
+    myDictionary;
+    mySet;
+    myNestedNested;
+    dictCheck2;
+    dictCheck3;
+    dictCheck4X;
+    nested1;
+    union1;
     constructor() {
         this.myBool = false;
         this.myByte = 0;
@@ -94,21 +90,17 @@ export class AllConvertableType {
         this.dictCheck4X = null;
         this.nested1 = null;
         this.union1 = null;
-
     }
-
-    static serialize(value: AllConvertableType | null): Uint8Array {
+    static serialize(value) {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeCore(writer, value);
         return writer.toArray();
     }
-
-    static serializeCore(writer: MemoryPackWriter, value: AllConvertableType | null): void {
+    static serializeCore(writer, value) {
         if (value == null) {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(43);
         writer.writeBoolean(value.myBool);
         writer.writeUint8(value.myByte);
@@ -153,19 +145,15 @@ export class AllConvertableType {
         writer.writeMap(value.dictCheck4X, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeString(x));
         NestedObject.serializeCore(writer, value.nested1);
         IMogeUnion.serializeCore(writer, value.union1);
-
     }
-
-    static deserialize(buffer: ArrayBuffer): AllConvertableType | null {
+    static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
-
-    static deserializeCore(reader: MemoryPackReader): AllConvertableType | null {
+    static deserializeCore(reader) {
         const [ok, count] = reader.tryReadObjectHeader();
         if (!ok) {
             return null;
         }
-
         const value = new AllConvertableType();
         if (count == 43) {
             value.myBool = reader.readBoolean();
@@ -211,58 +199,144 @@ export class AllConvertableType {
             value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString());
             value.nested1 = NestedObject.deserializeCore(reader);
             value.union1 = IMogeUnion.deserializeCore(reader);
-
         }
         else if (count > 43) {
             throw new Error("Current object's property count is larger than type schema, can't deserialize about versioning.");
         }
         else {
-            if (count == 0) return value;
-            value.myBool = reader.readBoolean(); if (count == 1) return value;
-            value.myByte = reader.readUint8(); if (count == 2) return value;
-            value.mySByte = reader.readInt8(); if (count == 3) return value;
-            value.myShort = reader.readInt16(); if (count == 4) return value;
-            value.myInt = reader.readInt32(); if (count == 5) return value;
-            value.myLong = reader.readInt64(); if (count == 6) return value;
-            value.myUShort = reader.readUint16(); if (count == 7) return value;
-            value.myUInt = reader.readUint32(); if (count == 8) return value;
-            value.myULong = reader.readUint64(); if (count == 9) return value;
-            value.myFloat = reader.readFloat32(); if (count == 10) return value;
-            value.myDouble = reader.readFloat64(); if (count == 11) return value;
-            value.myGuid = reader.readGuid(); if (count == 12) return value;
-            value.myDate = reader.readDate(); if (count == 13) return value;
-            value.myEnum1 = reader.readUint8(); if (count == 14) return value;
-            value.myEnum2 = reader.readUint16(); if (count == 15) return value;
-            value.nullMyBool = reader.readNullableBoolean(); if (count == 16) return value;
-            value.nullMyByte = reader.readNullableUint8(); if (count == 17) return value;
-            value.nullMySByte = reader.readNullableInt8(); if (count == 18) return value;
-            value.nullMyShort = reader.readNullableInt16(); if (count == 19) return value;
-            value.nullMyInt = reader.readNullableInt32(); if (count == 20) return value;
-            value.nullMyLong = reader.readNullableInt64(); if (count == 21) return value;
-            value.nullMyUShort = reader.readNullableUint16(); if (count == 22) return value;
-            value.nullMyUInt = reader.readNullableUint32(); if (count == 23) return value;
-            value.nullMyULong = reader.readNullableUint64(); if (count == 24) return value;
-            value.nullMyFloat = reader.readNullableFloat32(); if (count == 25) return value;
-            value.nullMyDouble = reader.readNullableFloat64(); if (count == 26) return value;
-            value.nullMyGuid = reader.readNullableGuid(); if (count == 27) return value;
-            value.nullMyDate = reader.readNullableDate(); if (count == 28) return value;
-            value.nullMyEnum1 = reader.readNullableUint8(); if (count == 29) return value;
-            value.nullMyEnum2 = reader.readNullableUint16(); if (count == 30) return value;
-            value.myString = reader.readString(); if (count == 31) return value;
-            value.myBytes = reader.readUint8Array(); if (count == 32) return value;
-            value.myIntArray = reader.readArray(reader => reader.readInt32()); if (count == 33) return value;
-            value.myStringArray = reader.readArray(reader => reader.readString()); if (count == 34) return value;
-            value.myList = reader.readArray(reader => reader.readInt32()); if (count == 35) return value;
-            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32()); if (count == 36) return value;
-            value.mySet = reader.readSet(reader => reader.readInt32()); if (count == 37) return value;
-            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString())))); if (count == 38) return value;
-            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean()); if (count == 39) return value;
-            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32()); if (count == 40) return value;
-            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString()); if (count == 41) return value;
-            value.nested1 = NestedObject.deserializeCore(reader); if (count == 42) return value;
-            value.union1 = IMogeUnion.deserializeCore(reader); if (count == 43) return value;
-
+            if (count == 0)
+                return value;
+            value.myBool = reader.readBoolean();
+            if (count == 1)
+                return value;
+            value.myByte = reader.readUint8();
+            if (count == 2)
+                return value;
+            value.mySByte = reader.readInt8();
+            if (count == 3)
+                return value;
+            value.myShort = reader.readInt16();
+            if (count == 4)
+                return value;
+            value.myInt = reader.readInt32();
+            if (count == 5)
+                return value;
+            value.myLong = reader.readInt64();
+            if (count == 6)
+                return value;
+            value.myUShort = reader.readUint16();
+            if (count == 7)
+                return value;
+            value.myUInt = reader.readUint32();
+            if (count == 8)
+                return value;
+            value.myULong = reader.readUint64();
+            if (count == 9)
+                return value;
+            value.myFloat = reader.readFloat32();
+            if (count == 10)
+                return value;
+            value.myDouble = reader.readFloat64();
+            if (count == 11)
+                return value;
+            value.myGuid = reader.readGuid();
+            if (count == 12)
+                return value;
+            value.myDate = reader.readDate();
+            if (count == 13)
+                return value;
+            value.myEnum1 = reader.readUint8();
+            if (count == 14)
+                return value;
+            value.myEnum2 = reader.readUint16();
+            if (count == 15)
+                return value;
+            value.nullMyBool = reader.readNullableBoolean();
+            if (count == 16)
+                return value;
+            value.nullMyByte = reader.readNullableUint8();
+            if (count == 17)
+                return value;
+            value.nullMySByte = reader.readNullableInt8();
+            if (count == 18)
+                return value;
+            value.nullMyShort = reader.readNullableInt16();
+            if (count == 19)
+                return value;
+            value.nullMyInt = reader.readNullableInt32();
+            if (count == 20)
+                return value;
+            value.nullMyLong = reader.readNullableInt64();
+            if (count == 21)
+                return value;
+            value.nullMyUShort = reader.readNullableUint16();
+            if (count == 22)
+                return value;
+            value.nullMyUInt = reader.readNullableUint32();
+            if (count == 23)
+                return value;
+            value.nullMyULong = reader.readNullableUint64();
+            if (count == 24)
+                return value;
+            value.nullMyFloat = reader.readNullableFloat32();
+            if (count == 25)
+                return value;
+            value.nullMyDouble = reader.readNullableFloat64();
+            if (count == 26)
+                return value;
+            value.nullMyGuid = reader.readNullableGuid();
+            if (count == 27)
+                return value;
+            value.nullMyDate = reader.readNullableDate();
+            if (count == 28)
+                return value;
+            value.nullMyEnum1 = reader.readNullableUint8();
+            if (count == 29)
+                return value;
+            value.nullMyEnum2 = reader.readNullableUint16();
+            if (count == 30)
+                return value;
+            value.myString = reader.readString();
+            if (count == 31)
+                return value;
+            value.myBytes = reader.readUint8Array();
+            if (count == 32)
+                return value;
+            value.myIntArray = reader.readArray(reader => reader.readInt32());
+            if (count == 33)
+                return value;
+            value.myStringArray = reader.readArray(reader => reader.readString());
+            if (count == 34)
+                return value;
+            value.myList = reader.readArray(reader => reader.readInt32());
+            if (count == 35)
+                return value;
+            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32());
+            if (count == 36)
+                return value;
+            value.mySet = reader.readSet(reader => reader.readInt32());
+            if (count == 37)
+                return value;
+            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString()))));
+            if (count == 38)
+                return value;
+            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean());
+            if (count == 39)
+                return value;
+            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32());
+            if (count == 40)
+                return value;
+            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString());
+            if (count == 41)
+                return value;
+            value.nested1 = NestedObject.deserializeCore(reader);
+            if (count == 42)
+                return value;
+            value.union1 = IMogeUnion.deserializeCore(reader);
+            if (count == 43)
+                return value;
         }
         return value;
     }
 }
+//# sourceMappingURL=AllConvertableType.js.map
