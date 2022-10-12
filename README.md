@@ -21,6 +21,8 @@ Other than performance, MemoryPack has these features.
 * PipeWriter/Reader based streaming serialization
 * TypeScript code generation and ASP.NET Core Formatter
 
+> Currently support target framework is .NET 7 only, however, I'm now working for .NET Standard 2.1(.NET 5, 6) and Unity(2021.2) support. Stay tuned.
+
 Installation
 ---
 This library is distributed via NuGet. Minimum requirement is `.NET 7 RC1`.
@@ -747,7 +749,7 @@ Unity support
 ---
 Currently MemoryPack dependents .NET 7 runtime, incremental generator and C# 11. Therefore it will not work in Unity. .NET 7 support is planned for Unity 2025.
 
-Howver, now working for .NET Standard 2.1 support(see [PR #27](https://github.com/Cysharp/MemoryPack/pull/27), it can run on Unity 2021. Stay tuned.
+However, now working for .NET Standard 2.1 support(see [PR #27](https://github.com/Cysharp/MemoryPack/pull/27)), it can run on Unity 2021. Stay tuned.
 
 Binary wire format specification
 ---
