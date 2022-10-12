@@ -137,12 +137,12 @@ export class AllConvertableType {
         writer.writeArray(value.myIntArray, (writer, x) => writer.writeInt32(x));
         writer.writeArray(value.myStringArray, (writer, x) => writer.writeString(x));
         writer.writeArray(value.myList, (writer, x) => writer.writeInt32(x));
-        writer.writeMap(value.myDictionary, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeInt32(x), true);
+        writer.writeMap(value.myDictionary, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeInt32(x));
         writer.writeSet(value.mySet, (writer, x) => writer.writeInt32(x));
-        writer.writeArray(value.myNestedNested, (writer, x) => writer.writeMap(x, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeSet(x, (writer, x) => writer.writeArray(x, (writer, x) => writer.writeString(x))), false));
-        writer.writeMap(value.dictCheck2, (writer, x) => writer.writeUint8(x), (writer, x) => writer.writeBoolean(x), true);
-        writer.writeMap(value.dictCheck3, (writer, x) => writer.writeGuid(x), (writer, x) => writer.writeNullableInt32(x), true);
-        writer.writeMap(value.dictCheck4X, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeString(x), false);
+        writer.writeArray(value.myNestedNested, (writer, x) => writer.writeMap(x, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeSet(x, (writer, x) => writer.writeArray(x, (writer, x) => writer.writeString(x)))));
+        writer.writeMap(value.dictCheck2, (writer, x) => writer.writeUint8(x), (writer, x) => writer.writeBoolean(x));
+        writer.writeMap(value.dictCheck3, (writer, x) => writer.writeGuid(x), (writer, x) => writer.writeNullableInt32(x));
+        writer.writeMap(value.dictCheck4X, (writer, x) => writer.writeInt32(x), (writer, x) => writer.writeString(x));
         NestedObject.serializeCore(writer, value.nested1);
         IMogeUnion.serializeCore(writer, value.union1);
     }
@@ -191,12 +191,12 @@ export class AllConvertableType {
             value.myIntArray = reader.readArray(reader => reader.readInt32());
             value.myStringArray = reader.readArray(reader => reader.readString());
             value.myList = reader.readArray(reader => reader.readInt32());
-            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32(), true);
+            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32());
             value.mySet = reader.readSet(reader => reader.readInt32());
-            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString())), false));
-            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean(), true);
-            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32(), true);
-            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString(), false);
+            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString()))));
+            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean());
+            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32());
+            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString());
             value.nested1 = NestedObject.deserializeCore(reader);
             value.union1 = IMogeUnion.deserializeCore(reader);
         }
@@ -311,22 +311,22 @@ export class AllConvertableType {
             value.myList = reader.readArray(reader => reader.readInt32());
             if (count == 35)
                 return value;
-            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32(), true);
+            value.myDictionary = reader.readMap(reader => reader.readInt32(), reader => reader.readInt32());
             if (count == 36)
                 return value;
             value.mySet = reader.readSet(reader => reader.readInt32());
             if (count == 37)
                 return value;
-            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString())), false));
+            value.myNestedNested = reader.readArray(reader => reader.readMap(reader => reader.readInt32(), reader => reader.readSet(reader => reader.readArray(reader => reader.readString()))));
             if (count == 38)
                 return value;
-            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean(), true);
+            value.dictCheck2 = reader.readMap(reader => reader.readUint8(), reader => reader.readBoolean());
             if (count == 39)
                 return value;
-            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32(), true);
+            value.dictCheck3 = reader.readMap(reader => reader.readGuid(), reader => reader.readNullableInt32());
             if (count == 40)
                 return value;
-            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString(), false);
+            value.dictCheck4X = reader.readMap(reader => reader.readInt32(), reader => reader.readString());
             if (count == 41)
                 return value;
             value.nested1 = NestedObject.deserializeCore(reader);

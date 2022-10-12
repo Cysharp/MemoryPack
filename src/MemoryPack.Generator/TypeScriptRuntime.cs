@@ -308,7 +308,7 @@ export class MemoryPackWriter {
         }
     }
 
-    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void, unmanagedStruct: boolean): void {
+    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void): void {
         if (value == null) {
             this.writeNullCollectionHeader();
             return;
@@ -316,12 +316,6 @@ export class MemoryPackWriter {
 
         this.writeCollectionHeader(value.size);
         value.forEach((v, k) => {
-            // serialzie as KeyValuePair<K, V>
-            // v & k both unamnaged struct, does not write object-header.
-            // otherwise, require to write object header.
-            if (!unmanagedStruct) {
-                this.writeObjectHeader(2);
-            }
             keyWriter(this, k);
             valueWriter(this, v);
         });
@@ -720,7 +714,7 @@ export class MemoryPackReader {
         return result;
     }
 
-    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V, unmanagedStruct: boolean): Map<K, V> | null {
+    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V): Map<K, V> | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
@@ -729,12 +723,6 @@ export class MemoryPackReader {
         const result = new Map<K, V>();
 
         for (var i = 0; i < length; i++) {
-            if (!unmanagedStruct) {
-                const [headerOk, headerLength] = this.tryReadObjectHeader();
-                if (!headerOk || headerLength != 2) {
-                    throw new Error("Invalid header in map elements deserialize.");
-                }
-            }
             const key = keyReader(this);
             const value = valueReader(this);
             result.set(key, value);

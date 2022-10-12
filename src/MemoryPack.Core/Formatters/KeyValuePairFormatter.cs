@@ -10,7 +10,6 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
             return;
         }
 
-        writer.WriteObjectHeader(2);
         writer.WriteValue(value.Key);
         writer.WriteValue(value.Value);
     }
@@ -22,14 +21,6 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new KeyValuePair<TKey?, TValue?>(
             reader.ReadValue<TKey>(),

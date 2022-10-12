@@ -6,7 +6,7 @@ namespace MemoryPack.Formatters;
 
 public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 {
-    // {i-length, j-length, [totallength, values]}
+    // {i-length, j-length, [total-length, values]}
 
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[,]? value)
     {
@@ -20,8 +20,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 
         var i = value.GetLength(0);
         var j = value.GetLength(1);
-        writer.WriteUnmanaged(i);
-        writer.WriteUnmanaged(j);
+        writer.WriteUnmanaged(i, j);
 
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
@@ -110,7 +109,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 
 public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,]>
 {
-    // {i-length, j-length, k-length, [totallength, values]}
+    // {i-length, j-length, k-length, [total-length, values]}
 
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[,,]? value)
     {
@@ -125,9 +124,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         var i = value.GetLength(0);
         var j = value.GetLength(1);
         var k = value.GetLength(2);
-        writer.WriteUnmanaged(i);
-        writer.WriteUnmanaged(j);
-        writer.WriteUnmanaged(k);
+        writer.WriteUnmanaged(i, j, k);
 
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
@@ -223,7 +220,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
 
 public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,,]>
 {
-    // {i-length, j-length, k-length, l-length, [totallength, values]}
+    // {i-length, j-length, k-length, l-length, [total-length, values]}
 
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T?[,,,]? value)
     {
@@ -239,10 +236,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         var j = value.GetLength(1);
         var k = value.GetLength(2);
         var l = value.GetLength(3);
-        writer.WriteUnmanaged(i);
-        writer.WriteUnmanaged(j);
-        writer.WriteUnmanaged(k);
-        writer.WriteUnmanaged(l);
+        writer.WriteUnmanaged(i, j, k, l);
 
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {

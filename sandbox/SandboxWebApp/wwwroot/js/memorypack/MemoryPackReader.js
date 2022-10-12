@@ -217,19 +217,13 @@ export class MemoryPackReader {
         }
         return result;
     }
-    readMap(keyReader, valueReader, unmanagedStruct) {
+    readMap(keyReader, valueReader) {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
         }
         const result = new Map();
         for (var i = 0; i < length; i++) {
-            if (!unmanagedStruct) {
-                const [headerOk, headerLength] = this.tryReadObjectHeader();
-                if (!headerOk || headerLength != 2) {
-                    throw new Error("Invalid header in map elements deserialize.");
-                }
-            }
             const key = keyReader(this);
             const value = valueReader(this);
             result.set(key, value);

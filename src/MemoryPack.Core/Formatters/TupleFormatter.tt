@@ -41,7 +41,7 @@ public sealed class TupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter<Tupl
 
         writer.WriteObjectHeader(<#= i #>);
 <# for ( var j = 1; j <= i; j++ ) { #>
-        writer.WriteObject(value.<#= ItemOrRest(j) #>);
+        writer.WriteValue(value.<#= ItemOrRest(j) #>);
 <# } #>
     }
 
@@ -53,11 +53,11 @@ public sealed class TupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter<Tupl
             return;
         }
 
-        if (count != <#= i #>) ThrowHelper.ThrowInvalidPropertyCount(<#= i #>, count);
+        if (count != <#= i #>) MemoryPackSerializationException.ThrowInvalidPropertyCount(<#= i #>, count);
 
         value = new Tuple<<#= CreateTNull(i) #>>(
 <# for ( var j = 1; j <= i; j++ ) { #>
-            reader.ReadObject<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
+            reader.ReadValue<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
 <# } #>
         );
     }
@@ -79,9 +79,8 @@ public sealed class ValueTupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter
             return;
         }
 
-        writer.WriteObjectHeader(<#= i #>);
 <# for ( var j = 1; j <= i; j++ ) { #>
-        writer.WriteObject(value.<#= ItemOrRest(j) #>);
+        writer.WriteValue(value.<#= ItemOrRest(j) #>);
 <# } #>
     }
 
@@ -93,17 +92,9 @@ public sealed class ValueTupleFormatter<<#= CreateT(i) #>> : MemoryPackFormatter
             return;
         }
 
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != <#= i #>) ThrowHelper.ThrowInvalidPropertyCount(<#= i #>, count);
-
         value = new ValueTuple<<#= CreateTNull(i) #>>(
 <# for ( var j = 1; j <= i; j++ ) { #>
-            reader.ReadObject<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
+            reader.ReadValue<<#= TOrRest(j) #>>()<#= (j == 8) ? "!" : (j != i) ? "," : "" #>
 <# } #>
         );
     }

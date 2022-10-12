@@ -299,7 +299,7 @@ export class MemoryPackWriter {
         }
     }
 
-    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void, unmanagedStruct: boolean): void {
+    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void): void {
         if (value == null) {
             this.writeNullCollectionHeader();
             return;
@@ -307,12 +307,6 @@ export class MemoryPackWriter {
 
         this.writeCollectionHeader(value.size);
         value.forEach((v, k) => {
-            // serialzie as KeyValuePair<K, V>
-            // v & k both unamnaged struct, does not write object-header.
-            // otherwise, require to write object header.
-            if (!unmanagedStruct) {
-                this.writeObjectHeader(2);
-            }
             keyWriter(this, k);
             valueWriter(this, v);
         });
