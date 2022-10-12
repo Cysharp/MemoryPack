@@ -77,17 +77,20 @@ export class MemoryPackWriter {
         }
     }
 
-    public writeNullObjectHeader(): void {
-        this.writeUint8(nullObject);
-    }
-
     public writeObjectHeader(memberCount: number) {
         this.writeUint8(memberCount);
     }
 
+    public writeNullObjectHeader(): void {
+        this.writeUint8(nullObject);
+    }
+
     public writeUnionHeader(tag: number) {
-        this.writeUint8(union);
         this.writeUint8(tag);
+    }
+
+    public writeNullUnionHeader(): void {
+        this.writeUint8(nullObject);
     }
 
     public writeCollectionHeader(length: number) {
@@ -275,7 +278,7 @@ export class MemoryPackWriter {
             return;
         }
 
-        // [utf8-length, utf16-length, utf8-value]
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
         this.ensureCapacity(8 + ((value.length + 1) * 3));
 
         if (this.utf8Encoder == null) {
@@ -486,13 +489,10 @@ export class MemoryPackReader {
     }
 
     public tryReadUnionHeader(): [boolean, number] {
-        const code = this.readUint8();
-        if (code != union) {
-            return [false, 0];
-        }
-
         const tag = this.readUint8();
-        return [true, tag];
+        return (tag == nullObject)
+            ? [false, 0]
+            : [true, tag];
     }
 
     public tryReadCollectionHeader(): [boolean, number] {
@@ -696,7 +696,7 @@ export class MemoryPackReader {
                 this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
             }
 
-            // [utf8-length, utf16-length, utf8-value]
+            // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
             const utf8Length = ~length;
             this.offset += 4; // utf16-length, no use
 

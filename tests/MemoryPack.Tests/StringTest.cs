@@ -36,7 +36,7 @@ public class StringTest
 
         ref var head = ref MemoryMarshal.GetArrayDataReference(bin);
 
-        // [utf8-length, utf16-length, utf8-value]
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
         // change utf16-length
 
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref head, 4), 9999);

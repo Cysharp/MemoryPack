@@ -31,4 +31,8 @@
         </ProjectReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="wwwroot\js\memorypack\" />
+    </ItemGroup>
+
 </Project>

@@ -152,17 +152,7 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadUnionHeader(out byte tag)
     {
-        var code = GetSpanReference(1);
-        if (code != MemoryPackCode.Union)
-        {
-            tag = 0;
-            return false;
-        }
-        Advance(1);
-
-        tag = GetSpanReference(1);
-        Advance(1);
-        return true;
+        return TryReadObjectHeader(out tag);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -230,7 +220,7 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.NoInlining)] // non default, no inline
     string ReadUtf8(int utf8Length)
     {
-        // [utf8-length, utf16-length, utf8-value]
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
         // already read utf8 length, but it is complement.
 
         utf8Length = ~utf8Length;

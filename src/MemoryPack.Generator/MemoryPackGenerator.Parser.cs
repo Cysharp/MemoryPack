@@ -455,6 +455,12 @@ partial class TypeMeta
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberMustBeMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
                     noError = false;
                 }
+
+                if (item.Tag >= 250) // MemoryPackCode.Reserved1
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTag250, syntax.Identifier.GetLocation(), Symbol.Name, Members.Length));
+                    noError = false;
+                }
             }
         }
 
