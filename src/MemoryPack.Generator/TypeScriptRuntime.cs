@@ -77,17 +77,20 @@ export class MemoryPackWriter {
         }
     }
 
-    public writeNullObjectHeader(): void {
-        this.writeUint8(nullObject);
-    }
-
     public writeObjectHeader(memberCount: number) {
         this.writeUint8(memberCount);
     }
 
+    public writeNullObjectHeader(): void {
+        this.writeUint8(nullObject);
+    }
+
     public writeUnionHeader(tag: number) {
-        this.writeUint8(union);
         this.writeUint8(tag);
+    }
+
+    public writeNullUnionHeader(): void {
+        this.writeUint8(nullObject);
     }
 
     public writeCollectionHeader(length: number) {
@@ -275,7 +278,7 @@ export class MemoryPackWriter {
             return;
         }
 
-        // [utf8-length, utf16-length, utf8-value]
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
         this.ensureCapacity(8 + ((value.length + 1) * 3));
 
         if (this.utf8Encoder == null) {
@@ -305,7 +308,7 @@ export class MemoryPackWriter {
         }
     }
 
-    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void, unmanagedStruct: boolean): void {
+    public writeMap<K, V>(value: Map<K, V> | null, keyWriter: (writer: MemoryPackWriter, key: K) => void, valueWriter: (writer: MemoryPackWriter, value: V) => void): void {
         if (value == null) {
             this.writeNullCollectionHeader();
             return;
@@ -313,12 +316,6 @@ export class MemoryPackWriter {
 
         this.writeCollectionHeader(value.size);
         value.forEach((v, k) => {
-            // serialzie as KeyValuePair<K, V>
-            // v & k both unamnaged struct, does not write object-header.
-            // otherwise, require to write object header.
-            if (!unmanagedStruct) {
-                this.writeObjectHeader(2);
-            }
             keyWriter(this, k);
             valueWriter(this, v);
         });
@@ -486,13 +483,10 @@ export class MemoryPackReader {
     }
 
     public tryReadUnionHeader(): [boolean, number] {
-        const code = this.readUint8();
-        if (code != union) {
-            return [false, 0];
-        }
-
         const tag = this.readUint8();
-        return [true, tag];
+        return (tag == nullObject)
+            ? [false, 0]
+            : [true, tag];
     }
 
     public tryReadCollectionHeader(): [boolean, number] {
@@ -696,7 +690,7 @@ export class MemoryPackReader {
                 this.utf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
             }
 
-            // [utf8-length, utf16-length, utf8-value]
+            // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
             const utf8Length = ~length;
             this.offset += 4; // utf16-length, no use
 
@@ -720,7 +714,7 @@ export class MemoryPackReader {
         return result;
     }
 
-    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V, unmanagedStruct: boolean): Map<K, V> | null {
+    public readMap<K, V>(keyReader: (reader: MemoryPackReader) => K, valueReader: (reader: MemoryPackReader) => V): Map<K, V> | null {
         const [ok, length] = this.tryReadCollectionHeader();
         if (!ok) {
             return null;
@@ -729,12 +723,6 @@ export class MemoryPackReader {
         const result = new Map<K, V>();
 
         for (var i = 0; i < length; i++) {
-            if (!unmanagedStruct) {
-                const [headerOk, headerLength] = this.tryReadObjectHeader();
-                if (!headerOk || headerLength != 2) {
-                    throw new Error("Invalid header in map elements deserialize.");
-                }
-            }
             const key = keyReader(this);
             const value = valueReader(this);
             result.set(key, value);

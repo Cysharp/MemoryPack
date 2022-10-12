@@ -332,7 +332,6 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
             return;
         }
 
-        writer.WriteObjectHeader(1);
         writer.WriteValue(value.Item1);
     }
 
@@ -343,14 +342,6 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
 
         value = new ValueTuple<T1?>(
             reader.ReadValue<T1>()
@@ -368,7 +359,6 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
             return;
         }
 
-        writer.WriteObjectHeader(2);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
     }
@@ -380,14 +370,6 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         value = new ValueTuple<T1?, T2?>(
             reader.ReadValue<T1>(),
@@ -406,7 +388,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
             return;
         }
 
-        writer.WriteObjectHeader(3);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -419,14 +400,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
         value = new ValueTuple<T1?, T2?, T3?>(
             reader.ReadValue<T1>(),
@@ -446,7 +419,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
             return;
         }
 
-        writer.WriteObjectHeader(4);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -460,14 +432,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?>(
             reader.ReadValue<T1>(),
@@ -488,7 +452,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
             return;
         }
 
-        writer.WriteObjectHeader(5);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -503,14 +466,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 5) MemoryPackSerializationException.ThrowInvalidPropertyCount(5, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?>(
             reader.ReadValue<T1>(),
@@ -532,7 +487,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
             return;
         }
 
-        writer.WriteObjectHeader(6);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -548,14 +502,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 6) MemoryPackSerializationException.ThrowInvalidPropertyCount(6, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>(
             reader.ReadValue<T1>(),
@@ -578,7 +524,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
             return;
         }
 
-        writer.WriteObjectHeader(7);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -595,14 +540,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 7) MemoryPackSerializationException.ThrowInvalidPropertyCount(7, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>(
             reader.ReadValue<T1>(),
@@ -627,7 +564,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
             return;
         }
 
-        writer.WriteObjectHeader(8);
         writer.WriteValue(value.Item1);
         writer.WriteValue(value.Item2);
         writer.WriteValue(value.Item3);
@@ -645,14 +581,6 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
             reader.DangerousReadUnmanaged(out value);
             return;
         }
-
-        if (!reader.TryReadObjectHeader(out var count))
-        {
-            value = default;
-            return;
-        }
-
-        if (count != 8) MemoryPackSerializationException.ThrowInvalidPropertyCount(8, count);
 
         value = new ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>(
             reader.ReadValue<T1>(),

@@ -152,16 +152,12 @@ public class TypeScriptMember
                     var valueWriter = string.Format(valueType.WriteMethodTemplate, "x");
                     var valueReader = string.Format(valueType.ReadMethodTemplate);
 
-                    // v & k both unamnaged struct, does not write object-header, otherwise, require to write object header.
-                    var bothUnmanaged = (collectionSymbol!.TypeArguments[0].IsUnmanagedType && collectionSymbol!.TypeArguments[1].IsUnmanagedType)
-                        .ToString().ToLower();
-
                     return new TypeScriptType
                     {
                         TypeName = $"Map<{keyType.TypeName}, {valueType.TypeName}> | null",
                         DefaultValue = "null",
-                        WriteMethodTemplate = $"writer.writeMap({{0}}, (writer, x) => {keyWriter}, (writer, x) => {valueWriter}, {bothUnmanaged})",
-                        ReadMethodTemplate = $"reader.readMap(reader => {keyReader}, reader => {valueReader}, {bothUnmanaged})"
+                        WriteMethodTemplate = $"writer.writeMap({{0}}, (writer, x) => {keyWriter}, (writer, x) => {valueWriter})",
+                        ReadMethodTemplate = $"reader.readMap(reader => {keyReader}, reader => {valueReader})"
                     };
                 }
             default:
