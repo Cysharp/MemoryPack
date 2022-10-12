@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿#if NET7_0_OR_GREATER
 
 namespace MemoryPack.Formatters;
 
@@ -15,3 +15,5 @@ public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
         reader.ReadPackable(ref value);
     }
 }
+
+#endif

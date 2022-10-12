@@ -5,6 +5,13 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
+#if NET7_0_OR_GREATER
+using static MemoryMarshal;
+using static GC;
+#else
+using static MemoryPack.Internal.MemoryMarshalEx;
+#endif
+
 public static partial class MemoryPackSerializer
 {
     [ThreadStatic]
@@ -14,10 +21,11 @@ public static partial class MemoryPackSerializer
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            var array = GC.AllocateUninitializedArray<byte>(Unsafe.SizeOf<T>());
-            Unsafe.WriteUnaligned(ref MemoryMarshal.GetArrayDataReference(array), value);
+            var array = AllocateUninitializedArray<byte>(Unsafe.SizeOf<T>());
+            Unsafe.WriteUnaligned(ref GetArrayDataReference(array), value);
             return array;
         }
+#if NET7_0_OR_GREATER
         if (TypeHelpers.TryGetUnmanagedSZArrayElementSize<T>(out var elementSize))
         {
             if (value == null)
@@ -33,14 +41,15 @@ public static partial class MemoryPackSerializer
             }
 
             var dataSize = elementSize * length;
-            var destArray = GC.AllocateUninitializedArray<byte>(dataSize + 4);
+            var destArray = AllocateUninitializedArray<byte>(dataSize + 4);
             ref var head = ref MemoryMarshal.GetArrayDataReference(destArray);
-
+            
             Unsafe.WriteUnaligned(ref head, length);
             Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
 
             return destArray;
         }
+#endif
 
         var bufferWriter = threadStaticBufferWriter;
         if (bufferWriter == null)
@@ -61,7 +70,11 @@ public static partial class MemoryPackSerializer
     }
 
     public static unsafe void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
+#if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
+#else
+        where TBufferWriter : class, IBufferWriter<byte>
+#endif
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -70,6 +83,7 @@ public static partial class MemoryPackSerializer
             bufferWriter.Advance(buffer.Length);
             return;
         }
+#if NET7_0_OR_GREATER
         if (TypeHelpers.TryGetUnmanagedSZArrayElementSize<T>(out var elementSize))
         {
             if (value == null)
@@ -99,6 +113,7 @@ public static partial class MemoryPackSerializer
             bufferWriter.Advance(dataSize + 4);
             return;
         }
+#endif
 
         var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
         Serialize(ref writer, value);
@@ -106,7 +121,11 @@ public static partial class MemoryPackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
+#if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
+#else
+        where TBufferWriter : class, IBufferWriter<byte>
+#endif
     {
         writer.WriteValue(value);
         writer.Flush();

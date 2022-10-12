@@ -32,6 +32,12 @@ public static partial class MemoryPackFormatterProvider
         { typeof(Nullable<>), typeof(NullableFormatter<>) },
     };
 
+    static MemoryPackFormatterProvider()
+    {
+        // Initialize on startup
+        RegisterWellKnownTypesFormatters();
+    }
+
     public static bool IsRegistered<T>() => Check<T>.registered;
 
     public static void Register<T>(MemoryPackFormatter<T> formatter)
@@ -41,11 +47,15 @@ public static partial class MemoryPackFormatterProvider
         Cache<T>.formatter = formatter;
     }
 
+#if NET7_0_OR_GREATER
+
     public static void Register<T>()
         where T : IMemoryPackFormatterRegister
     {
         T.RegisterFormatter();
     }
+
+#endif
 
     public static void RegisterGenericType(Type genericType, Type genericFormatterType)
     {
@@ -162,7 +172,7 @@ public static partial class MemoryPackFormatterProvider
 
     static bool TryInvokeRegisterFormatter(Type type)
     {
-        if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+        if (typeof(IMemoryPackFormatterRegister).IsAssignableFrom(type))
         {
             // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
             var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
@@ -342,7 +352,11 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
     }
 
     public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
+#if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
+#else
+        where TBufferWriter : class, IBufferWriter<byte>
+#endif        
     {
         Throw();
     }

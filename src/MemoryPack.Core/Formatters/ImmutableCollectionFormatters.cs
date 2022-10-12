@@ -237,6 +237,7 @@ namespace MemoryPack.Formatters
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
+                
                 foreach (var item in value.AsEnumerable().Reverse()) // serialize reverse order
                 {
                     count++;

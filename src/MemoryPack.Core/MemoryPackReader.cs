@@ -1,19 +1,30 @@
 ﻿using System.Buffers;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+#if NET7_0_OR_GREATER
 using System.Text.Unicode;
+#endif
 
 namespace MemoryPack;
+
+#if NET7_0_OR_GREATER
+using static MemoryMarshal;
+using static GC;
+#else
+using static MemoryPack.Internal.MemoryMarshalEx;
+#endif
 
 [StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryPackReader
 {
     ReadOnlySequence<byte> bufferSource;
     readonly long totalLength;
+#if NET7_0_OR_GREATER
     ref byte bufferReference;
+#else
+    ReadOnlySpan<byte> bufferReference;
+#endif
     int bufferLength;
     byte[]? rentBuffer;
     int advancedCount;
@@ -26,7 +37,11 @@ public ref partial struct MemoryPackReader
     {
         this.bufferSource = sequence.IsSingleSegment ? ReadOnlySequence<byte>.Empty : sequence;
         var span = sequence.FirstSpan;
+#if NET7_0_OR_GREATER
         this.bufferReference = ref MemoryMarshal.GetReference(span);
+#else
+        this.bufferReference = span;
+#endif
         this.bufferLength = span.Length;
         this.advancedCount = 0;
         this.consumed = 0;
@@ -37,7 +52,11 @@ public ref partial struct MemoryPackReader
     public MemoryPackReader(ReadOnlySpan<byte> buffer)
     {
         this.bufferSource = ReadOnlySequence<byte>.Empty;
+#if NET7_0_OR_GREATER
         this.bufferReference = ref MemoryMarshal.GetReference(buffer);
+#else
+        this.bufferReference = buffer;
+#endif
         this.bufferLength = buffer.Length;
         this.advancedCount = 0;
         this.consumed = 0;
@@ -52,7 +71,11 @@ public ref partial struct MemoryPackReader
     {
         if (sizeHint <= bufferLength)
         {
+#if NET7_0_OR_GREATER
             return ref bufferReference;
+#else
+            return ref MemoryMarshal.GetReference(bufferReference);
+#endif
         }
 
         return ref GetNextSpan(sizeHint);
@@ -87,21 +110,37 @@ public ref partial struct MemoryPackReader
         {
             if (sizeHint <= bufferSource.FirstSpan.Length)
             {
+#if NET7_0_OR_GREATER
                 bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
                 bufferLength = bufferSource.FirstSpan.Length;
                 return ref bufferReference;
+#else
+                bufferReference = bufferSource.FirstSpan;
+                bufferLength = bufferSource.FirstSpan.Length;
+                return ref MemoryMarshal.GetReference(bufferReference);
+#endif
             }
 
             rentBuffer = ArrayPool<byte>.Shared.Rent(sizeHint);
             bufferSource.Slice(0, sizeHint).CopyTo(rentBuffer);
             var span = rentBuffer.AsSpan(0, sizeHint);
+#if NET7_0_OR_GREATER
             bufferReference = ref MemoryMarshal.GetReference(span);
             bufferLength = span.Length;
             return ref bufferReference;
+#else
+            bufferReference = span;
+            bufferLength = span.Length;
+            return ref MemoryMarshal.GetReference(bufferReference);
+#endif
         }
 
         MemoryPackSerializationException.ThrowSequenceReachedEnd();
+#if NET7_0_OR_GREATER
         return ref bufferReference; // dummy.
+#else
+        return ref MemoryMarshal.GetReference(bufferReference);
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -114,7 +153,11 @@ public ref partial struct MemoryPackReader
         }
 
         bufferLength = rest;
+#if NET7_0_OR_GREATER
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
+#else
+        bufferReference = bufferReference.Slice(count);
+#endif
         advancedCount += count;
         consumed += count;
     }
@@ -230,6 +273,7 @@ public ref partial struct MemoryPackReader
         string str;
         var utf16Length = Unsafe.ReadUnaligned<int>(ref spanRef);
 
+#if NET7_0_OR_GREATER
         if (utf16Length <= 0)
         {
             var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
@@ -262,13 +306,17 @@ public ref partial struct MemoryPackReader
                 }
             }
         }
+#else
+        var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
+        str = Encoding.UTF8.GetString(src);
+#endif
 
         Advance(utf8Length + 4);
 
         return str;
     }
 
-    delegate void ReadOnlySpanAction(Span<char> span, ReadOnlySpan<byte> arg);
+#if NET7_0_OR_GREATER
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadPackable<T>(scoped ref T? value)
@@ -285,6 +333,8 @@ public ref partial struct MemoryPackReader
         T.Deserialize(ref this, ref value);
         return value;
     }
+
+#endif
 
     // non packable, get formatter dynamically.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -409,8 +459,8 @@ public ref partial struct MemoryPackReader
 
         var byteCount = length * Unsafe.SizeOf<T>();
         ref var src = ref GetSpanReference(byteCount);
-        var dest = GC.AllocateUninitializedArray<T>(length);
-        Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetArrayDataReference(dest)), ref src, (uint)byteCount);
+        var dest = AllocateUninitializedArray<T>(length);
+        Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref GetArrayDataReference(dest)), ref src, (uint)byteCount);
         Advance(byteCount);
 
         return dest;
@@ -435,10 +485,10 @@ public ref partial struct MemoryPackReader
 
         if (value == null || value.Length != length)
         {
-            value = GC.AllocateUninitializedArray<T>(length);
+            value = AllocateUninitializedArray<T>(length);
         }
 
-        ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetArrayDataReference(value));
+        ref var dest = ref Unsafe.As<T, byte>(ref GetArrayDataReference(value));
         Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
 
         Advance(byteCount);
@@ -463,7 +513,7 @@ public ref partial struct MemoryPackReader
 
         if (value == null || value.Length != length)
         {
-            value = GC.AllocateUninitializedArray<T>(length);
+            value = AllocateUninitializedArray<T>(length);
         }
 
         ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value));
@@ -486,7 +536,7 @@ public ref partial struct MemoryPackReader
         {
             if (value.Length != length)
             {
-                value = GC.AllocateUninitializedArray<T>(length);
+                value = AllocateUninitializedArray<T>(length);
             }
 
             var byteCount = length * Unsafe.SizeOf<T>();

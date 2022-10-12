@@ -3,6 +3,7 @@ using MemoryPack.Internal;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -56,8 +57,17 @@ namespace MemoryPack.Formatters
                 writer.WriteNullCollectionHeader();
                 return;
             }
-
+#if NET7_0_OR_GREATER
             writer.WriteSpan(CollectionsMarshal.AsSpan(value));
+#else
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+#endif
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
@@ -77,8 +87,18 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
+#if NET7_0_OR_GREATER
             var span = CollectionsMarshalEx.CreateSpan(value, length);
             reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+#else
+            var formatter = reader.GetFormatter<T?>();
+            for (var i = 0; i < length; i++)
+            {
+                T? v = default;
+                formatter.Deserialize(ref reader, ref v);
+                value.Add(v);
+            }
+#endif
         }
     }
 
@@ -92,7 +112,17 @@ namespace MemoryPack.Formatters
                 return;
             }
 
+#if NET7_0_OR_GREATER
             writer.WriteSpan(CollectionsMarshalEx.AsSpan(value));
+#else
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value.Reverse()) // serialize reverse order
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+#endif
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Stack<T?>? value)
@@ -112,8 +142,18 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
+#if NET7_0_OR_GREATER
             var span = CollectionsMarshalEx.CreateSpan(value, length);
             reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+#else
+            var formatter = reader.GetFormatter<T?>();
+            for (int i = 0; i < length; i++)
+            {
+                T? v = default;
+                formatter.Deserialize(ref reader, ref v);
+                value.Push(v);
+            }
+#endif
         }
     }
 
