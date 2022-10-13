@@ -226,7 +226,7 @@ partial class TypeMeta
         return (CollectionKind.None, null);
     }
 
-    public bool Validate(TypeDeclarationSyntax syntax, SourceProductionContext context)
+    public bool Validate(TypeDeclarationSyntax syntax, IGeneratorContext context)
     {
         if (GenerateType == GenerateType.NoGenerate) return true;
         if (GenerateType is GenerateType.Collection)
@@ -475,7 +475,6 @@ partial class MemberMeta
     public ITypeSymbol MemberType { get; }
     public bool IsField { get; }
     public bool IsProperty { get; }
-    public bool IsRef { get; }
     public bool IsSettable { get; }
     public bool IsAssignable { get; }
     public bool IsConstructorParameter { get; }
@@ -514,8 +513,11 @@ partial class MemberMeta
             IsProperty = false;
             IsField = true;
             IsSettable = !f.IsReadOnly; // readonly field can not set.
-            IsAssignable = IsSettable && !f.IsRequired;
-            IsRef = f.RefKind == RefKind.Ref || f.RefKind == RefKind.RefReadOnly;
+            IsAssignable = IsSettable
+#if !Roslyn3_11
+                 && !f.IsRequired
+#endif
+                ;
             MemberType = f.Type;
 
         }
@@ -524,8 +526,11 @@ partial class MemberMeta
             IsProperty = true;
             IsField = false;
             IsSettable = !p.IsReadOnly;
-            IsAssignable = IsSettable && !p.IsRequired && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
-            IsRef = p.RefKind == RefKind.Ref || p.RefKind == RefKind.RefReadOnly;
+            IsAssignable = IsSettable
+#if !Roslyn3_11
+                && !p.IsRequired
+#endif
+                && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
             MemberType = p.Type;
         }
         else

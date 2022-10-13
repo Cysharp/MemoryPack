@@ -8,7 +8,7 @@ namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, string? serializationInfoLogDirectoryPath, in SourceProductionContext context)
+    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, string? serializationInfoLogDirectoryPath, IGeneratorContext context)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -230,6 +230,16 @@ public partial class TypeMeta
 
         var nullable = IsValueType ? "" : "?";
 
+#if Roslyn3_11
+        var staticRegisterFormatterMethod = "public static void ";
+        var staticMemoryPackableMethod = "public static void ";
+        var scopedRef = "ref";
+#else
+        var staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
+        var staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
+        var scopedRef = "scoped ref";
+#endif
+
         writer.AppendLine($$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {
@@ -238,7 +248,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         MemoryPackFormatterProvider.Register<{{TypeName}}>();
     }
 
-    static void IMemoryPackFormatterRegister.RegisterFormatter()
+    {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
@@ -247,7 +257,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {{EmitAdditionalRegisterFormatter("        ")}}
     }
 
-    static void IMemoryPackable<{{TypeName}}>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}{{nullable}} value)
+    {{staticMemoryPackableMethod}}Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}{{nullable}} value)
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
@@ -256,7 +266,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         return;
     }
 
-    static void IMemoryPackable<{{TypeName}}>.Deserialize(ref MemoryPackReader reader, scoped ref {{TypeName}}{{nullable}} value)
+    {{staticMemoryPackableMethod}}Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{deserializeBody}}
@@ -541,6 +551,14 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
     {
         var classOrInterface = Symbol.TypeKind == TypeKind.Interface ? "interface" : "class";
 
+#if Roslyn3_11
+        var staticRegisterFormatterMethod = "public static void ";
+        var scopedRef = "ref";
+#else
+        var staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
+        var scopedRef = "scoped ref";
+#endif
+
         var code = $$"""
 
 partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
@@ -550,7 +568,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         MemoryPackFormatterProvider.Register<{{TypeName}}>();
     }
 
-    static void IMemoryPackFormatterRegister.RegisterFormatter()
+    {{staticRegisterFormatterMethod}}.RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
@@ -562,14 +580,14 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
     {
 {{EmitUnionTypeToTagField()}}
 
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref {{TypeName}}? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}
 {{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref {{TypeName}}? value)
+        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}

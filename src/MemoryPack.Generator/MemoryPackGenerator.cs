@@ -75,7 +75,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             var compilation = source.Left.Item2;
             var logPath = source.Right;
 
-            Generate(typeDeclaration, compilation, logPath, context);
+            Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context));
         });
 
         // TypeScript generation
@@ -202,6 +202,28 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         public int GetHashCode((TypeDeclarationSyntax, Compilation) obj)
         {
             return obj.Item1.GetHashCode();
+        }
+    }
+
+    class GeneratorContext : IGeneratorContext
+    {
+        SourceProductionContext context;
+
+        public GeneratorContext(SourceProductionContext context)
+        {
+            this.context = context;
+        }
+
+        public CancellationToken CancellationToken => context.CancellationToken;
+
+        public void AddSource(string hintName, string source)
+        {
+            context.AddSource(hintName, source);
+        }
+
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

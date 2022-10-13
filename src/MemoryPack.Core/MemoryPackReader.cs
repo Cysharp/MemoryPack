@@ -334,6 +334,22 @@ public ref partial struct MemoryPackReader
         return value;
     }
 
+#else
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackable<T>(scoped ref T? value)
+        where T : IMemoryPackable<T>
+    {
+        ReadValue(ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadPackable<T>()
+        where T : IMemoryPackable<T>
+    {
+        return ReadValue<T>();
+    }
+
 #endif
 
     // non packable, get formatter dynamically.

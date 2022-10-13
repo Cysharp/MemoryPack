@@ -1,6 +1,6 @@
-﻿#if NET7_0_OR_GREATER
+﻿namespace MemoryPack.Formatters;
 
-namespace MemoryPack.Formatters;
+#if NET7_0_OR_GREATER
 
 public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
     where T : IMemoryPackable<T>

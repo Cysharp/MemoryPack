@@ -222,12 +222,6 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteString(string? value)
     {
-        if (value == null)
-        {
-            WriteNullCollectionHeader();
-            return;
-        }
-
         if (serializeStringAsUtf8)
         {
             WriteUtf8(value);
@@ -239,8 +233,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void WriteUtf16(string value)
+    public void WriteUtf16(string? value)
     {
+        if (value == null)
+        {
+            WriteNullCollectionHeader();
+            return;
+        }
+
         if (value.Length == 0)
         {
             WriteCollectionHeader(0);
@@ -263,8 +263,31 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void WriteUtf8(string value)
+    public void WriteUtf16(ReadOnlySpan<char> value)
     {
+        if (value.Length == 0)
+        {
+            WriteCollectionHeader(0);
+            return;
+        }
+
+        var copyByteCount = value.Length * 2;
+
+        ref var dest = ref GetSpanReference(copyByteCount + 4);
+        Unsafe.WriteUnaligned(ref dest, value.Length);
+        MemoryMarshal.AsBytes(value).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dest, 4), copyByteCount));
+        Advance(copyByteCount + 4);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUtf8(string? value)
+    {
+        if (value == null)
+        {
+            WriteNullCollectionHeader();
+            return;
+        }
+
         if (value.Length == 0)
         {
             WriteCollectionHeader(0);
@@ -299,6 +322,28 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(bytesWritten + 8); // + header
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUtf8(ReadOnlySpan<byte> utf8Value, int utf16Length = -1)
+    {
+        if (utf8Value.Length == 0)
+        {
+            WriteCollectionHeader(0);
+            return;
+        }
+
+        // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
+
+        ref var destPointer = ref GetSpanReference(utf8Value.Length + 8); // header
+
+        Unsafe.WriteUnaligned(ref destPointer, ~utf8Value.Length);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destPointer, 4), utf16Length);
+
+        var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref destPointer, 8), utf8Value.Length);
+        utf8Value.CopyTo(dest);
+
+        Advance(utf8Value.Length + 8);
+    }
+
 #if NET7_0_OR_GREATER
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,6 +354,15 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));
         T.Serialize(ref this, ref Unsafe.AsRef(value));
         depth--;
+    }
+
+#else
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackable<T>(scoped in T? value)
+        where T : IMemoryPackable<T>
+    {
+        WriteValue(value);
     }
 
 #endif
