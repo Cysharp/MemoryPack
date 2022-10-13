@@ -9,11 +9,6 @@ public struct BrotliDecompressor : IDisposable
 {
     ReusableReadOnlySequenceBuilder? sequenceBuilder;
 
-    public BrotliDecompressor()
-    {
-        this.sequenceBuilder = null;
-    }
-
     public ReadOnlySequence<byte> Decompress(ReadOnlySpan<byte> compressedSpan)
     {
         if (sequenceBuilder != null)

@@ -88,7 +88,7 @@ namespace MemoryPack.Formatters
             foreach (var item in value)
             {
                 var v = item;
-                formatter.Serialize(ref writer, ref v);
+                formatter.Serialize(ref writer, ref v!);
             }
         }
 
@@ -107,7 +107,7 @@ namespace MemoryPack.Formatters
             foreach (var item in value)
             {
                 var v = item;
-                formatter.Serialize(ref writer, ref v);
+                formatter.Serialize(ref writer, ref v!);
             }
         }
 

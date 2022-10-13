@@ -15,13 +15,7 @@ public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
     readonly int quality;
     readonly int window;
 
-    public BrotliCompressor()
-        : this(CompressionLevel.Fastest)
-    {
-
-    }
-
-    public BrotliCompressor(CompressionLevel compressionLevel)
+    public BrotliCompressor(CompressionLevel compressionLevel = CompressionLevel.Fastest)
         : this(BrotliUtils.GetQualityFromCompressionLevel(compressionLevel), BrotliUtils.WindowBits_Default)
     {
 

@@ -1,16 +1,14 @@
 ﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace MemoryPack.Internal;
 
 #if NET7_0_OR_GREATER
-using static MemoryMarshal;
 using static GC;
+using static MemoryMarshal;
 #else
 using static MemoryPack.Internal.MemoryMarshalEx;
 #endif
@@ -275,6 +273,9 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         public Enumerator(ReusableLinkedArrayBufferWriter parent)
         {
             this.parent = parent;
+            this.state = default;
+            this.current = default;
+            this.buffersEnumerator = default;
         }
 
         public Memory<byte> Current => current;
