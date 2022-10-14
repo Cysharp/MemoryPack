@@ -141,12 +141,12 @@ partial class HelloMemoryPackable : IMemoryPackable<HelloMemoryPackable>
     sealed class HelloMemoryPackableFormatter : MemoryPackFormatter<HelloMemoryPackable>
     {
         // TODO: check langversion? 11 or above, use scoped
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref HelloMemoryPackable? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,  ref HelloMemoryPackable? value)
         {
             HelloMemoryPackable.Serialize(ref writer, ref value);
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref HelloMemoryPackable? value)
+        public override void Deserialize(ref MemoryPackReader reader, ref HelloMemoryPackable? value)
         {
             HelloMemoryPackable.Deserialize(ref reader, ref value);
         }

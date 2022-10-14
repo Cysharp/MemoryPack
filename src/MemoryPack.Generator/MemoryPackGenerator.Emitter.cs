@@ -106,7 +106,7 @@ using MemoryPack;
         }
 
         // emit type info
-        typeMeta.Emit(sb);
+        typeMeta.Emit(sb, context);
 
         var code = sb.ToString();
 
@@ -189,11 +189,11 @@ using MemoryPack;
 
 public partial class TypeMeta
 {
-    public void Emit(StringBuilder writer)
+    public void Emit(StringBuilder writer, IGeneratorContext context)
     {
         if (IsUnion)
         {
-            writer.AppendLine(EmitUnionTemplate());
+            writer.AppendLine(EmitUnionTemplate(context));
             return;
         }
 
@@ -230,15 +230,19 @@ public partial class TypeMeta
 
         var nullable = IsValueType ? "" : "?";
 
-#if Roslyn3_11
-        var staticRegisterFormatterMethod = "public static void ";
-        var staticMemoryPackableMethod = "public static void ";
-        var scopedRef = "ref";
-#else
-        var staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
-        var staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
-        var scopedRef = "scoped ref";
-#endif
+        string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef;
+        if (context.IsNet7OrGreater)
+        {
+            staticRegisterFormatterMethod = "public static void ";
+            staticMemoryPackableMethod = "public static void ";
+            scopedRef = "ref";
+        }
+        else
+        {
+            staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
+            staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
+            scopedRef = "scoped ref";
+        }
 
         writer.AppendLine($$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
@@ -547,17 +551,16 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
             .Select(x => $"{indent}{x.Name} = __{x.Name}"));
     }
 
-    string EmitUnionTemplate()
+    string EmitUnionTemplate(IGeneratorContext context)
     {
         var classOrInterface = Symbol.TypeKind == TypeKind.Interface ? "interface" : "class";
 
-#if Roslyn3_11
-        var staticRegisterFormatterMethod = "public static void ";
-        var scopedRef = "ref";
-#else
-        var staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
-        var scopedRef = "scoped ref";
-#endif
+        var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
+            ? $"static void IMemoryPackFormatterRegister."
+            : "public static void ";
+        var scopedRef = context.IsCSharp11OrGreater()
+            ? "scoped ref"
+            : "ref";
 
         var code = $$"""
 

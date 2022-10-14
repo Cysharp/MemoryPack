@@ -5,7 +5,6 @@
         <LangVersion>11</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <DefineConstants>Roslyn3_11</DefineConstants>
-        <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <AnalyzerLanguage>cs</AnalyzerLanguage>
         <Nullable>enable</Nullable>
         <RootNamespace>MemoryPack.Generator</RootNamespace>

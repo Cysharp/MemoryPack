@@ -22,15 +22,10 @@ public partial class MemoryPackGenerator : ISourceGenerator
             return;
         }
 
-
-        // C#11 == 1100
-        var langVersion = (int)(context.ParseOptions as CSharpParseOptions)!.LanguageVersion;
-        var langVersion2 = (int)(context.ParseOptions as CSharpParseOptions)!.SpecifiedLanguageVersion;
-
-        // exists NET7_OR_GREATER?
-        var takoyaki = context.ParseOptions.PreprocessorSymbolNames.ToArray();
-
-        string? logPath = null; //  TODO: get from options
+        if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_SerializationInfoOutputDirectory", out var logPath))
+        {
+            logPath = null;
+        }
 
         var compiation = context.Compilation;
         var generateContext = new GeneratorContext(context);
@@ -82,6 +77,10 @@ public partial class MemoryPackGenerator : ISourceGenerator
         }
 
         public CancellationToken CancellationToken => context.CancellationToken;
+
+        public LanguageVersion LanguageVersion => LanguageVersion.CSharp9; // No IncrementalGenerator is C# 9.0
+
+        public bool IsNet7OrGreater => false; // No IncrementalGenerator is always not NET7
 
         public void AddSource(string hintName, string source)
         {

@@ -4,7 +4,6 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageTags>serializer</PackageTags>

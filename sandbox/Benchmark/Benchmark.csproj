@@ -5,7 +5,6 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>

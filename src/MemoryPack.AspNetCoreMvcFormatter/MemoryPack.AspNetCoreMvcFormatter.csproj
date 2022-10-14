@@ -5,7 +5,6 @@
         <OutputType>Library</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <Description>ASP.NET Input/Output Formatter of MemoryPack.</Description>
         <IsPackable>true</IsPackable>
     </PropertyGroup>
