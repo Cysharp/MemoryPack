@@ -26,7 +26,11 @@ public class CompressionTest
         var texts = new[] { pattern1, pattern2 };
         foreach (var text in texts)
         {
+#if NET7_0_OR_GREATER
             using var brotli = new BrotliCompressor();
+#else
+            using var brotli = new BrotliCompressor(CompressionLevel.Fastest);
+#endif
 
             MemoryPackSerializer.Serialize(brotli, text);
 

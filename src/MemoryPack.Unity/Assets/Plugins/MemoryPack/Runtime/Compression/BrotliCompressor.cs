@@ -18,13 +18,29 @@ namespace MemoryPack.Compression {
 #pragma warning disable CS8602
 #endif
 
-public struct BrotliCompressor : IBufferWriter<byte>, IDisposable
+public
+#if NET7_0_OR_GREATER
+    struct
+#else
+    class
+#endif
+    BrotliCompressor : IBufferWriter<byte>, IDisposable
 {
     ReusableLinkedArrayBufferWriter? bufferWriter;
     readonly int quality;
     readonly int window;
 
-    public BrotliCompressor(CompressionLevel compressionLevel = CompressionLevel.Fastest)
+#if NET7_0_OR_GREATER
+
+    public BrotliCompressor()
+        : this(CompressionLevel.Fastest)
+    {
+
+    }
+
+#endif
+
+    public BrotliCompressor(CompressionLevel compressionLevel)
         : this(BrotliUtils.GetQualityFromCompressionLevel(compressionLevel), BrotliUtils.WindowBits_Default)
     {
 

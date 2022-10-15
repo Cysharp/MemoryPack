@@ -273,7 +273,6 @@ public ref partial struct MemoryPackReader
         string str;
         var utf16Length = Unsafe.ReadUnaligned<int>(ref spanRef);
 
-#if NET7_0_OR_GREATER
         if (utf16Length <= 0)
         {
             var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
@@ -289,6 +288,8 @@ public ref partial struct MemoryPackReader
                 MemoryPackSerializationException.ThrowInsufficientBufferUnless(utf8Length);
             }
 
+
+#if NET7_0_OR_GREATER
             // regular path, know decoded UTF16 length will gets faster decode result
             unsafe
             {
@@ -305,11 +306,11 @@ public ref partial struct MemoryPackReader
                     });
                 }
             }
-        }
 #else
-        var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
-        str = Encoding.UTF8.GetString(src);
+            var src = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref spanRef, 4), utf8Length);
+            str = Encoding.UTF8.GetString(src);
 #endif
+        }
 
         Advance(utf8Length + 4);
 
@@ -367,7 +368,7 @@ public ref partial struct MemoryPackReader
         return value;
     }
 
-    #region ReadArray/Span
+#region ReadArray/Span
 
     public T?[]? ReadArray<T>()
     {
@@ -441,9 +442,9 @@ public ref partial struct MemoryPackReader
         }
     }
 
-    #endregion
+#endregion
 
-    #region UnmanagedArray/Span
+#region UnmanagedArray/Span
 
     public T[]? ReadUnmanagedArray<T>()
         where T : unmanaged
@@ -538,7 +539,7 @@ public ref partial struct MemoryPackReader
         Advance(byteCount);
     }
 
-    #endregion
+#endregion
 
     public void ReadSpanWithoutReadLengthHeader<T>(int length, scoped ref Span<T?> value)
     {

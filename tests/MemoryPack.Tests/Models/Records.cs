@@ -21,6 +21,8 @@ public partial struct IncludesReferenceStruct
     public string? Y;
 }
 
+#if NET7_0_OR_GREATER
+
 [MemoryPackable]
 public partial class RequiredType
 {
@@ -39,6 +41,8 @@ public partial struct RequiredType2
         // new MyRecord()
     }
 }
+
+#endif
 
 [MemoryPackable]
 public partial struct StructWithConstructor1

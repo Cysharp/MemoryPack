@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>MemoryPack.Test</RootNamespace>
+        <LangVersion>10.0</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -19,8 +22,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
-        <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj" />
-            <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">
+        <ProjectReference Include="..\..\src\MemoryPack.Generator.Roslyn3.11\MemoryPack.Generator.Roslyn3.11.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.Generator.Roslyn3.11\MemoryPack.Generator.Roslyn3.11.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
@@ -34,4 +37,10 @@
         <Using Include="MemoryPack" />
         <Using Include="MemoryPack.Tests.Utils" />
     </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="../MemoryPack.Tests/**/*.cs" Exclude="**/obj/**" />
+    </ItemGroup>
+
+
 </Project>

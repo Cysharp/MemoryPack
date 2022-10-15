@@ -113,7 +113,7 @@ public class InterfaceFormatterTest
         var grouping = lookup.First(x => x.Key == 3);
         {
             var bin = MemoryPackSerializer.Serialize(grouping);
-            var g2= MemoryPackSerializer.Deserialize<IGrouping<int, int>>(bin);
+            var g2 = MemoryPackSerializer.Deserialize<IGrouping<int, int>>(bin);
             g2!.Key.Should().Be(grouping.Key);
             g2!.AsEnumerable().Should().BeEquivalentTo(grouping.AsEnumerable());
         }
@@ -129,11 +129,14 @@ public class InterfaceFormatterTest
             MemoryPackSerializer.Deserialize<ISet<int>>(bin)
                 .Should().BeEquivalentTo(collection);
         }
+#if NET7_0_OR_GREATER
         {
             var bin = MemoryPackSerializer.Serialize<IReadOnlySet<int>>(collection);
             MemoryPackSerializer.Deserialize<IReadOnlySet<int>>(bin)
                 .Should().BeEquivalentTo(collection);
         }
+
+#endif
     }
 
     IEnumerable<int> Iterate(int from, int to)

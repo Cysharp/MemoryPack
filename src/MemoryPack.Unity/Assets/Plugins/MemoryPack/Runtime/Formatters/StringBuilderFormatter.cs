@@ -43,10 +43,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 
 #else
         // write as utf16
-        if (value.Length == 0)
-        {
-            writer.WriteUtf16(value.ToString());
-        }
+        writer.WriteUtf16(value.ToString());
 #endif
     }
 

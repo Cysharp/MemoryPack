@@ -91,15 +91,19 @@ namespace MemoryPack.Formatters
             {
                 value = new List<T?>(length);
             }
-            else if (value.Count != length)
+#if NET7_0_OR_GREATER
+            else if (value.Count == length)
             {
                 value.Clear();
             }
 
-#if NET7_0_OR_GREATER
             var span = CollectionsMarshalEx.CreateSpan(value, length);
             reader.ReadSpanWithoutReadLengthHeader(length, ref span);
 #else
+            else
+            {
+                value.Clear();
+            }
             var formatter = reader.GetFormatter<T?>();
             for (var i = 0; i < length; i++)
             {
@@ -146,15 +150,19 @@ namespace MemoryPack.Formatters
             {
                 value = new Stack<T?>(length);
             }
+#if NET7_0_OR_GREATER
             else if (value.Count != length)
             {
                 value.Clear();
             }
 
-#if NET7_0_OR_GREATER
             var span = CollectionsMarshalEx.CreateSpan(value, length);
             reader.ReadSpanWithoutReadLengthHeader(length, ref span);
 #else
+            else
+            {
+                value.Clear();
+            }
             var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {

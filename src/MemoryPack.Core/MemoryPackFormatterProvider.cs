@@ -176,6 +176,15 @@ public static partial class MemoryPackFormatterProvider
         {
             // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
             var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            if (m == null)
+            {
+                // Roslyn3.11 generator generate public static method
+                m = type.GetMethod("RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            }
+            if (m == null)
+            {
+                throw new InvalidOperationException("Type implements IMemoryPackFormatterRegister but can not found RegisterFormatter. Type: " + type.FullName);
+            }
             m!.Invoke(null, null); // Cache<T>.formatter will set from method
             return true;
         }
@@ -213,7 +222,11 @@ public static partial class MemoryPackFormatterProvider
                 var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
                 var f = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
 
-                formatter = f ?? new ErrorMemoryPackFormatter<T>();
+                formatter = f;
+                if (formatter == null)
+                {
+                    formatter = new ErrorMemoryPackFormatter<T>();
+                }
             }
             catch (Exception ex)
             {

@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\MemoryPack.Netstandard\MemoryPack.Netstandard.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
         <ProjectReference Include="..\..\src\MemoryPack.Generator.Roslyn3.11\MemoryPack.Generator.Roslyn3.11.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

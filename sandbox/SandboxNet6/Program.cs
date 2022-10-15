@@ -40,3 +40,35 @@ public partial class BarClass : IUnionSample
 {
     public string? OPQ { get; set; }
 }
+
+
+[MemoryPackable]
+public partial struct IncludesReferenceStruct
+{
+    public int X;
+    public string? Y;
+}
+
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(GenricUnionA<>))]
+[MemoryPackUnion(1, typeof(GenricUnionB<>))]
+public partial interface IGenericUnion<ToaruHoge>
+{
+    ToaruHoge? Value { get; set; }
+}
+
+
+[MemoryPackable]
+public partial class GenricUnionA<T> : IGenericUnion<T>
+{
+    public T? Value { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class GenricUnionB<T> : IGenericUnion<T>
+{
+    public T? Value { get; set; }
+    public double MyProperty { get; set; }
+}

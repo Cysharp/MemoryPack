@@ -127,6 +127,8 @@ public class CollectionFormatterTest
         CollectionEqualReference(ref collection, x => collection!.Clear());
     }
 
+#if NET7_0_OR_GREATER
+
     [Fact]
     public void PriorityQueue()
     {
@@ -147,6 +149,8 @@ public class CollectionFormatterTest
         collection.Dequeue().Should().Be(v2.Dequeue());
         collection.Dequeue().Should().Be(v2.Dequeue());
     }
+
+#endif
 
     [Fact]
     public void Collection()
