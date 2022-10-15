@@ -231,11 +231,7 @@ public static partial class MemoryPackFormatterProvider
                 var typeIsReferenceOrContainsReferences = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
                 var f = CreateGenericFormatter(type, typeIsReferenceOrContainsReferences) as MemoryPackFormatter<T>;
 
-                formatter = f;
-                if (formatter == null)
-                {
-                    formatter = new ErrorMemoryPackFormatter<T>();
-                }
+                formatter = f ?? new ErrorMemoryPackFormatter<T>();
             }
             catch (Exception ex)
             {
