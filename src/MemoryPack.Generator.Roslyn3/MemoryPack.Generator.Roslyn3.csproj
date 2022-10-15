@@ -25,7 +25,9 @@
     
     <ItemGroup>
         <None Include="../../Icon.png" Pack="true" PackagePath="/" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11" PrivateAssets="all" />
+        <!-- https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support?view=vs-2022 -->
+        <!-- Mainly used for Unity, Unity 2021.3 has Roslyn 3.9.0(see: Editor\Data\DotNetSdkRoslyn\ -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
