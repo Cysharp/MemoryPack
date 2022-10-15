@@ -65,6 +65,7 @@ partial class MemoryPackGenerator
 #pragma warning disable CS8619
 #pragma warning disable CS8620
 #pragma warning disable CS8631 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.
+#pragma warning disable CS9074 // The 'scoped' modifier of parameter doesn't match overridden or implemented member.
 #pragma warning disable CA1050 // Declare types in namespaces.
 
 using System;
@@ -230,18 +231,24 @@ public partial class TypeMeta
 
         var nullable = IsValueType ? "" : "?";
 
-        string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef;
-        if (context.IsNet7OrGreater)
+        string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef, constraint, registerBody, registerT;
+        if (!context.IsNet7OrGreater)
         {
             staticRegisterFormatterMethod = "public static void ";
             staticMemoryPackableMethod = "public static void ";
             scopedRef = "ref";
+            constraint = "where TBufferWriter : class, System.Buffers.IBufferWriter<byte>";
+            registerBody = $"MemoryPackFormatterProvider.Register(new {TypeName}Formatter());";
+            registerT = "RegisterFormatter();";
         }
         else
         {
             staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
             staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
             scopedRef = "scoped ref";
+            constraint = "";
+            registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
+            registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
         }
 
         writer.AppendLine($$"""
@@ -249,19 +256,19 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {
     static {{Symbol.Name}}()
     {
-        MemoryPackFormatterProvider.Register<{{TypeName}}>();
+        {{registerT}}
     }
 
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
-            MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{{TypeName}}>());
+            {{registerBody}}
         }
 {{EmitAdditionalRegisterFormatter("        ")}}
     }
 
-    {{staticMemoryPackableMethod}}Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}{{nullable}} value)
+    {{staticMemoryPackableMethod}}Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
@@ -280,6 +287,31 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
     }
 }
 """);
+
+        if (!context.IsNet7OrGreater)
+        {
+            // add formatter(can not use MemoryPackableFormatter)
+
+            var code = $$"""
+partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
+{
+    sealed class {{TypeName}}Formatter : MemoryPackFormatter<{{TypeName}}>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,  {{scopedRef}} {{TypeName}}? value)
+        {
+            {{TypeName}}.Serialize(ref writer, ref value);
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, ref {{TypeName}}? value)
+        {
+            {{TypeName}}.Deserialize(ref reader, ref value);
+        }
+    }
+}
+""";
+            writer.AppendLine(code);
+        }
+
     }
 
     private string EmitDeserializeBody()
@@ -558,6 +590,9 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
+        var register = (context.IsNet7OrGreater)
+            ? $"MemoryPackFormatterProvider.Register<{TypeName}>();"
+            : "RegisterFormatter();";
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
@@ -568,10 +603,10 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 {
     static {{Symbol.Name}}()
     {
-        MemoryPackFormatterProvider.Register<{{TypeName}}>();
+        {{register}}
     }
 
-    {{staticRegisterFormatterMethod}}.RegisterFormatter()
+    {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
