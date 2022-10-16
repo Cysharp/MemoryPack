@@ -5,6 +5,7 @@
         <TargetFramework>net7.0</TargetFramework>
         <LangVersion>11.0</LangVersion>
         <Configurations>Debug;Release;</Configurations>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

@@ -16,6 +16,7 @@
         <IsRoslynComponent>true</IsRoslynComponent>
         <PackageTags>serializer</PackageTags>
         <Description>Code generator for MemoryPack.</Description>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
 
