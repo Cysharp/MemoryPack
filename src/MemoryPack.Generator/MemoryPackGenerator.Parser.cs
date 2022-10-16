@@ -514,7 +514,7 @@ partial class MemberMeta
             IsField = true;
             IsSettable = !f.IsReadOnly; // readonly field can not set.
             IsAssignable = IsSettable
-#if !Roslyn3_11
+#if !ROSLYN3
                  && !f.IsRequired
 #endif
                 ;
@@ -527,7 +527,7 @@ partial class MemberMeta
             IsField = false;
             IsSettable = !p.IsReadOnly;
             IsAssignable = IsSettable
-#if !Roslyn3_11
+#if !ROSLYN3
                 && !p.IsRequired
 #endif
                 && (p.SetMethod != null && !p.SetMethod.IsInitOnly);

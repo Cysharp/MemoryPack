@@ -69,7 +69,7 @@
 
     <!-- Copy files for Unity -->
     <PropertyGroup>
-        <DestinationRoot>$(MSBuildProjectDirectory)\..\MemoryPack.Unity\Assets\Plugins\MemoryPack\Runtime\</DestinationRoot>
+        <DestinationRoot>$(MSBuildProjectDirectory)\..\MemoryPack.Unity\Assets\Plugins\MemoryPack\Runtime\MemoryPack.Core</DestinationRoot>
     </PropertyGroup>
     <ItemGroup>
         <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;**\CompressedArray.cs;**\CollectionsMarshalEx.cs;**\ImmutableCollectionFormatters.cs" />

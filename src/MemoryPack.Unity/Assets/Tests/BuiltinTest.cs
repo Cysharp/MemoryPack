@@ -22,4 +22,21 @@ public class BuiltinTest
         var v = MemoryPackSerializer.Deserialize<string[]>(bin);
         Debug.Log("foo bar あいうえお is ok: " + string.Join(" ", v));
     }
+
+    [Test]
+    public void SerializeSimpleClass()
+    {
+        MyClass.RegisterFormatter(); // register myself:)
+
+        var bin = MemoryPackSerializer.Serialize(new MyClass { MyProperty = 9999 });
+        Debug.Log("Payload size:" + bin.Length);
+        var v2 = MemoryPackSerializer.Deserialize<MyClass>(bin);
+        Debug.Log("OK Deserialzie:" + v2.MyProperty);
+    }
+}
+
+[MemoryPackable]
+public partial class MyClass
+{
+    public int MyProperty { get; set; }
 }
