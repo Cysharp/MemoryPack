@@ -781,7 +781,7 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 ### Tuple
 
-`[values...]`
+`(values...)`
 
 Tuple is fixed-size, non-nullable value collection. In .NET, `KeyValuePair<TKey, TValue>` and `ValueTuple<T,...>` are serialized as Tuple.
 
