@@ -41,10 +41,14 @@ public static partial class MemoryPackFormatterProvider
         { typeof(Nullable<>), typeof(NullableFormatter<>) },
     };
 
+    static partial void RegisterInitialFormatters();
+
     static MemoryPackFormatterProvider()
     {
         // Initialize on startup
         RegisterWellKnownTypesFormatters();
+        // Extension for Unity or others
+        RegisterInitialFormatters();
     }
 
     public static bool IsRegistered<T>() => Check<T>.registered;

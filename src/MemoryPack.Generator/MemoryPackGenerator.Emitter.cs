@@ -77,7 +77,14 @@ using MemoryPack;
         var ns = typeMeta.Symbol.ContainingNamespace;
         if (!ns.IsGlobalNamespace)
         {
-            sb.AppendLine($"namespace {ns};");
+            if (context.IsCSharp10OrGreater())
+            {
+                sb.AppendLine($"namespace {ns};");
+            }
+            else
+            {
+                sb.AppendLine($"namespace {ns} {{");
+            }
         }
         sb.AppendLine();
 
@@ -110,6 +117,11 @@ using MemoryPack;
 
         // emit type info
         typeMeta.Emit(sb, context);
+
+        if (!ns.IsGlobalNamespace && !context.IsCSharp10OrGreater())
+        {
+            sb.AppendLine($"}}");
+        }
 
         var code = sb.ToString();
 
