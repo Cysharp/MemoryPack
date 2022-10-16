@@ -1,6 +1,7 @@
 ﻿using Benchmark.Benchmarks;
 using Benchmark.Micro;
 using Benchmark.Models;
+using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
@@ -19,6 +20,7 @@ using System.Reflection;
 
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
+    .AddColumn(StatisticColumn.OperationsPerSecond)
     .AddExporter(DefaultExporters.Plain)
     .AddExporter(MarkdownExporter.Default)
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1)); // .AddJob(Job.ShortRun);

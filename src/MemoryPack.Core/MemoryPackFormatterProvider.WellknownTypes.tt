@@ -33,13 +33,6 @@
         .Select(x => x.Name)
         .Concat(new []
         {
-            "Rune",
-            "DateOnly",
-            "TimeOnly",
-            "Half",
-            "Int128",
-            "UInt128",
-
             // System.Numerics(BigInteger is not unmanaged type)
             "Complex",
             "Plane",
@@ -50,6 +43,16 @@
             "Vector3",
             "Vector4",
         });
+
+    var net7UnmanagedTypeNames = new[]
+    {
+        "Rune",
+        "DateOnly",
+        "TimeOnly",
+        "Half",
+        "Int128",
+        "UInt128",
+    };
 
     var knownTypes = new Type[]
     {
@@ -85,7 +88,13 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedArrayFormatter<<#= item #>>());
         Register(new NullableFormatter<<#= item #>>());
 <# } #>
-
+#if NET7_0_OR_GREATER
+<# foreach(var item in net7UnmanagedTypeNames) { #>
+        Register(new UnmanagedFormatter<<#= item #>>());
+        Register(new UnmanagedArrayFormatter<<#= item #>>());
+        Register(new NullableFormatter<<#= item #>>());
+<# } #>
+#endif
 <# foreach(var item in knownTypesNames) { #>
         Register(new <#= item #>Formatter());
         Register(new ArrayFormatter<<#= item #>>());

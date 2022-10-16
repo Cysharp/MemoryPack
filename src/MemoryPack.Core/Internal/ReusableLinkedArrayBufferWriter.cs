@@ -1,13 +1,17 @@
 ﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using static MemoryPack.Internal.ReusableLinkedArrayBufferWriter;
 
 namespace MemoryPack.Internal;
+
+#if NET7_0_OR_GREATER
+using static GC;
+using static MemoryMarshal;
+#else
+using static MemoryPack.Internal.MemoryMarshalEx;
+#endif
 
 internal static class ReusableLinkedArrayBufferWriterPool
 {
@@ -52,7 +56,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     {
         this.buffers = new List<BufferSegment>();
         this.firstBuffer = useFirstBuffer
-            ? GC.AllocateUninitializedArray<byte>(InitialBufferSize, pinned)
+            ? AllocateUninitializedArray<byte>(InitialBufferSize, pinned)
             : noUseFirstBufferSentinel;
         this.firstBufferWritten = 0;
         this.current = default;
@@ -125,7 +129,7 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     {
         if (totalWritten == 0) return Array.Empty<byte>();
 
-        var result = GC.AllocateUninitializedArray<byte>(totalWritten);
+        var result = AllocateUninitializedArray<byte>(totalWritten);
         var dest = result.AsSpan();
 
         if (UseFirstBuffer)
@@ -136,7 +140,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
+#if NET7_0_OR_GREATER
             foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
+#else
+            foreach (var item in buffers)
+#endif
             {
                 item.WrittenBuffer.CopyTo(dest);
                 dest = dest.Slice(item.WrittenCount);
@@ -155,7 +163,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     }
 
     public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
+#if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
+#else
+        where TBufferWriter : class, IBufferWriter<byte>
+#endif
     {
         if (totalWritten == 0) return;
 
@@ -168,7 +180,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
+#if NET7_0_OR_GREATER
             foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
+#else
+            foreach (var item in buffers)
+#endif
             {
                 ref var spanRef = ref writer.GetSpanReference(item.WrittenCount);
                 item.WrittenBuffer.CopyTo(MemoryMarshal.CreateSpan(ref spanRef, item.WrittenCount));
@@ -235,7 +251,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     public void Reset()
     {
         if (totalWritten == 0) return;
+#if NET7_0_OR_GREATER
         foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
+#else
+        foreach (var item in buffers)
+#endif
         {
             item.Clear();
         }
@@ -253,6 +273,9 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         public Enumerator(ReusableLinkedArrayBufferWriter parent)
         {
             this.parent = parent;
+            this.state = default;
+            this.current = default;
+            this.buffersEnumerator = default;
         }
 
         public Memory<byte> Current => current;

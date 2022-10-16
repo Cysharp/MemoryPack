@@ -70,6 +70,7 @@ internal sealed class ReusableReadOnlySequenceBuilder
         }
 
         long running = 0;
+#if NET7_0_OR_GREATER
         var span = CollectionsMarshal.AsSpan(list);
         for (int i = 0; i < span.Length; i++)
         {
@@ -77,15 +78,29 @@ internal sealed class ReusableReadOnlySequenceBuilder
             span[i].SetRunningIndexAndNext(running, next);
             running += span[i].Memory.Length;
         }
-
         var firstSegment = span[0];
         var lastSegment = span[span.Length - 1];
+#else
+        var span = list;
+        for (int i = 0; i < span.Count; i++)
+        {
+            var next = i < span.Count - 1 ? span[i + 1] : null;
+            span[i].SetRunningIndexAndNext(running, next);
+            running += span[i].Memory.Length;
+        }
+        var firstSegment = span[0];
+        var lastSegment = span[span.Count - 1];
+#endif
         return new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
     }
 
     public void Reset()
     {
+#if NET7_0_OR_GREATER
         var span = CollectionsMarshal.AsSpan(list);
+#else
+        var span = list;
+#endif
         foreach (var item in span)
         {
             item.Reset();

@@ -10,20 +10,32 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
     {
         if (value == null)
         {
-            writer.WriteNullObjectHeader();
+            writer.WriteNullCollectionHeader();
             return;
         }
 
-        // strign is same as collection, [length, char[]]
-        writer.WriteCollectionHeader(value.Length);
-        foreach (var chunk in value.GetChunks())
-        {
-            ref var p = ref writer.GetSpanReference(chunk.Length * 2);
-            ref var src = ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(chunk.Span));
-            Unsafe.CopyBlockUnaligned(ref p, ref src, (uint)chunk.Length * 2);
+#if NET7_0_OR_GREATER
 
-            writer.Advance(chunk.Length * 2);
+        // for performance reason, currently StringBuilder encode as Utf16, however try to write Utf8?
+        // if (writer.Options.StringEncoding == StringEncoding.Utf16)
+        {
+            writer.WriteCollectionHeader(value.Length);
+
+            foreach (var chunk in value.GetChunks())
+            {
+                ref var p = ref writer.GetSpanReference(chunk.Length * 2);
+                ref var src = ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(chunk.Span));
+                Unsafe.CopyBlockUnaligned(ref p, ref src, (uint)chunk.Length * 2);
+
+                writer.Advance(chunk.Length * 2);
+            }
+            return;
         }
+
+#else
+        // write as utf16
+        writer.WriteUtf16(value.ToString());
+#endif
     }
 
     public override void Deserialize(ref MemoryPackReader reader, scoped ref StringBuilder? value)
@@ -44,7 +56,8 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
             value.EnsureCapacity(length);
         }
 
-        // note: if GetSpanRefernce supports sizeHint = 0, more performant(avoid copy when string is large).
+        // note: require to check is Utf8
+        // note: to improvement append as chunk(per 64K?)
         var size = length * 2;
         ref var p = ref reader.GetSpanReference(size);
         var src = MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref p), length);

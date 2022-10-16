@@ -7,10 +7,19 @@ internal static class EnumerableExtensions
         // TryGetNonEnumeratedCount is not check IReadOnlyCollection<T> so add check manually.
         // https://github.com/dotnet/runtime/issues/54764
 
+#if NET7_0_OR_GREATER
         if (value.TryGetNonEnumeratedCount(out count))
         {
             return true;
         }
+#else
+        count = 0;
+        if (value is ICollection<T> collection)
+        {
+            count = collection.Count;
+            return true;
+        }
+#endif
 
         if (value is IReadOnlyCollection<T> readOnlyCollection)
         {

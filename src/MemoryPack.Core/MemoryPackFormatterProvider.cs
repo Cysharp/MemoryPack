@@ -32,6 +32,16 @@ public static partial class MemoryPackFormatterProvider
         { typeof(Nullable<>), typeof(NullableFormatter<>) },
     };
 
+    static partial void RegisterInitialFormatters();
+
+    static MemoryPackFormatterProvider()
+    {
+        // Initialize on startup
+        RegisterWellKnownTypesFormatters();
+        // Extension for Unity or others
+        RegisterInitialFormatters();
+    }
+
     public static bool IsRegistered<T>() => Check<T>.registered;
 
     public static void Register<T>(MemoryPackFormatter<T> formatter)
@@ -41,11 +51,15 @@ public static partial class MemoryPackFormatterProvider
         Cache<T>.formatter = formatter;
     }
 
+#if NET7_0_OR_GREATER
+
     public static void Register<T>()
         where T : IMemoryPackFormatterRegister
     {
         T.RegisterFormatter();
     }
+
+#endif
 
     public static void RegisterGenericType(Type genericType, Type genericFormatterType)
     {
@@ -162,10 +176,19 @@ public static partial class MemoryPackFormatterProvider
 
     static bool TryInvokeRegisterFormatter(Type type)
     {
-        if (type.IsAssignableTo(typeof(IMemoryPackFormatterRegister)))
+        if (typeof(IMemoryPackFormatterRegister).IsAssignableFrom(type))
         {
             // currently C# can not call like `if (T is IMemoryPackFormatterRegister) T.RegisterFormatter()`, so use reflection instead.
             var m = type.GetMethod("MemoryPack.IMemoryPackFormatterRegister.RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            if (m == null)
+            {
+                // Roslyn3.11 generator generate public static method
+                m = type.GetMethod("RegisterFormatter", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            }
+            if (m == null)
+            {
+                throw new InvalidOperationException("Type implements IMemoryPackFormatterRegister but can not found RegisterFormatter. Type: " + type.FullName);
+            }
             m!.Invoke(null, null); // Cache<T>.formatter will set from method
             return true;
         }
@@ -273,8 +296,10 @@ public static partial class MemoryPackFormatterProvider
         formatterType = TryCreateGenericFormatterType(type, CollectionFormatters);
         if (formatterType != null) goto CREATE;
 
+#if !UNITY_2021_2_OR_NEWER
         formatterType = TryCreateGenericFormatterType(type, ImmutableCollectionFormatters);
         if (formatterType != null) goto CREATE;
+#endif
 
         formatterType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
         if (formatterType != null) goto CREATE;
@@ -342,7 +367,11 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
     }
 
     public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
+#if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
+#else
+        where TBufferWriter : class, IBufferWriter<byte>
+#endif        
     {
         Throw();
     }

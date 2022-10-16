@@ -115,9 +115,19 @@ nuget/*.unitypackage
 # Jetbrains Rider
 .idea/
 
-# Unity
-
 __packages/
 
 sandbox/SandboxConsoleApp/MemoryPackLogs/
 /sandbox/SandboxWebApp/node_modules
+
+# Unity
+
+src/MemoryPack.Unity/Library/*
+src/MemoryPack.Unity/Temp/*
+src/MemoryPack.Unity/Logs/*
+
+src/MemoryPack.Unity/*.csproj
+src/MemoryPack.Unity/*.sln
+src/MemoryPack.Unity/MemoryPack.1.0.0.unitypackage
+
+src/MemoryPack.Unity/MemoryPack.1.4.0.unitypackage

@@ -66,24 +66,6 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedFormatter<Guid>());
         Register(new UnmanagedArrayFormatter<Guid>());
         Register(new NullableFormatter<Guid>());
-        Register(new UnmanagedFormatter<Rune>());
-        Register(new UnmanagedArrayFormatter<Rune>());
-        Register(new NullableFormatter<Rune>());
-        Register(new UnmanagedFormatter<DateOnly>());
-        Register(new UnmanagedArrayFormatter<DateOnly>());
-        Register(new NullableFormatter<DateOnly>());
-        Register(new UnmanagedFormatter<TimeOnly>());
-        Register(new UnmanagedArrayFormatter<TimeOnly>());
-        Register(new NullableFormatter<TimeOnly>());
-        Register(new UnmanagedFormatter<Half>());
-        Register(new UnmanagedArrayFormatter<Half>());
-        Register(new NullableFormatter<Half>());
-        Register(new UnmanagedFormatter<Int128>());
-        Register(new UnmanagedArrayFormatter<Int128>());
-        Register(new NullableFormatter<Int128>());
-        Register(new UnmanagedFormatter<UInt128>());
-        Register(new UnmanagedArrayFormatter<UInt128>());
-        Register(new NullableFormatter<UInt128>());
         Register(new UnmanagedFormatter<Complex>());
         Register(new UnmanagedArrayFormatter<Complex>());
         Register(new NullableFormatter<Complex>());
@@ -108,7 +90,26 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedFormatter<Vector4>());
         Register(new UnmanagedArrayFormatter<Vector4>());
         Register(new NullableFormatter<Vector4>());
-
+#if NET7_0_OR_GREATER
+        Register(new UnmanagedFormatter<Rune>());
+        Register(new UnmanagedArrayFormatter<Rune>());
+        Register(new NullableFormatter<Rune>());
+        Register(new UnmanagedFormatter<DateOnly>());
+        Register(new UnmanagedArrayFormatter<DateOnly>());
+        Register(new NullableFormatter<DateOnly>());
+        Register(new UnmanagedFormatter<TimeOnly>());
+        Register(new UnmanagedArrayFormatter<TimeOnly>());
+        Register(new NullableFormatter<TimeOnly>());
+        Register(new UnmanagedFormatter<Half>());
+        Register(new UnmanagedArrayFormatter<Half>());
+        Register(new NullableFormatter<Half>());
+        Register(new UnmanagedFormatter<Int128>());
+        Register(new UnmanagedArrayFormatter<Int128>());
+        Register(new NullableFormatter<Int128>());
+        Register(new UnmanagedFormatter<UInt128>());
+        Register(new UnmanagedArrayFormatter<UInt128>());
+        Register(new NullableFormatter<UInt128>());
+#endif
         Register(new StringFormatter());
         Register(new ArrayFormatter<String>());
         Register(new VersionFormatter());

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 
@@ -37,6 +38,12 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     {
         // no need RegisterPostInitializationOutput
 
+        RegisterMemoryPackable(context);
+        RegisterTypeScript(context);
+    }
+
+    void RegisterMemoryPackable(IncrementalGeneratorInitializationContext context)
+    {
         // return dir of info output or null .
         var logProvider = context.AnalyzerConfigOptionsProvider
             .Select((configOptions, token) =>
@@ -64,22 +71,28 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     return (TypeDeclarationSyntax)context.TargetNode;
                 });
 
+        var parseOptions = context.ParseOptionsProvider.Select((parseOptions, token) =>
+        {
+            var csOptions = (CSharpParseOptions)parseOptions;
+            var langVersion = csOptions.LanguageVersion;
+            var net7 = csOptions.PreprocessorSymbolNames.Contains("NET7_0_OR_GREATER");
+            return (langVersion, net7);
+        });
+
         var source = typeDeclarations
             .Combine(context.CompilationProvider)
             .WithComparer(Comparer.Instance)
-            .Combine(logProvider);
+            .Combine(logProvider)
+            .Combine(parseOptions);
 
         context.RegisterSourceOutput(source, static (context, source) =>
         {
-            var typeDeclaration = source.Left.Item1;
-            var compilation = source.Left.Item2;
-            var logPath = source.Right;
+            var (typeDeclaration, compilation) = source.Left.Item1;
+            var logPath = source.Left.Item2;
+            var (langVersion, net7) = source.Right;
 
-            Generate(typeDeclaration, compilation, logPath, context);
+            Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
         });
-
-        // TypeScript generation
-        RegisterTypeScript(context);
     }
 
     void RegisterTypeScript(IncrementalGeneratorInitializationContext context)
@@ -202,6 +215,34 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         public int GetHashCode((TypeDeclarationSyntax, Compilation) obj)
         {
             return obj.Item1.GetHashCode();
+        }
+    }
+
+    class GeneratorContext : IGeneratorContext
+    {
+        SourceProductionContext context;
+
+        public GeneratorContext(SourceProductionContext context, LanguageVersion languageVersion, bool isNet70OrGreater)
+        {
+            this.context = context;
+            this.LanguageVersion = languageVersion;
+            this.IsNet7OrGreater = isNet70OrGreater;
+        }
+
+        public CancellationToken CancellationToken => context.CancellationToken;
+
+        public Microsoft.CodeAnalysis.CSharp.LanguageVersion LanguageVersion { get; }
+
+        public bool IsNet7OrGreater { get; }
+
+        public void AddSource(string hintName, string source)
+        {
+            context.AddSource(hintName, source);
+        }
+
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

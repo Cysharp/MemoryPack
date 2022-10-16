@@ -1,4 +1,6 @@
-﻿using MemoryPack.Generator;
+﻿#if NET7_0_OR_GREATER
+
+using MemoryPack.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
@@ -523,3 +525,4 @@ public partial class MyClass1 : IMyClass
 }
 
 
+#endif

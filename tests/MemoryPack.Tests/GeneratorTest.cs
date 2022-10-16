@@ -125,8 +125,10 @@ public class GeneratorTest
     {
         VerifyEquivalent(new UnmanagedStruct { X = 9, Y = 3, Z = 2222 });
         VerifyEquivalent(new IncludesReferenceStruct { X = 9, Y = "foobarbaz" });
+#if NET7_0_OR_GREATER
         VerifyEquivalent(new RequiredType { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
         VerifyEquivalent(new RequiredType2 { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
+#endif
         VerifyEquivalent(new StructWithConstructor1("foo"));
         VerifyEquivalent(new MyRecord(10, 20, "haa"));
         VerifyEquivalent(new StructRecordUnmanaged(10, 20));

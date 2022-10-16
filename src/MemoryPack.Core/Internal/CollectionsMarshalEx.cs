@@ -1,8 +1,9 @@
-﻿#pragma warning disable CS8618
+﻿#if NET7_0_OR_GREATER
+
+#pragma warning disable CS8618
 #pragma warning disable CS0649
 
 using System.Runtime.CompilerServices;
-using static MemoryPack.Internal.CollectionsMarshalEx;
 
 namespace MemoryPack.Internal;
 
@@ -51,3 +52,5 @@ internal static class CollectionsMarshalEx
         public int _version;
     }
 }
+
+#endif
