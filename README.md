@@ -684,7 +684,7 @@ There are a few restrictions on the types that can be generated. Among the primi
 | `byte[]` | `Uint8Array \| null` |
 | `: ICollection<T>` | `T[] \| null` | Supports all `ICollection<T>` implemented type like `List<T>`
 | `: ISet<T>` | `Set<T> \| null` | Supports all `ISet<T>` implemented type like `HashSet<T>`
-| `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`
+| `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`. If both `K` and `V` are unmanaged type, must be `KeyValuePair<K, V>` is non-padding data
 | `[MemoryPackable]` | `class` | Supports class only
 | `[MemoryPackUnion]` | `abstract class` |
 
