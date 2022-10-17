@@ -49,13 +49,9 @@ jobs:
           buildMethod: UnitTestBuilder.BuildUnitTest
           customParameters: /headless /ScriptBackend mono
           versioning: None
-      - uses: actions/upload-artifact@v2
-        with:
-          name: test
-          path: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
-          if-no-files-found: error
-      - name: Execute UnitTest
-        run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test -batchmode
+      # Unity 2021.2 and above changed Headless mode. It seems require Dedicated Server currently and investigating alternative api to enable batch mode.
+      # - name: Execute UnitTest
+      #   run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test -batchmode
 
       # Execute scripts: Export Package
       #  /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
