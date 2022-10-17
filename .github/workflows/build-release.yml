@@ -90,22 +90,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # tag
+      # setup dotnet for nuget push
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
         with:
           dotnet-version: |
             6.0.x
             7.0.x
           include-prerelease: "true"
-      - uses: actions/checkout@v3
-      - name: tag
-        run: git tag ${{ env.GIT_TAG }}
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-          tags: true
       # Create Releases
       - uses: actions/create-release@v1
         id: create_release
