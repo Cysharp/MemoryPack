@@ -120,6 +120,15 @@ jobs:
       - uses: actions/download-artifact@v2
       # Upload to NuGet
       - run: dotnet nuget push "./nuget/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
+      # Upload to Releases(unitypackage)
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage/MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
+          asset_name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
+          asset_content_type: application/octet-stream
 
   cleanup:
     if: needs.update-packagejson.outputs.is-branch-created == 'true'
