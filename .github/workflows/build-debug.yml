@@ -49,6 +49,11 @@ jobs:
           buildMethod: UnitTestBuilder.BuildUnitTest
           customParameters: /headless /ScriptBackend mono
           versioning: None
+      - uses: actions/upload-artifact@v2
+        with:
+          name: test
+          path: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
+          if-no-files-found: error
       - name: Execute UnitTest
         run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
 
