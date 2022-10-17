@@ -28,7 +28,7 @@ This library is distributed via NuGet. For best performance, recommend to use `.
 
 > PM> Install-Package [MemoryPack](https://www.nuget.org/packages/MemoryPack)
 
-And also editor requires Roslyn 4.3.0 support, for example Visual Studio 2022 version 17.3. For details, see [Roslyn Version Support](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support2) document.
+And also editor requires Roslyn 4.3.0 support, for example Visual Studio 2022 version 17.3. For details, see [Roslyn Version Support](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support) document.
 
 For Unity, the requirements and installation process are completely different. See the [Unity](#unity) section for details.
 
