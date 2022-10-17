@@ -55,7 +55,7 @@ jobs:
           path: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
           if-no-files-found: error
       - name: Execute UnitTest
-        run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
+        run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test -batchmode
 
       # Execute scripts: Export Package
       #  /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
