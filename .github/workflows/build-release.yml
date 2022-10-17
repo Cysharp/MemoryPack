@@ -43,7 +43,7 @@ jobs:
     with:
       file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
       tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
+      dry-run: ${{ fromJson(inputs.dry-run) }}
 
   build-unity:
     needs: [update-packagejson]
