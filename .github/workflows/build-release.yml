@@ -12,10 +12,11 @@ on:
         default: "false"
 
 env:
-  GIT_TAG: ${{ github.event.inputs.tag }}
-  DRY_RUN: ${{ github.event.inputs.dry-run }}
+  GIT_TAG: ${{ inputs.tag }}
+  DRY_RUN: ${{ inputs.dry-run }}
 
 jobs:
+  # dotnet
   build-dotnet:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -26,7 +27,7 @@ jobs:
           dotnet-version: |
             6.0.x
             7.0.x
-          include-prerelease: 'true'
+          include-prerelease: "true"
       # pack nuget
       - run: dotnet build -c Release -p:Version=${{ env.GIT_TAG }}
       - run: dotnet test -c Release --no-build
@@ -36,9 +37,56 @@ jobs:
           name: nuget
           path: ./publish
 
+  # unity
+  update-packagejson:
+    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+    with:
+      file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
+      tag: ${{ inputs.tag }}
+      dry-run: ${{ inputs.dry-run }}
+
+  build-unity:
+    needs: [update-packagejson]
+    strategy:
+      matrix:
+        unity: ["2021.3.11f1"]
+        include:
+          - unity: 2021.3.11f1
+            license: UNITY_LICENSE_2021
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: echo ${{ needs.update-packagejson.outputs.sha }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.update-packagejson.outputs.sha }}
+      # Execute scripts: Export Package
+      # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
+      - name: Export unitypackage
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.license] }}
+        with:
+          projectPath: src/MemoryPack.Unity
+          unityVersion: ${{ matrix.unity }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: PackageExporter.Export
+          versioning: None
+      # check meta files
+      - uses: Cysharp/Actions/.github/actions/check-metas@main
+        with:
+          directory: src/MemoryPack.Unity
+      # Store artifacts.
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
+          path: ./src/MemoryPack.Unity/MemoryPack*.${{ env.GIT_TAG }}.unitypackage
+          if-no-files-found: error
+
+  # release
   create-release:
-    if: github.event.inputs.dry-run == 'false'
-    needs: [build-dotnet]
+    if: inputs.dry-run == 'false'
+    needs: [update-packagejson, build-dotnet, build-unity]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -48,7 +96,7 @@ jobs:
           dotnet-version: |
             6.0.x
             7.0.x
-          include-prerelease: 'true'
+          include-prerelease: "true"
       - uses: actions/checkout@v3
       - name: tag
         run: git tag ${{ env.GIT_TAG }}
@@ -72,3 +120,10 @@ jobs:
       - uses: actions/download-artifact@v2
       # Upload to NuGet
       - run: dotnet nuget push "./nuget/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
+
+  cleanup:
+    if: needs.update-packagejson.outputs.is-branch-created == 'true'
+    needs: [update-packagejson, build-unity]
+    uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
+    with:
+      branch: ${{ needs.update-packagejson.outputs.branch-name }}

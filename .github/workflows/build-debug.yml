@@ -20,6 +20,58 @@ jobs:
           dotnet-version: |
             6.0.x
             7.0.x
-          include-prerelease: 'true'
+          include-prerelease: "true"
       - run: dotnet build -c Debug
       - run: dotnet test -c Debug --no-build
+
+  build-unity:
+    if: "((github.event_name == 'push' && github.repository_owner == 'Cysharp') || startsWith(github.event.pull_request.head.label, 'Cysharp:'))"
+    strategy:
+      matrix:
+        unity: ["2021.3.11f1"]
+        include:
+          - unity: 2021.3.11f1
+            license: UNITY_LICENSE_2021
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      # Execute scripts: RuntimeUnitTestToolkit
+      # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend mono /BuildTarget StandaloneLinux64
+      - name: Build UnitTest(Linux64, mono)
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.license] }}
+        with:
+          projectPath: src/MemoryPack.Unity
+          unityVersion: ${{ matrix.unity }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: UnitTestBuilder.BuildUnitTest
+          customParameters: /headless /ScriptBackend mono
+          versioning: None
+      # Unity 2021.2 and above changed Headless mode. It seems require Dedicated Server currently and investigating alternative api to enable batch mode.
+      # - name: Execute UnitTest
+      #   run: ./src/MemoryPack.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test -batchmode
+
+      # Execute scripts: Export Package
+      #  /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
+      - name: Export unitypackage
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.license] }}
+        with:
+          projectPath: src/MemoryPack.Unity
+          unityVersion: ${{ matrix.unity }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: PackageExporter.Export
+          versioning: None
+
+      - uses: Cysharp/Actions/.github/actions/check-metas@main # check meta files
+        with:
+          directory: src/MemoryPack.Unity
+
+      # Store artifacts.
+      - uses: actions/upload-artifact@v2
+        with:
+          name: MemoryPack.${{ matrix.unity }}.unitypackage.zip
+          path: ./src/MemoryPack.Unity/*.unitypackage
