@@ -7,9 +7,10 @@ on:
         description: "tag: git tag you want create. (sample 1.0.0)"
         required: true
       dry-run:
-        description: "dry-run: true will never create release/nuget."
+        description: "dry-run: false = create release/nuget. true = never create release/nuget."
         required: true
-        default: "false"
+        default: false
+        type: boolean
 
 env:
   GIT_TAG: ${{ inputs.tag }}
@@ -43,7 +44,7 @@ jobs:
     with:
       file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
       tag: ${{ inputs.tag }}
-      dry-run: ${{ fromJson(inputs.dry-run) }}
+      dry-run: ${{ inputs.dry-run }}
 
   build-unity:
     needs: [update-packagejson]
