@@ -73,5 +73,5 @@ jobs:
       # Store artifacts.
       - uses: actions/upload-artifact@v3
         with:
-          name: MemoryPack.${{ matrix.unity }}.unitypackage.zip
+          name: MemoryPack.${{ matrix.unity }}.unitypackage
           path: ./src/MemoryPack.Unity/*.unitypackage
