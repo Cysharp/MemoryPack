@@ -80,12 +80,11 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
-          path: ./src/MemoryPack.Unity/MemoryPack*.${{ env.GIT_TAG }}.unitypackage
+          path: ./src/MemoryPack.Unity/MemoryPack.${{ env.GIT_TAG }}.unitypackage
           if-no-files-found: error
 
   # release
   create-release:
-    if: inputs.dry-run == 'false'
     needs: [update-packagejson, build-dotnet, build-unity]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -97,6 +96,9 @@ jobs:
             6.0.x
             7.0.x
           include-prerelease: "true"
+      # Download (All) Artifacts to current directory
+      - uses: actions/download-artifact@v2
+      - run: ls -lR
       # Create Releases
       - uses: actions/create-release@v1
         id: create_release
@@ -107,10 +109,10 @@ jobs:
           release_name: Ver.${{ env.GIT_TAG }}
           draft: true
           prerelease: false
-      # Download (All) Artifacts to current directory
-      - uses: actions/download-artifact@v2
+        if: inputs.dry-run == 'false'
       # Upload to NuGet
       - run: dotnet nuget push "./nuget/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
+        if: inputs.dry-run == 'false'
       # Upload to Releases(unitypackage)
       - uses: actions/upload-release-asset@v1
         env:
@@ -120,6 +122,7 @@ jobs:
           asset_path: ./MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage/MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
           asset_name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
           asset_content_type: application/octet-stream
+        if: inputs.dry-run == 'false'
 
   cleanup:
     if: needs.update-packagejson.outputs.is-branch-created == 'true'
