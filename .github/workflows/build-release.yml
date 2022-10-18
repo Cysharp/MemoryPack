@@ -17,12 +17,22 @@ env:
   DRY_RUN: ${{ inputs.dry-run }}
 
 jobs:
-  # dotnet
+  update-packagejson:
+    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+    with:
+      file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
+      tag: ${{ inputs.tag }}
+      dry-run: ${{ inputs.dry-run }}
+
   build-dotnet:
+    needs: [update-packagejson]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - run: echo ${{ needs.update-packagejson.outputs.sha }}
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
         with:
           dotnet-version: |
@@ -37,14 +47,6 @@ jobs:
         with:
           name: nuget
           path: ./publish
-
-  # unity
-  update-packagejson:
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
-      tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
 
   build-unity:
     needs: [update-packagejson]
@@ -80,7 +82,7 @@ jobs:
       # Store artifacts.
       - uses: actions/upload-artifact@v2
         with:
-          name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
+          name: MemoryPack.${{ env.GIT_TAG }}.unitypackage
           path: ./src/MemoryPack.Unity/MemoryPack.${{ env.GIT_TAG }}.unitypackage
           if-no-files-found: error
 
@@ -120,8 +122,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage/MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
-          asset_name: MemoryPack.Unity.${{ env.GIT_TAG }}.unitypackage
+          asset_path: ./MemoryPack.${{ env.GIT_TAG }}.unitypackage/MemoryPack.${{ env.GIT_TAG }}.unitypackage
+          asset_name: MemoryPack.${{ env.GIT_TAG }}.unitypackage
           asset_content_type: application/octet-stream
         if: inputs.dry-run == 'false'
 
