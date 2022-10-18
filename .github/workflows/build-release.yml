@@ -40,7 +40,7 @@ jobs:
       - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
       - run: dotnet test -c Release --no-build
       - run: dotnet pack -c Release --no-build -p:Version=${{ inputs.tag }} -o ./publish
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: nuget
           path: ./publish
@@ -77,7 +77,7 @@ jobs:
         with:
           directory: src/MemoryPack.Unity
       # Store artifacts.
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: MemoryPack.${{ inputs.tag }}.unitypackage
           path: ./src/MemoryPack.Unity/MemoryPack.${{ inputs.tag }}.unitypackage
