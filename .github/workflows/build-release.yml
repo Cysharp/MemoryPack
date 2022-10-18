@@ -12,10 +12,6 @@ on:
         default: false
         type: boolean
 
-env:
-  GIT_TAG: ${{ inputs.tag }}
-  DRY_RUN: ${{ inputs.dry-run }}
-
 jobs:
   update-packagejson:
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
@@ -23,6 +19,7 @@ jobs:
       file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
+      push-tag: false
 
   build-dotnet:
     needs: [update-packagejson]
@@ -40,9 +37,9 @@ jobs:
             7.0.x
           include-prerelease: "true"
       # pack nuget
-      - run: dotnet build -c Release -p:Version=${{ env.GIT_TAG }}
+      - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
       - run: dotnet test -c Release --no-build
-      - run: dotnet pack -c Release --no-build -p:Version=${{ env.GIT_TAG }} -o ./publish
+      - run: dotnet pack -c Release --no-build -p:Version=${{ inputs.tag }} -o ./publish
       - uses: actions/upload-artifact@v2
         with:
           name: nuget
@@ -82,54 +79,27 @@ jobs:
       # Store artifacts.
       - uses: actions/upload-artifact@v2
         with:
-          name: MemoryPack.${{ env.GIT_TAG }}.unitypackage
-          path: ./src/MemoryPack.Unity/MemoryPack.${{ env.GIT_TAG }}.unitypackage
+          name: MemoryPack.${{ inputs.tag }}.unitypackage
+          path: ./src/MemoryPack.Unity/MemoryPack.${{ inputs.tag }}.unitypackage
           if-no-files-found: error
 
   # release
   create-release:
     needs: [update-packagejson, build-dotnet, build-unity]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      # setup dotnet for nuget push
-      - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            6.0.x
-            7.0.x
-          include-prerelease: "true"
-      # Download (All) Artifacts to current directory
-      - uses: actions/download-artifact@v2
-      - run: ls -lR
-      # Create Releases
-      - uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.GIT_TAG }}
-          release_name: Ver.${{ env.GIT_TAG }}
-          draft: true
-          prerelease: false
-        if: inputs.dry-run == 'false'
-      # Upload to NuGet
-      - run: dotnet nuget push "./nuget/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
-        if: inputs.dry-run == 'false'
-      # Upload to Releases(unitypackage)
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./MemoryPack.${{ env.GIT_TAG }}.unitypackage/MemoryPack.${{ env.GIT_TAG }}.unitypackage
-          asset_name: MemoryPack.${{ env.GIT_TAG }}.unitypackage
-          asset_content_type: application/octet-stream
-        if: inputs.dry-run == 'false'
+    uses: Cysharp/Actions/.github/workflows/create-release.yaml@main
+    with:
+      dry-run: ${{ inputs.dry-run }}
+      commit-id: ${{ needs.update-packagejson.outputs.sha }}
+      tag: ${{ inputs.tag }}
+      push-tag: true
+      nuget-push: true
+      unitypackage-upload: true
+      unitypackage-name: MemoryPack.${{ inputs.tag }}.unitypackage
+      unitypackage-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
 
   cleanup:
     if: needs.update-packagejson.outputs.is-branch-created == 'true'
-    needs: [update-packagejson, build-unity]
+    needs: [update-packagejson, create-release]
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
     with:
       branch: ${{ needs.update-packagejson.outputs.branch-name }}
