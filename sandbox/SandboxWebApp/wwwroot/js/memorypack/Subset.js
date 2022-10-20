@@ -27,6 +27,14 @@ export class Subset {
         writer.writeInt8(value.mySByte);
         writer.writeInt16(value.myShort);
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => Subset.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -62,6 +70,12 @@ export class Subset {
                 return value;
         }
         return value;
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => Subset.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=Subset.js.map

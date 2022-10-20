@@ -156,6 +156,16 @@ export class AllConvertableType {
 
     }
 
+    static serializeArray(value: AllConvertableType[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: AllConvertableType[] | null): void {
+        writer.writeArray(value, (writer, x) => AllConvertableType.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): AllConvertableType | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -264,5 +274,13 @@ export class AllConvertableType {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (AllConvertableType | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (AllConvertableType | null)[] | null {
+        return reader.readArray(reader => AllConvertableType.deserializeCore(reader));
     }
 }

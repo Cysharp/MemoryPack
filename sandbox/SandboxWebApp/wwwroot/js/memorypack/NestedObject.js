@@ -21,6 +21,14 @@ export class NestedObject {
         writer.writeInt32(value.myProperty);
         writer.writeString(value.myProperty2);
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => NestedObject.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -48,6 +56,12 @@ export class NestedObject {
                 return value;
         }
         return value;
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => NestedObject.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=NestedObject.js.map

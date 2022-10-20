@@ -35,6 +35,16 @@ export class ArrayGenericsCheck {
 
     }
 
+    static serializeArray(value: ArrayGenericsCheck[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: ArrayGenericsCheck[] | null): void {
+        writer.writeArray(value, (writer, x) => ArrayGenericsCheck.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): ArrayGenericsCheck | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -63,5 +73,13 @@ export class ArrayGenericsCheck {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (ArrayGenericsCheck | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (ArrayGenericsCheck | null)[] | null {
+        return reader.readArray(reader => ArrayGenericsCheck.deserializeCore(reader));
     }
 }

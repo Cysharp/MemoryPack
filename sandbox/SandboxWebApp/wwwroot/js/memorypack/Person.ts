@@ -45,6 +45,16 @@ export class Person {
 
     }
 
+    static serializeArray(value: Person[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: Person[] | null): void {
+        writer.writeArray(value, (writer, x) => Person.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): Person | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -81,5 +91,13 @@ export class Person {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (Person | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (Person | null)[] | null {
+        return reader.readArray(reader => Person.deserializeCore(reader));
     }
 }

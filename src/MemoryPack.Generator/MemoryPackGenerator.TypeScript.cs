@@ -194,6 +194,16 @@ export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptSerializeBody(tsMembers)}}
     }
 
+    static serializeArray(value: {{TypeName}}[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: {{TypeName}}[] | null): void {
+        writer.writeArray(value, (writer, x) => {{TypeName}}.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): {{TypeName}} | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -215,6 +225,14 @@ export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptDeserializeBody(tsMembers, true)}}
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): ({{TypeName}} | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): ({{TypeName}} | null)[] | null {
+        return reader.readArray(reader => {{TypeName}}.deserializeCore(reader));
     }
 }
 """;
@@ -278,6 +296,16 @@ export abstract class {{TypeName}} {
         }
     }
 
+    static serializeArray(value: {{TypeName}}[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: {{TypeName}}[] | null): void {
+        writer.writeArray(value, (writer, x) => {{TypeName}}.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): {{TypeName}} | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -293,6 +321,14 @@ export abstract class {{TypeName}} {
             default:
                 throw new Error("Tag is not found in this MemoryPackUnion");
         }
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): ({{TypeName}} | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): ({{TypeName}} | null)[] | null {
+        return reader.readArray(reader => {{TypeName}}.deserializeCore(reader));
     }
 }
 """;

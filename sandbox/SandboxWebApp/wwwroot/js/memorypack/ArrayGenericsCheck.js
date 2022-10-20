@@ -26,6 +26,14 @@ export class ArrayGenericsCheck {
         writer.writeArray(value.array2, (writer, x) => IMogeUnion.serializeCore(writer, x));
         writer.writeArray(value.list1, (writer, x) => writer.writeUint8(x));
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => ArrayGenericsCheck.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -57,6 +65,12 @@ export class ArrayGenericsCheck {
                 return value;
         }
         return value;
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => ArrayGenericsCheck.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=ArrayGenericsCheck.js.map

@@ -36,6 +36,14 @@ export class Person {
         writer.writeInt32(value.gender);
         writer.writeArray(value.emails, (writer, x) => writer.writeString(x));
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => Person.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -83,6 +91,12 @@ export class Person {
                 return value;
         }
         return value;
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => Person.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=Person.js.map

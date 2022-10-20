@@ -32,6 +32,16 @@ export abstract class IMogeUnion {
         }
     }
 
+    static serializeArray(value: IMogeUnion[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: IMogeUnion[] | null): void {
+        writer.writeArray(value, (writer, x) => IMogeUnion.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): IMogeUnion | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -51,5 +61,13 @@ export abstract class IMogeUnion {
             default:
                 throw new Error("Tag is not found in this MemoryPackUnion");
         }
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (IMogeUnion | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (IMogeUnion | null)[] | null {
+        return reader.readArray(reader => IMogeUnion.deserializeCore(reader));
     }
 }
