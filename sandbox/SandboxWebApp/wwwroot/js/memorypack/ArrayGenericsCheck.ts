@@ -35,13 +35,13 @@ export class ArrayGenericsCheck {
 
     }
 
-    static serializeArray(value: ArrayGenericsCheck[] | null): Uint8Array {
+    static serializeArray(value: (ArrayGenericsCheck | null)[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: ArrayGenericsCheck[] | null): void {
+    static serializeArrayCore(writer: MemoryPackWriter, value: (ArrayGenericsCheck | null)[] | null): void {
         writer.writeArray(value, (writer, x) => ArrayGenericsCheck.serializeCore(writer, x));
     }
 

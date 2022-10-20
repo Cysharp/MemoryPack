@@ -50,7 +50,7 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
 """);
 
         var collector = new TypeCollector();
-        collector.Visit(typeMeta);
+        collector.Visit(typeMeta, true);
 
         // validate invalid enum
         foreach (var item in collector.GetEnums())
@@ -194,13 +194,13 @@ export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptSerializeBody(tsMembers)}}
     }
 
-    static serializeArray(value: {{TypeName}}[] | null): Uint8Array {
+    static serializeArray(value: ({{TypeName}} | null)[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: {{TypeName}}[] | null): void {
+    static serializeArrayCore(writer: MemoryPackWriter, value: ({{TypeName}} | null)[] | null): void {
         writer.writeArray(value, (writer, x) => {{TypeName}}.serializeCore(writer, x));
     }
 

@@ -27,13 +27,13 @@ export class SampleUnion1 implements IMogeUnion {
 
     }
 
-    static serializeArray(value: SampleUnion1[] | null): Uint8Array {
+    static serializeArray(value: (SampleUnion1 | null)[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: SampleUnion1[] | null): void {
+    static serializeArrayCore(writer: MemoryPackWriter, value: (SampleUnion1 | null)[] | null): void {
         writer.writeArray(value, (writer, x) => SampleUnion1.serializeCore(writer, x));
     }
 

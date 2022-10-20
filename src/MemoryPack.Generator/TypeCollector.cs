@@ -9,19 +9,25 @@ public class TypeCollector
 {
     HashSet<ITypeSymbol> types = new(SymbolEqualityComparer.Default);
 
-    public void Visit(TypeMeta typeMeta)
+    public void Visit(TypeMeta typeMeta, bool visitInterface)
     {
-        Visit(typeMeta.Symbol);
+        Visit(typeMeta.Symbol, visitInterface);
         foreach (var item in typeMeta.Members)
         {
-            Visit(item.MemberType);
+            Visit(item.MemberType, visitInterface);
         }
     }
 
-    public void Visit(ISymbol symbol)
+    public void Visit(ISymbol symbol, bool visitInterface)
     {
         if (symbol is ITypeSymbol typeSymbol)
         {
+            // 7~20 is primitive
+            if ((int)typeSymbol.SpecialType is >= 7 and <= 20)
+            {
+                return;
+            }
+
             if (!types.Add(typeSymbol))
             {
                 return;
@@ -29,25 +35,28 @@ public class TypeCollector
 
             if (typeSymbol is IArrayTypeSymbol array)
             {
-                Visit(array.ElementType);
+                Visit(array.ElementType, visitInterface);
             }
             else if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
             {
-                foreach (var item in namedTypeSymbol.AllInterfaces)
+                if (visitInterface)
                 {
-                    Visit(item);
-                }
+                    foreach (var item in namedTypeSymbol.AllInterfaces)
+                    {
+                        Visit(item, visitInterface);
+                    }
 
-                foreach (var item in namedTypeSymbol.GetAllBaseTypes())
-                {
-                    Visit(item);
+                    foreach (var item in namedTypeSymbol.GetAllBaseTypes())
+                    {
+                        Visit(item, visitInterface);
+                    }
                 }
 
                 if (namedTypeSymbol.IsGenericType)
                 {
                     foreach (var item in namedTypeSymbol.TypeArguments)
                     {
-                        Visit(item);
+                        Visit(item, visitInterface);
                     }
                 }
             }
@@ -76,14 +85,8 @@ public class TypeCollector
         }
     }
 
-    public IEnumerable<INamedTypeSymbol> GetSerializableGenericTypes(ReferenceSymbols reference)
+    public IEnumerable<ITypeSymbol> GetTypes()
     {
-        foreach (var typeSymbol in types.OfType<INamedTypeSymbol>())
-        {
-            if (typeSymbol.IsGenericType && reference.KnownTypes.Contains(typeSymbol))
-            {
-                yield return typeSymbol;
-            }
-        }
+        return types.OfType<ITypeSymbol>();
     }
 }

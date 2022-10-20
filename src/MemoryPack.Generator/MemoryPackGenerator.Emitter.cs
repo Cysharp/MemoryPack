@@ -273,15 +273,21 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         {{registerT}}
     }
 
+    [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
             {{registerBody}}
         }
-{{EmitAdditionalRegisterFormatter("        ")}}
+        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
+        {
+            MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
+        }
+{{EmitAdditionalRegisterFormatter("        ", context)}}
     }
 
+    [global::MemoryPack.Internal.Preserve]
     {{staticMemoryPackableMethod}}Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
@@ -291,6 +297,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
         return;
     }
 
+    [global::MemoryPack.Internal.Preserve]
     {{staticMemoryPackableMethod}}Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
@@ -309,13 +316,16 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
             var code = $$"""
 partial {{classOrStructOrRecord}} {{TypeName}}
 {
+    [global::MemoryPack.Internal.Preserve]
     sealed class {{Symbol.Name}}Formatter : MemoryPackFormatter<{{TypeName}}>
     {
+        [global::MemoryPack.Internal.Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,  {{scopedRef}} {{TypeName}} value)
         {
             {{TypeName}}.Serialize(ref writer, ref value);
         }
 
+        [global::MemoryPack.Internal.Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref {{TypeName}} value)
         {
             {{TypeName}}.Deserialize(ref reader, ref value);
@@ -404,22 +414,39 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
     }
 
-    string EmitAdditionalRegisterFormatter(string indent)
+    string EmitAdditionalRegisterFormatter(string indent, IGeneratorContext context)
     {
-        // NOTE: analyze and add more formatters
-        var enums = Members.Where(x => x.Kind == MemberKind.Enum)
-            .Select(x => x.MemberType.FullyQualifiedToString())
-            .Distinct()
+        var collector = new TypeCollector();
+        collector.Visit(this, false);
+
+        var types = collector.GetTypes()
+            .Select(x => (x, reference.KnownTypes.GetNonDefaultFormatterName(x)))
+            .Where(x => x.Item2 != null)
+            .Where(x =>
+            {
+                if (!context.IsNet7OrGreater)
+                {
+                    if (x.Item2!.StartsWith("global::MemoryPack.Formatters.InterfaceReadOnlySetFormatter"))
+                    {
+                        return false;
+                    }
+                    if (x.Item2!.StartsWith("global::MemoryPack.Formatters.PriorityQueueFormatter"))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            })
             .ToArray();
 
-        if (enums.Length == 0) return "";
+        if (types.Length == 0) return "";
 
         var sb = new StringBuilder();
-        foreach (var item in enums)
+        foreach (var (symbol, formatter) in types)
         {
-            sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<{item}>())");
+            sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<{symbol.FullyQualifiedToString()}>())");
             sb.AppendLine($"{indent}{{");
-            sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.UnmanagedFormatter<{item}>());");
+            sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new {formatter}());");
             sb.AppendLine($"{indent}}}");
         }
 
@@ -620,18 +647,25 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         {{register}}
     }
 
+    [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
             MemoryPackFormatterProvider.Register(new {{Symbol.Name}}Formatter());
         }
+        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
+        {
+            MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
+        }
     }
 
+    [global::MemoryPack.Internal.Preserve]
     sealed class {{Symbol.Name}}Formatter : MemoryPackFormatter<{{TypeName}}>
     {
 {{EmitUnionTypeToTagField()}}
 
+        [global::MemoryPack.Internal.Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
@@ -639,6 +673,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 {{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
         }
 
+        [global::MemoryPack.Internal.Preserve]
         public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}

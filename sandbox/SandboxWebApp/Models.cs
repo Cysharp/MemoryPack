@@ -182,3 +182,11 @@ public enum Gender
 {
     Male, Female, Other
 }
+
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Rec
+{
+    public required Rec Id { get; init; }
+}

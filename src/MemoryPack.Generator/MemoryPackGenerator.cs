@@ -176,7 +176,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
                 if (meta != null)
                 {
-                    collector.Visit(meta);
+                    collector.Visit(meta, false);
                 }
             }
 

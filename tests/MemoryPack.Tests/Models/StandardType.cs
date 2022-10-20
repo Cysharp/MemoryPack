@@ -62,6 +62,13 @@ namespace MemoryPack.Tests.Models
         }
     }
 
+
+    [MemoryPackable]
+    public partial class WithArray
+    {
+        public StandardTypeOne[]? One { get; set; }
+    }
+
 }
 
 // another namespace, same type name

@@ -29,13 +29,13 @@ export class NestedObject {
 
     }
 
-    static serializeArray(value: NestedObject[] | null): Uint8Array {
+    static serializeArray(value: (NestedObject | null)[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: NestedObject[] | null): void {
+    static serializeArrayCore(writer: MemoryPackWriter, value: (NestedObject | null)[] | null): void {
         writer.writeArray(value, (writer, x) => NestedObject.serializeCore(writer, x));
     }
 

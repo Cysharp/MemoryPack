@@ -156,13 +156,13 @@ export class AllConvertableType {
 
     }
 
-    static serializeArray(value: AllConvertableType[] | null): Uint8Array {
+    static serializeArray(value: (AllConvertableType | null)[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: AllConvertableType[] | null): void {
+    static serializeArrayCore(writer: MemoryPackWriter, value: (AllConvertableType | null)[] | null): void {
         writer.writeArray(value, (writer, x) => AllConvertableType.serializeCore(writer, x));
     }
 

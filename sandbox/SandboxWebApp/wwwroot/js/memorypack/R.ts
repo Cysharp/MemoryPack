@@ -2,7 +2,7 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 import { Gender } from "./Gender.js"; 
 
-export class Person {
+export class R {
     id: string;
     age: number;
     firstName: string | null;
@@ -22,13 +22,13 @@ export class Person {
 
     }
 
-    static serialize(value: Person | null): Uint8Array {
+    static serialize(value: R | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeCore(writer: MemoryPackWriter, value: Person | null): void {
+    static serializeCore(writer: MemoryPackWriter, value: R | null): void {
         if (value == null) {
             writer.writeNullObjectHeader();
             return;
@@ -45,27 +45,27 @@ export class Person {
 
     }
 
-    static serializeArray(value: (Person | null)[] | null): Uint8Array {
+    static serializeArray(value: R[] | null): Uint8Array {
         const writer = MemoryPackWriter.getSharedInstance();
         this.serializeArrayCore(writer, value);
         return writer.toArray();
     }
 
-    static serializeArrayCore(writer: MemoryPackWriter, value: (Person | null)[] | null): void {
-        writer.writeArray(value, (writer, x) => Person.serializeCore(writer, x));
+    static serializeArrayCore(writer: MemoryPackWriter, value: R[] | null): void {
+        writer.writeArray(value, (writer, x) => R.serializeCore(writer, x));
     }
 
-    static deserialize(buffer: ArrayBuffer): Person | null {
+    static deserialize(buffer: ArrayBuffer): R | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
 
-    static deserializeCore(reader: MemoryPackReader): Person | null {
+    static deserializeCore(reader: MemoryPackReader): R | null {
         const [ok, count] = reader.tryReadObjectHeader();
         if (!ok) {
             return null;
         }
 
-        const value = new Person();
+        const value = new R();
         if (count == 7) {
             value.id = reader.readGuid();
             value.age = reader.readInt32();
@@ -93,11 +93,11 @@ export class Person {
         return value;
     }
 
-    static deserializeArray(buffer: ArrayBuffer): (Person | null)[] | null {
+    static deserializeArray(buffer: ArrayBuffer): (R | null)[] | null {
         return this.deserializeArrayCore(new MemoryPackReader(buffer));
     }
 
-    static deserializeArrayCore(reader: MemoryPackReader): (Person | null)[] | null {
-        return reader.readArray(reader => Person.deserializeCore(reader));
+    static deserializeArrayCore(reader: MemoryPackReader): (R | null)[] | null {
+        return reader.readArray(reader => R.deserializeCore(reader));
     }
 }
