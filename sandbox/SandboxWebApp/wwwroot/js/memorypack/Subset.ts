@@ -35,6 +35,16 @@ export class Subset {
 
     }
 
+    static serializeArray(value: (Subset | null)[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: (Subset | null)[] | null): void {
+        writer.writeArray(value, (writer, x) => Subset.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): Subset | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -65,5 +75,13 @@ export class Subset {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (Subset | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (Subset | null)[] | null {
+        return reader.readArray(reader => Subset.deserializeCore(reader));
     }
 }

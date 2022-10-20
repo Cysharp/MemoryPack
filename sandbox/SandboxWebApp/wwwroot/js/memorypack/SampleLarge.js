@@ -51,6 +51,14 @@ export class SampleLarge {
         writer.writeString(value.updated_at);
         writer.writeString(value.url);
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => SampleLarge.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -118,6 +126,12 @@ export class SampleLarge {
                 return value;
         }
         return value;
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => SampleLarge.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=SampleLarge.js.map

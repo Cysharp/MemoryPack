@@ -1,9 +1,9 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-export class SampleUnion1 {
-    myProperty;
+export class Rec {
+    id;
     constructor() {
-        this.myProperty = null;
+        this.id = null;
     }
     static serialize(value) {
         const writer = MemoryPackWriter.getSharedInstance();
@@ -16,7 +16,7 @@ export class SampleUnion1 {
             return;
         }
         writer.writeObjectHeader(1);
-        writer.writeNullableInt32(value.myProperty);
+        Rec.serializeCore(writer, value.id);
     }
     static serializeArray(value) {
         const writer = MemoryPackWriter.getSharedInstance();
@@ -24,7 +24,7 @@ export class SampleUnion1 {
         return writer.toArray();
     }
     static serializeArrayCore(writer, value) {
-        writer.writeArray(value, (writer, x) => SampleUnion1.serializeCore(writer, x));
+        writer.writeArray(value, (writer, x) => Rec.serializeCore(writer, x));
     }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
@@ -34,9 +34,9 @@ export class SampleUnion1 {
         if (!ok) {
             return null;
         }
-        const value = new SampleUnion1();
+        const value = new Rec();
         if (count == 1) {
-            value.myProperty = reader.readNullableInt32();
+            value.id = Rec.deserializeCore(reader);
         }
         else if (count > 1) {
             throw new Error("Current object's property count is larger than type schema, can't deserialize about versioning.");
@@ -44,7 +44,7 @@ export class SampleUnion1 {
         else {
             if (count == 0)
                 return value;
-            value.myProperty = reader.readNullableInt32();
+            value.id = Rec.deserializeCore(reader);
             if (count == 1)
                 return value;
         }
@@ -54,7 +54,7 @@ export class SampleUnion1 {
         return this.deserializeArrayCore(new MemoryPackReader(buffer));
     }
     static deserializeArrayCore(reader) {
-        return reader.readArray(reader => SampleUnion1.deserializeCore(reader));
+        return reader.readArray(reader => Rec.deserializeCore(reader));
     }
 }
-//# sourceMappingURL=SampleUnion1.js.map
+//# sourceMappingURL=Rec.js.map

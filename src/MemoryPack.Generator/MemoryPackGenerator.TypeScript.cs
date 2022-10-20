@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 using System.Dynamic;
+using System.IO.Compression;
 using System.Text;
 using System.Xml.Serialization;
 
@@ -11,9 +12,7 @@ namespace MemoryPack.Generator;
 partial class MemoryPackGenerator
 {
     static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
-        ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap,
-        HashSet<ITypeSymbol> enumCollection
-        )
+        ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -29,7 +28,6 @@ partial class MemoryPackGenerator
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptMustBeMemoryPackable, syntax.Identifier.GetLocation(), typeSymbol.Name));
             return null;
         }
-
 
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
@@ -51,19 +49,11 @@ import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
 """);
 
-        try
-        {
-            typeMeta.EmitTypescript(sb, unionMap, enumCollection);
-        }
-        catch (NotSupportedTypeException ex)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptNotSupportedType, ex.MemberMeta!.GetLocation(syntax),
-                typeMeta.Symbol.Name, ex.MemberMeta.Name, ex.MemberMeta.MemberType.FullyQualifiedToString()));
-            return null;
-        }
+        var collector = new TypeCollector();
+        collector.Visit(typeMeta, true);
 
         // validate invalid enum
-        foreach (var item in enumCollection)
+        foreach (var item in collector.GetEnums())
         {
             if (item.TypeKind == TypeKind.Enum && item is INamedTypeSymbol nts)
             {
@@ -73,6 +63,28 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
                     return null;
                 }
             }
+        }
+
+        // add ipmort(enum, union, memorypackable)
+        foreach (var item in collector.GetEnums())
+        {
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}.js\"; ");
+        }
+        foreach (var item in collector.GetMemoryPackableTypes(reference).Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol)))
+        {
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}.js\"; ");
+        }
+        sb.AppendLine();
+
+        try
+        {
+            typeMeta.EmitTypescript(sb, unionMap);
+        }
+        catch (NotSupportedTypeException ex)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptNotSupportedType, ex.MemberMeta!.GetLocation(syntax),
+                typeMeta.Symbol.Name, ex.MemberMeta.Name, ex.MemberMeta.MemberType.FullyQualifiedToString()));
+            return null;
         }
 
         // save to file
@@ -144,7 +156,7 @@ export const enum {{typeSymbol.Name}} {
 
 public partial class TypeMeta
 {
-    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, HashSet<ITypeSymbol> enumCollection)
+    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
     {
         if (IsUnion)
         {
@@ -152,19 +164,12 @@ public partial class TypeMeta
             return;
         }
 
-        var imports = Members.Where(x => x.Kind is MemberKind.MemoryPackable or MemberKind.MemoryPackUnion or MemberKind.Enum);
-        foreach (var item in imports)
+        if (!unionMap.TryGetValue(Symbol, out var union))
         {
-            sb.AppendLine($"import {{ {item.MemberType.Name} }} from \"./{item.MemberType.Name}.js\"; ");
+            union = null;
         }
-        if (unionMap.TryGetValue(Symbol, out var union))
-        {
-            sb.AppendLine($"import {{ {union.Name} }} from \"./{union.Name}.js\"; ");
-        }
-        sb.AppendLine();
 
-
-        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference, enumCollection)).ToArray();
+        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference)).ToArray();
         var impl = (union != null) ? $"implements {union.Name} " : "";
 
         var code = $$"""
@@ -189,6 +194,16 @@ export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptSerializeBody(tsMembers)}}
     }
 
+    static serializeArray(value: ({{TypeName}} | null)[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: ({{TypeName}} | null)[] | null): void {
+        writer.writeArray(value, (writer, x) => {{TypeName}}.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): {{TypeName}} | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -210,6 +225,14 @@ export class {{TypeName}} {{impl}}{
 {{EmitTypeScriptDeserializeBody(tsMembers, true)}}
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): ({{TypeName}} | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): ({{TypeName}} | null)[] | null {
+        return reader.readArray(reader => {{TypeName}}.deserializeCore(reader));
     }
 }
 """;
@@ -273,6 +296,16 @@ export abstract class {{TypeName}} {
         }
     }
 
+    static serializeArray(value: {{TypeName}}[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: {{TypeName}}[] | null): void {
+        writer.writeArray(value, (writer, x) => {{TypeName}}.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): {{TypeName}} | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -288,6 +321,14 @@ export abstract class {{TypeName}} {
             default:
                 throw new Error("Tag is not found in this MemoryPackUnion");
         }
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): ({{TypeName}} | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): ({{TypeName}} | null)[] | null {
+        return reader.readArray(reader => {{TypeName}}.deserializeCore(reader));
     }
 }
 """;
@@ -355,5 +396,4 @@ export abstract class {{TypeName}} {
 
         return sb.ToString();
     }
-
 }

@@ -27,6 +27,16 @@ export class SampleUnion1 implements IMogeUnion {
 
     }
 
+    static serializeArray(value: (SampleUnion1 | null)[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: (SampleUnion1 | null)[] | null): void {
+        writer.writeArray(value, (writer, x) => SampleUnion1.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): SampleUnion1 | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -51,5 +61,13 @@ export class SampleUnion1 implements IMogeUnion {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (SampleUnion1 | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (SampleUnion1 | null)[] | null {
+        return reader.readArray(reader => SampleUnion1.deserializeCore(reader));
     }
 }

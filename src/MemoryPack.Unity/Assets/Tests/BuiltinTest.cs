@@ -53,6 +53,15 @@ public class BuiltinTest
     }
 
     [Test]
+    public void ArrayCheckd()
+    {
+        var bin = MemoryPackSerializer.Serialize(new[] { new Takoyaki { MyProperty = 9999 } });
+        Debug.Log("Payload size:" + bin.Length);
+        var v2 = MemoryPackSerializer.Deserialize<Takoyaki[]>(bin);
+        Debug.Log("OK Deserialzie:" + v2[0].MyProperty);
+    }
+
+    [Test]
     public void TupleT()
     {
         _ = new TupleFormatter<int>();

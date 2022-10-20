@@ -27,6 +27,14 @@ export class IMogeUnion {
             throw new Error("Concrete type is not in MemoryPackUnion");
         }
     }
+    static serializeArray(value) {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+    static serializeArrayCore(writer, value) {
+        writer.writeArray(value, (writer, x) => IMogeUnion.serializeCore(writer, x));
+    }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -43,6 +51,12 @@ export class IMogeUnion {
             default:
                 throw new Error("Tag is not found in this MemoryPackUnion");
         }
+    }
+    static deserializeArray(buffer) {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+    static deserializeArrayCore(reader) {
+        return reader.readArray(reader => IMogeUnion.deserializeCore(reader));
     }
 }
 //# sourceMappingURL=IMogeUnion.js.map

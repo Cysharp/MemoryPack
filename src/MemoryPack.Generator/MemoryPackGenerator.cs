@@ -161,8 +161,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
             }
 
-            var generatedEnums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
-            var generatedTypes = new List<TypeMeta>();
+            var collector = new TypeCollector();
             foreach (var item in source)
             {
                 var typeDeclaration = item.Left.Item1;
@@ -174,16 +173,16 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap, generatedEnums);
+                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
                 if (meta != null)
                 {
-                    generatedTypes.Add(meta);
+                    collector.Visit(meta, false);
                 }
             }
 
-            if (generatePath != null && generatedTypes.Count != 0)
+            if (generatePath != null)
             {
-                GenerateEnums(generatedEnums, generatePath);
+                GenerateEnums(collector.GetEnums(), generatePath);
 
                 // generate runtime
                 var runtime = new[]{

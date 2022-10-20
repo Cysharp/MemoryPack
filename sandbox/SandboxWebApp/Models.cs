@@ -83,6 +83,17 @@ public partial class NestedObject
     public string? MyProperty2 { get; set; }
 }
 
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class ArrayGenericsCheck
+{
+    // array
+    public NestedObject[]? Array1 { get; set; }
+    public IMogeUnion[]? Array2 { get; set; }
+    public List<NoMarkByteEnum>? List1 { get; set; }
+
+}
+
 public enum NoMarkByteEnum : byte
 {
     Apple, Orange, Grape
@@ -170,4 +181,12 @@ public partial class Person
 public enum Gender
 {
     Male, Female, Other
+}
+
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Rec
+{
+    public required Rec Id { get; init; }
 }

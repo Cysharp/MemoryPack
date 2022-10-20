@@ -579,7 +579,7 @@ Runtime code and TypeScript type will generate to target directory.
 
 ![image](https://user-images.githubusercontent.com/46207/194916544-1b6bb5ed-966b-43c3-a378-3eac297c2b40.png)
 
-The generated code is as follows, with simple fields and static methods for serialize and deserialize.
+The generated code is as follows, with simple fields and static methods for serialize/serializeArray and deserialize/deserializeArray.
 
 ```typescript
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
@@ -605,14 +605,28 @@ export class Person {
 
     static serializeCore(writer: MemoryPackWriter, value: Person | null): void {
         // snip...
-
     }
 
+    static serializeArray(value: (Person | null)[] | null): Uint8Array {
+        // snip...
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: (Person | null)[] | null): void {
+        // snip...
+    }
     static deserialize(buffer: ArrayBuffer): Person | null {
         // snip...
     }
 
     static deserializeCore(reader: MemoryPackReader): Person | null {
+        // snip...
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (Person | null)[] | null {
+        // snip...
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (Person | null)[] | null {
         // snip...
     }
 }

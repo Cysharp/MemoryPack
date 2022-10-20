@@ -20,6 +20,32 @@ export async function hoge() {
     // deserialize from ArrayBuffer 
     let person2 = Person.deserialize(buffer);
 }
+export async function huga() {
+    let person1 = new Person();
+    person1.id = crypto.randomUUID();
+    person1.age = 30;
+    person1.firstName = "foo";
+    person1.lastName = "bar";
+    person1.dateOfBirth = new Date(1999, 12, 31, 0, 0, 0);
+    person1.gender = 2 /* Gender.Other */;
+    person1.emails = ["foo@bar.com", "zoo@bar.net"];
+    let person2 = new Person();
+    person2.id = crypto.randomUUID();
+    person2.age = 430;
+    person2.firstName = "zoo";
+    person2.lastName = "zzz";
+    person2.dateOfBirth = new Date(2229, 12, 31, 0, 0, 0);
+    person2.gender = 1 /* Gender.Female */;
+    person2.emails = null;
+    let array = Person.serializeArray([person1, person2]);
+    try {
+        let two = Person.deserializeArray(array.buffer);
+        console.log(two);
+    }
+    catch (e) {
+        console.log("no:" + e);
+    }
+}
 export async function test() {
     const date = new Date();
     // setup

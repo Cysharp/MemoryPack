@@ -29,6 +29,16 @@ export class NestedObject {
 
     }
 
+    static serializeArray(value: (NestedObject | null)[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: (NestedObject | null)[] | null): void {
+        writer.writeArray(value, (writer, x) => NestedObject.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): NestedObject | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -55,5 +65,13 @@ export class NestedObject {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (NestedObject | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (NestedObject | null)[] | null {
+        return reader.readArray(reader => NestedObject.deserializeCore(reader));
     }
 }

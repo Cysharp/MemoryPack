@@ -59,6 +59,16 @@ export class SampleLarge {
 
     }
 
+    static serializeArray(value: (SampleLarge | null)[] | null): Uint8Array {
+        const writer = MemoryPackWriter.getSharedInstance();
+        this.serializeArrayCore(writer, value);
+        return writer.toArray();
+    }
+
+    static serializeArrayCore(writer: MemoryPackWriter, value: (SampleLarge | null)[] | null): void {
+        writer.writeArray(value, (writer, x) => SampleLarge.serializeCore(writer, x));
+    }
+
     static deserialize(buffer: ArrayBuffer): SampleLarge | null {
         return this.deserializeCore(new MemoryPackReader(buffer));
     }
@@ -105,5 +115,13 @@ export class SampleLarge {
 
         }
         return value;
+    }
+
+    static deserializeArray(buffer: ArrayBuffer): (SampleLarge | null)[] | null {
+        return this.deserializeArrayCore(new MemoryPackReader(buffer));
+    }
+
+    static deserializeArrayCore(reader: MemoryPackReader): (SampleLarge | null)[] | null {
+        return reader.readArray(reader => SampleLarge.deserializeCore(reader));
     }
 }

@@ -39,7 +39,7 @@ partial class TypeMeta
     public INamedTypeSymbol Symbol { get; }
     public GenerateType GenerateType { get; }
     public SerializeLayout SerializeLayout { get; }
-    /// <summary>MinimallyQualifiedFormat(include generics T>)</summary>
+    /// <summary>MinimallyQualifiedFormat(include generics T)</summary>
     public string TypeName { get; }
     public MemberMeta[] Members { get; }
     public bool IsValueType { get; set; }

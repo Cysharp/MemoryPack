@@ -1,6 +1,6 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-export class Person {
+export class R {
     id;
     age;
     firstName;
@@ -42,7 +42,7 @@ export class Person {
         return writer.toArray();
     }
     static serializeArrayCore(writer, value) {
-        writer.writeArray(value, (writer, x) => Person.serializeCore(writer, x));
+        writer.writeArray(value, (writer, x) => R.serializeCore(writer, x));
     }
     static deserialize(buffer) {
         return this.deserializeCore(new MemoryPackReader(buffer));
@@ -52,7 +52,7 @@ export class Person {
         if (!ok) {
             return null;
         }
-        const value = new Person();
+        const value = new R();
         if (count == 7) {
             value.id = reader.readGuid();
             value.age = reader.readInt32();
@@ -96,7 +96,7 @@ export class Person {
         return this.deserializeArrayCore(new MemoryPackReader(buffer));
     }
     static deserializeArrayCore(reader) {
-        return reader.readArray(reader => Person.deserializeCore(reader));
+        return reader.readArray(reader => R.deserializeCore(reader));
     }
 }
-//# sourceMappingURL=Person.js.map
+//# sourceMappingURL=R.js.map
