@@ -76,11 +76,11 @@ public class TypeCollector
         }
     }
 
-    public IEnumerable<ITypeSymbol> GetGenericTypes()
+    public IEnumerable<INamedTypeSymbol> GetSerializableGenericTypes(ReferenceSymbols reference)
     {
         foreach (var typeSymbol in types.OfType<INamedTypeSymbol>())
         {
-            if (typeSymbol.IsGenericType)
+            if (typeSymbol.IsGenericType && reference.KnownTypes.Contains(typeSymbol))
             {
                 yield return typeSymbol;
             }

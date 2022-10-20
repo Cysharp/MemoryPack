@@ -168,6 +168,30 @@ public class ReferenceSymbols
             return false;
         }
 
+        // TODO: make this
+
+        public string MapGenericFormatter(INamedTypeSymbol symbol)
+        {
+            if (!symbol.IsGenericType) return "";
+
+            var fullyQualifiedString = symbol.FullyQualifiedToString();
+            var typeArgs = string.Join(", ", symbol.TypeArguments.Select(x => x.FullyQualifiedToString()));
+            if (fullyQualifiedString.StartsWith("global::System.Tuple<"))
+            {
+                return $"MemoryPack.Formatters.TupleFormatter<{typeArgs}>";
+            }
+
+            if (fullyQualifiedString.StartsWith("global::System.ValueTuple<"))
+            {
+                return $"MemoryPack.Formatters.ValueTupleFormatter<{typeArgs}>";
+            }
+
+            // TODO:collecitons, etc...
+
+            return "";
+        }
+
+
         INamedTypeSymbol GetTypeByMetadataName(string metadataName) => parent.GetTypeByMetadataName(metadataName);
     }
 }
