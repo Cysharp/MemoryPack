@@ -96,6 +96,7 @@ jobs:
       unitypackage-upload: true
       unitypackage-name: MemoryPack.${{ inputs.tag }}.unitypackage
       unitypackage-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
+    secrets: inherit
 
   cleanup:
     if: needs.update-packagejson.outputs.is-branch-created == 'true'
