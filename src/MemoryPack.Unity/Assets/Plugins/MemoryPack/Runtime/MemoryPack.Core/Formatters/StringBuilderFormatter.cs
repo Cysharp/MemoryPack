@@ -7,14 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref StringBuilder? value)
     {
         if (value == null)
@@ -47,6 +50,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 #endif
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref StringBuilder? value)
     {
         if (!reader.TryReadCollectionHeader(out var length))

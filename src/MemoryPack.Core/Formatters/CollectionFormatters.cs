@@ -48,8 +48,10 @@ namespace MemoryPack
 
 namespace MemoryPack.Formatters
 {
+    [Preserve]
     public sealed class ListFormatter<T> : MemoryPackFormatter<List<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
         {
             if (value == null)
@@ -70,6 +72,7 @@ namespace MemoryPack.Formatters
 #endif
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref List<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -106,8 +109,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
         {
             if (value == null)
@@ -129,6 +134,7 @@ namespace MemoryPack.Formatters
 #endif
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Stack<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -165,10 +171,12 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class QueueFormatter<T> : MemoryPackFormatter<Queue<T?>>
     {
         // Queue is circular buffer, can't optimize like List, Stack.
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Queue<T?>? value)
         {
             if (value == null)
@@ -186,6 +194,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Queue<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -216,8 +225,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class LinkedListFormatter<T> : MemoryPackFormatter<LinkedList<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref LinkedList<T?>? value)
         {
             if (value == null)
@@ -235,6 +246,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref LinkedList<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -262,8 +274,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class HashSetFormatter<T> : MemoryPackFormatter<HashSet<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref HashSet<T?>? value)
         {
             if (value == null)
@@ -281,6 +295,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref HashSet<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -310,6 +325,7 @@ namespace MemoryPack.Formatters
 
 #if NET7_0_OR_GREATER
 
+    [Preserve]
     public sealed class PriorityQueueFormatter<TElement, TPriority> : MemoryPackFormatter<PriorityQueue<TElement?, TPriority?>>
     {
         static PriorityQueueFormatter()
@@ -320,6 +336,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref PriorityQueue<TElement?, TPriority?>? value)
         {
             if (value == null)
@@ -338,6 +355,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref PriorityQueue<TElement?, TPriority?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -367,8 +385,10 @@ namespace MemoryPack.Formatters
 
 #endif
 
+    [Preserve]
     public sealed class CollectionFormatter<T> : MemoryPackFormatter<Collection<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Collection<T?>? value)
         {
             if (value == null)
@@ -386,6 +406,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Collection<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -413,8 +434,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ObservableCollectionFormatter<T> : MemoryPackFormatter<ObservableCollection<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ObservableCollection<T?>? value)
         {
             if (value == null)
@@ -432,6 +455,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ObservableCollection<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -459,8 +483,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ConcurrentQueueFormatter<T> : MemoryPackFormatter<ConcurrentQueue<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentQueue<T?>? value)
         {
             if (value == null)
@@ -486,6 +512,7 @@ namespace MemoryPack.Formatters
             if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentQueue<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -513,8 +540,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ConcurrentStackFormatter<T> : MemoryPackFormatter<ConcurrentStack<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentStack<T?>? value)
         {
             if (value == null)
@@ -548,6 +577,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentStack<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -575,8 +605,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ConcurrentBagFormatter<T> : MemoryPackFormatter<ConcurrentBag<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentBag<T?>? value)
         {
             if (value == null)
@@ -599,6 +631,7 @@ namespace MemoryPack.Formatters
             if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentBag<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -626,6 +659,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class DictionaryFormatter<TKey, TValue> : MemoryPackFormatter<Dictionary<TKey, TValue?>>
         where TKey : notnull
     {
@@ -637,6 +671,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Dictionary<TKey, TValue?>? value)
         {
             if (value == null)
@@ -655,6 +690,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Dictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -682,6 +718,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class SortedDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<SortedDictionary<TKey, TValue?>>
         where TKey : notnull
     {
@@ -693,6 +730,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SortedDictionary<TKey, TValue?>? value)
         {
             if (value == null)
@@ -711,6 +749,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref SortedDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -738,6 +777,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class SortedListFormatter<TKey, TValue> : MemoryPackFormatter<SortedList<TKey, TValue?>>
         where TKey : notnull
     {
@@ -749,6 +789,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SortedList<TKey, TValue?>? value)
         {
             if (value == null)
@@ -767,6 +808,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref SortedList<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -794,6 +836,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ConcurrentDictionary<TKey, TValue?>>
         where TKey : notnull
     {
@@ -805,6 +848,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentDictionary<TKey, TValue?>? value)
         {
             if (value == null)
@@ -828,6 +872,7 @@ namespace MemoryPack.Formatters
             if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ConcurrentDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -855,8 +900,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ReadOnlyCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyCollection<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyCollection<T?>? value)
         {
             if (value == null)
@@ -874,6 +921,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyCollection<T?>? value)
         {
             var array = reader.ReadArray<T?>();
@@ -889,8 +937,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class ReadOnlyObservableCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyObservableCollection<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyObservableCollection<T?>? value)
         {
             if (value == null)
@@ -908,6 +958,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReadOnlyObservableCollection<T?>? value)
         {
             var array = reader.ReadArray<T?>();
@@ -923,8 +974,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class BlockingCollectionFormatter<T> : MemoryPackFormatter<BlockingCollection<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BlockingCollection<T?>? value)
         {
             if (value == null)
@@ -942,6 +995,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref BlockingCollection<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))

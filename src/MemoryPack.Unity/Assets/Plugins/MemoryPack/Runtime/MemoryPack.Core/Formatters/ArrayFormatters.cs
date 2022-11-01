@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 #nullable enable
 using MemoryPack.Formatters;
+using MemoryPack.Internal;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
@@ -38,53 +39,65 @@ namespace MemoryPack
 
 namespace MemoryPack.Formatters
 {
+    [Preserve]
     public sealed class UnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
-        where T : unmanaged
+            where T : unmanaged
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T[]? value)
         {
             writer.WriteUnmanagedArray(value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref T[]? value)
         {
             reader.ReadUnmanagedArray<T>(ref value);
         }
     }
 
+    [Preserve]
     public sealed class DangerousUnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T[]? value)
         {
             writer.DangerousWriteUnmanagedArray(value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref T[]? value)
         {
             reader.DangerousReadUnmanagedArray<T>(ref value);
         }
     }
 
+    [Preserve]
     public sealed class ArrayFormatter<T> : MemoryPackFormatter<T?[]>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[]? value)
         {
             writer.WriteArray(value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref T?[]? value)
         {
             reader.ReadArray(ref value);
         }
     }
 
+    [Preserve]
     public sealed class ArraySegmentFormatter<T> : MemoryPackFormatter<ArraySegment<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ArraySegment<T?> value)
         {
             writer.WriteSpan(value.AsMemory().Span);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ArraySegment<T?> value)
         {
             var array = reader.ReadArray<T>();
@@ -92,34 +105,42 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class MemoryFormatter<T> : MemoryPackFormatter<Memory<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Memory<T?> value)
         {
             writer.WriteSpan(value.Span);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref Memory<T?> value)
         {
             value = reader.ReadArray<T>();
         }
     }
 
+    [Preserve]
     public sealed class ReadOnlyMemoryFormatter<T> : MemoryPackFormatter<ReadOnlyMemory<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlyMemory<T?> value)
         {
             writer.WriteSpan(value.Span);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ReadOnlyMemory<T?> value)
         {
             value = reader.ReadArray<T>();
         }
     }
 
+    [Preserve]
     public sealed class ReadOnlySequenceFormatter<T> : MemoryPackFormatter<ReadOnlySequence<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlySequence<T?> value)
         {
             if (value.IsSingleSegment)
@@ -135,6 +156,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ReadOnlySequence<T?> value)
         {
             var array = reader.ReadArray<T>();

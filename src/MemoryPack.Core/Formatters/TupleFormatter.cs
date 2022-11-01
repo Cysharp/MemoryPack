@@ -1,4 +1,5 @@
-﻿
+﻿using MemoryPack.Internal;
+
 namespace MemoryPack.Formatters;
 
 internal static class TupleFormatterTypes
@@ -24,8 +25,10 @@ internal static class TupleFormatterTypes
     };
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?>? value)
     {
         if (value == null)
@@ -38,6 +41,7 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
         writer.WriteValue(value.Item1);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -54,8 +58,10 @@ public sealed class TupleFormatter<T1> : MemoryPackFormatter<Tuple<T1?>>
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?>? value)
     {
         if (value == null)
@@ -69,6 +75,7 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
         writer.WriteValue(value.Item2);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -86,8 +93,10 @@ public sealed class TupleFormatter<T1, T2> : MemoryPackFormatter<Tuple<T1?, T2?>
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, T2?, T3?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?>? value)
     {
         if (value == null)
@@ -102,6 +111,7 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
         writer.WriteValue(value.Item3);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -120,8 +130,10 @@ public sealed class TupleFormatter<T1, T2, T3> : MemoryPackFormatter<Tuple<T1?, 
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T1?, T2?, T3?, T4?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?, T4?>? value)
     {
         if (value == null)
@@ -137,6 +149,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
         writer.WriteValue(value.Item4);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -156,8 +169,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Tuple<T
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tuple<T1?, T2?, T3?, T4?, T5?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?>? value)
     {
         if (value == null)
@@ -174,6 +189,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
         writer.WriteValue(value.Item5);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -194,8 +210,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<Tup
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter<Tuple<T1?, T2?, T3?, T4?, T5?, T6?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?>? value)
     {
         if (value == null)
@@ -213,6 +231,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
         writer.WriteValue(value.Item6);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -234,8 +253,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackFormatter<Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>? value)
     {
         if (value == null)
@@ -254,6 +275,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
         writer.WriteValue(value.Item7);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -276,9 +298,11 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackForma
     }
 }
 
+[Preserve]
 public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPackFormatter<Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>>
     where TRest : notnull
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>? value)
     {
         if (value == null)
@@ -298,6 +322,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
         writer.WriteValue(value.Rest);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref Tuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -322,8 +347,10 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPa
 }
 
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?>>())
@@ -335,6 +362,7 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
         writer.WriteValue(value.Item1);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?>>())
@@ -349,8 +377,10 @@ public sealed class ValueTupleFormatter<T1> : MemoryPackFormatter<ValueTuple<T1?
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple<T1?, T2?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?>>())
@@ -363,6 +393,7 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
         writer.WriteValue(value.Item2);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?>>())
@@ -378,8 +409,10 @@ public sealed class ValueTupleFormatter<T1, T2> : MemoryPackFormatter<ValueTuple
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?>>())
@@ -393,6 +426,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
         writer.WriteValue(value.Item3);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?>>())
@@ -409,8 +443,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3> : MemoryPackFormatter<ValueT
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?, T4?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?>>())
@@ -425,6 +461,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
         writer.WriteValue(value.Item4);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?>>())
@@ -442,8 +479,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4> : MemoryPackFormatter<Va
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?, T4?, T5?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?>>())
@@ -459,6 +498,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
         writer.WriteValue(value.Item5);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?>>())
@@ -477,8 +517,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : MemoryPackFormatte
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>>())
@@ -495,6 +537,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
         writer.WriteValue(value.Item6);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?>>())
@@ -514,8 +557,10 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : MemoryPackForm
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>>())
@@ -533,6 +578,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
         writer.WriteValue(value.Item7);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?>>())
@@ -553,9 +599,11 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : MemoryPack
     }
 }
 
+[Preserve]
 public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : MemoryPackFormatter<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>>
     where TRest : struct
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>>())
@@ -574,6 +622,7 @@ public sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : Mem
         writer.WriteValue(value.Rest);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<ValueTuple<T1?, T2?, T3?, T4?, T5?, T6?, T7?, TRest>>())

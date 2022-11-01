@@ -7,11 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
+
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPackFormatter<TCollection?>
     where TCollection : ICollection<TElement?>, new()
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TCollection? value)
     {
         if (value == null)
@@ -30,6 +34,7 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref TCollection? value)
     {
         if (!reader.TryReadCollectionHeader(out var length))
@@ -52,9 +57,11 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
     }
 }
 
+[Preserve]
 public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TSet?>
     where TSet : ISet<TElement?>, new()
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TSet? value)
     {
         if (value == null)
@@ -73,6 +80,7 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref TSet? value)
     {
         if (!reader.TryReadCollectionHeader(out var length))
@@ -95,6 +103,7 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
     }
 }
 
+[Preserve]
 public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : MemoryPackFormatter<TDictionary?>
     where TKey : notnull
     where TDictionary : IDictionary<TKey, TValue?>, new()
@@ -107,6 +116,7 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
         }
     }
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TDictionary? value)
     {
         if (value == null)
@@ -125,6 +135,7 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref TDictionary? value)
     {
         if (!reader.TryReadCollectionHeader(out var length))

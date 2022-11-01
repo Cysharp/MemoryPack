@@ -7,16 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 {
     // {i-length, j-length, [total-length, values]}
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,]? value)
     {
         if (value == null)
@@ -56,6 +59,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref T?[,]? value)
     {
         if (!reader.TryReadObjectHeader(out var propertyCount))
@@ -121,10 +125,12 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
     }
 }
 
+[Preserve]
 public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,]>
 {
     // {i-length, j-length, k-length, [total-length, values]}
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,,]? value)
     {
         if (value == null)
@@ -164,6 +170,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref T?[,,]? value)
     {
         if (!reader.TryReadObjectHeader(out var propertyCount))
@@ -236,10 +243,12 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
     }
 }
 
+[Preserve]
 public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,,]>
 {
     // {i-length, j-length, k-length, l-length, [total-length, values]}
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,,,]? value)
     {
         if (value == null)
@@ -280,6 +289,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref T?[,,,]? value)
     {
         if (!reader.TryReadObjectHeader(out var propertyCount))

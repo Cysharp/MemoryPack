@@ -7,10 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
+
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Lazy<T?>? value)
     {
         if (value == null)
@@ -23,6 +27,7 @@ public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
         writer.WriteValue(value.Value);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref Lazy<T?>? value)
     {
         if (!reader.TryReadObjectHeader(out var count))

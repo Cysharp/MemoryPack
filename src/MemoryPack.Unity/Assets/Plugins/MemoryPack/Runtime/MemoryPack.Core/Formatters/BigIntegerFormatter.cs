@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,8 +15,10 @@ using System.Text;
 
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref BigInteger value)
     {
 #if !UNITY_2021_2_OR_NEWER
@@ -33,6 +36,7 @@ public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
         }
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref BigInteger value)
     {
         if (!reader.TryReadCollectionHeader(out var length))

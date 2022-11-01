@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -448,6 +449,27 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             sb.AppendLine($"{indent}{{");
             sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new {formatter}());");
             sb.AppendLine($"{indent}}}");
+
+            // try check IsDictionary
+            foreach (var item in symbol.AllInterfaces)
+            {
+                if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_IDictionary_T))
+                {
+                    // Unity IL2CPP safety, requires dummy serialize
+
+                    var kv = string.Join(", ", item.TypeArguments.Select(x => x.FullyQualifiedToString()));
+                    sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<System.Collections.Generic.KeyValuePair<{kv}>>())");
+                    sb.AppendLine($"{indent}{{");
+                    sb.AppendLine($"{indent}    var f = new MemoryPack.Formatters.KeyValuePairFormatter<{kv}>();");
+                    sb.AppendLine($"{indent}    var bufferWriter = MemoryPack.Internal.NullBufferWriter.Instance;");
+                    sb.AppendLine($"{indent}    var writer = new MemoryPackWriter<MemoryPack.Internal.NullBufferWriter>(ref bufferWriter, MemoryPackSerializeOptions.Default);");
+                    sb.AppendLine($"{indent}    var kvpDefault = default(System.Collections.Generic.KeyValuePair<{kv}>);");
+                    sb.AppendLine($"{indent}    f.Serialize(ref writer, ref kvpDefault!);");
+                    sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(f);");
+                    sb.AppendLine($"{indent}}}");
+                    break;
+                }
+            }
         }
 
         return sb.ToString();

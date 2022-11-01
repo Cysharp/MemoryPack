@@ -1,7 +1,11 @@
-﻿namespace MemoryPack.Formatters;
+﻿using MemoryPack.Internal;
 
+namespace MemoryPack.Formatters;
+
+[Preserve]
 public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<KeyValuePair<TKey?, TValue?>>
 {
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref KeyValuePair<TKey?, TValue?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey?, TValue?>>())
@@ -14,6 +18,7 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<Ke
         writer.WriteValue(value.Value);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref KeyValuePair<TKey?, TValue?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey?, TValue?>>())
