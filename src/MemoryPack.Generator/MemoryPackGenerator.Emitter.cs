@@ -461,11 +461,14 @@ partial {{classOrStructOrRecord}} {{TypeName}}
                     sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<System.Collections.Generic.KeyValuePair<{kv}>>())");
                     sb.AppendLine($"{indent}{{");
                     sb.AppendLine($"{indent}    var f = new MemoryPack.Formatters.KeyValuePairFormatter<{kv}>();");
-                    sb.AppendLine($"{indent}    var bufferWriter = MemoryPack.Internal.NullBufferWriter.Instance;");
-                    sb.AppendLine($"{indent}    var writer = new MemoryPackWriter<MemoryPack.Internal.NullBufferWriter>(ref bufferWriter, MemoryPackSerializeOptions.Default);");
-                    sb.AppendLine($"{indent}    var kvpDefault = default(System.Collections.Generic.KeyValuePair<{kv}>);");
-                    sb.AppendLine($"{indent}    f.Serialize(ref writer, ref kvpDefault!);");
                     sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(f);");
+                    sb.AppendLine($"{indent}    if (!bool.Parse(\"true\"))");
+                    sb.AppendLine($"{indent}    {{");
+                    sb.AppendLine($"{indent}        var bufferWriter = MemoryPack.Internal.NullBufferWriter.Instance;");
+                    sb.AppendLine($"{indent}        var writer = new MemoryPackWriter<MemoryPack.Internal.NullBufferWriter>(ref bufferWriter, MemoryPackSerializeOptions.Default);");
+                    sb.AppendLine($"{indent}        var kvpDefault = default(System.Collections.Generic.KeyValuePair<{kv}>);");
+                    sb.AppendLine($"{indent}        f.Serialize(ref writer, ref kvpDefault!);");
+                    sb.AppendLine($"{indent}    }}");
                     sb.AppendLine($"{indent}}}");
                     break;
                 }
