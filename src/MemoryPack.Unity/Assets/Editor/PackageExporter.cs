@@ -27,14 +27,18 @@ public static class PackageExporter
                 .Select(x => "Assets" + x.Replace(Application.dataPath, "").Replace(@"\", "/"))
                 .ToArray();
 
-            UnityEngine.Debug.Log("Export below files" + Environment.NewLine + string.Join(Environment.NewLine, assets));
+            var netStandardsAsset = Directory.EnumerateFiles(Path.Combine(Application.dataPath, "Plugins/"), "*", SearchOption.AllDirectories)
+                .Select(x => "Assets" + x.Replace(Application.dataPath, "").Replace(@"\", "/"))
+                .ToArray();
+
+            assets = netStandardsAsset.Concat(assets).ToArray();
 
             AssetDatabase.ExportPackage(
                 assets,
                 exportPath,
                 ExportPackageOptions.Default);
 
-            UnityEngine.Debug.Log("Export complete: " + Path.GetFullPath(exportPath));
+            UnityEngine.Debug.Log("Export complete: " + Path.GetFullPath(exportPath) + Environment.NewLine + string.Join(Environment.NewLine, assets));
         }
     }
 
