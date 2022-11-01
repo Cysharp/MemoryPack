@@ -7,12 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
+
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class VersionFormatter : MemoryPackFormatter<Version>
 {
     // Serialize as [Major, Minor, Build, Revision]
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Version? value)
     {
         if (value == null)
@@ -24,6 +28,7 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
         writer.WriteUnmanagedWithObjectHeader(4, value.Major, value.Minor, value.Build, value.Revision);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref Version? value)
     {
         if (!reader.TryReadObjectHeader(out var count))

@@ -129,8 +129,10 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class InterfaceEnumerableFormatter<T> : MemoryPackFormatter<IEnumerable<T?>>
     {
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IEnumerable<T?>? value)
         {
             if (TrySerializeOptimized<TBufferWriter, IEnumerable<T?>, T?>(ref writer, ref value)) return;
@@ -175,12 +177,14 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IEnumerable<T?>? value)
         {
             value = reader.ReadArray<T?>();
         }
     }
 
+    [Preserve]
     public sealed class InterfaceCollectionFormatter<T> : MemoryPackFormatter<ICollection<T?>>
     {
         static InterfaceCollectionFormatter()
@@ -191,17 +195,20 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ICollection<T?>? value)
         {
             SerializeCollection<TBufferWriter, ICollection<T?>, T?>(ref writer, ref value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ICollection<T?>? value)
         {
             value = ReadList<T?>(ref reader);
         }
     }
 
+    [Preserve]
     public sealed class InterfaceReadOnlyCollectionFormatter<T> : MemoryPackFormatter<IReadOnlyCollection<T?>>
     {
         static InterfaceReadOnlyCollectionFormatter()
@@ -212,17 +219,20 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyCollection<T?>? value)
         {
             SerializeReadOnlyCollection<TBufferWriter, IReadOnlyCollection<T?>, T?>(ref writer, ref value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IReadOnlyCollection<T?>? value)
         {
             value = ReadList<T?>(ref reader);
         }
     }
 
+    [Preserve]
     public sealed class InterfaceListFormatter<T> : MemoryPackFormatter<IList<T?>>
     {
         static InterfaceListFormatter()
@@ -233,17 +243,20 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IList<T?>? value)
         {
             SerializeCollection<TBufferWriter, IList<T?>, T?>(ref writer, ref value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IList<T?>? value)
         {
             value = ReadList<T?>(ref reader);
         }
     }
 
+    [Preserve]
     public sealed class InterfaceReadOnlyListFormatter<T> : MemoryPackFormatter<IReadOnlyList<T?>>
     {
         static InterfaceReadOnlyListFormatter()
@@ -254,17 +267,20 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyList<T?>? value)
         {
             SerializeReadOnlyCollection<TBufferWriter, IReadOnlyList<T?>, T?>(ref writer, ref value);
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IReadOnlyList<T?>? value)
         {
             value = ReadList<T?>(ref reader);
         }
     }
 
+    [Preserve]
     public sealed class InterfaceDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IDictionary<TKey, TValue>>
         where TKey : notnull
     {
@@ -276,6 +292,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IDictionary<TKey, TValue>? value)
         {
             if (value == null)
@@ -293,6 +310,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IDictionary<TKey, TValue>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -315,6 +333,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IReadOnlyDictionary<TKey, TValue>>
         where TKey : notnull
     {
@@ -326,6 +345,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyDictionary<TKey, TValue>? value)
         {
             if (value == null)
@@ -343,6 +363,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IReadOnlyDictionary<TKey, TValue>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -365,6 +386,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class InterfaceLookupFormatter<TKey, TElement> : MemoryPackFormatter<ILookup<TKey, TElement>>
         where TKey : notnull
     {
@@ -376,6 +398,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ILookup<TKey, TElement>? value)
         {
             if (value == null)
@@ -393,6 +416,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ILookup<TKey, TElement>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -417,6 +441,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class InterfaceGroupingFormatter<TKey, TElement> : MemoryPackFormatter<IGrouping<TKey, TElement>>
         where TKey : notnull
     {
@@ -430,6 +455,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IGrouping<TKey, TElement>? value)
         {
             if (value == null)
@@ -443,6 +469,7 @@ namespace MemoryPack.Formatters
             writer.WriteValue<IEnumerable<TElement>>(value); // write as IEnumerable<TElement>
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IGrouping<TKey, TElement>? value)
         {
             if (!reader.TryReadObjectHeader(out var count))
@@ -464,6 +491,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     public sealed class InterfaceSetFormatter<T> : MemoryPackFormatter<ISet<T?>>
     {
         static InterfaceSetFormatter()
@@ -474,6 +502,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ISet<T?>? value)
         {
             if (value == null)
@@ -491,6 +520,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref ISet<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -515,6 +545,7 @@ namespace MemoryPack.Formatters
 
 #if NET7_0_OR_GREATER
 
+    [Preserve]
     public sealed class InterfaceReadOnlySetFormatter<T> : MemoryPackFormatter<IReadOnlySet<T?>>
     {
         static InterfaceReadOnlySetFormatter()
@@ -525,6 +556,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlySet<T?>? value)
         {
             if (value == null)
@@ -542,6 +574,7 @@ namespace MemoryPack.Formatters
             }
         }
 
+        [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, ref IReadOnlySet<T?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
@@ -566,6 +599,7 @@ namespace MemoryPack.Formatters
 
 #endif
 
+    [Preserve]
     internal sealed class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
         readonly TKey key;
@@ -596,6 +630,7 @@ namespace MemoryPack.Formatters
         }
     }
 
+    [Preserve]
     internal sealed class Lookup<TKey, TElement> : ILookup<TKey, TElement>
         where TKey : notnull
     {

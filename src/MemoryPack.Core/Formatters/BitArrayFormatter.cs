@@ -1,12 +1,15 @@
-﻿using System.Collections;
+﻿using MemoryPack.Internal;
+using System.Collections;
 using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
+[Preserve]
 public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
 {
     // serialize [m_length, m_array]
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BitArray? value)
     {
         if (value == null)
@@ -21,6 +24,7 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
         writer.WriteUnmanagedArray(view.m_array);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, scoped ref BitArray? value)
     {
         if (!reader.TryReadObjectHeader(out var count))
@@ -43,6 +47,7 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
 }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+[Preserve]
 internal class BitArrayView
 {
     public int[] m_array;

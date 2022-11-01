@@ -149,3 +149,10 @@ public partial class SampleExplicitOrder
     public int Prop0 { get; set; }
 }
 
+[MemoryPackable]
+public partial class MyDictContainer
+{
+    public Dictionary<int, string>? MD { get; set; }
+
+  
+}

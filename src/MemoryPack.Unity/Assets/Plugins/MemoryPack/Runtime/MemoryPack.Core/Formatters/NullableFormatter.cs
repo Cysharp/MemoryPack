@@ -7,16 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Internal;
 using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters {
 
+[Preserve]
 public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
     where T : struct
 {
     // Nullable<T> is sometimes serialized on UnmanagedFormatter.
     // to keep same result, check if type is unmanaged.
 
+    [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
@@ -38,6 +41,7 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
         writer.WriteValue(value.Value);
     }
 
+    [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
