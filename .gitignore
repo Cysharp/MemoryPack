@@ -128,8 +128,4 @@ src/MemoryPack.Unity/Logs/*
 
 src/MemoryPack.Unity/*.csproj
 src/MemoryPack.Unity/*.sln
-src/MemoryPack.Unity/MemoryPack.1.0.0.unitypackage
-
-src/MemoryPack.Unity/MemoryPack.1.4.0.unitypackage
-
-src/MemoryPack.Unity/MemoryPack.1.4.2.unitypackage
+src/MemoryPack.Unity/MemoryPack.*.unitypackage
