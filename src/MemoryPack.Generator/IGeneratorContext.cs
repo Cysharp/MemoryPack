@@ -11,6 +11,7 @@ public interface IGeneratorContext
     void AddSource(string hintName, string source);
     LanguageVersion LanguageVersion { get; }
     bool IsNet7OrGreater { get; }
+    bool IsForUnity { get; }
 }
 
 public static class GeneratorContextExtensions

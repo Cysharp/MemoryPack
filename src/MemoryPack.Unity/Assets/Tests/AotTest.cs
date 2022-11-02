@@ -49,6 +49,24 @@ public class AotTest
     }
 
     [Test]
+    public void Set()
+    {
+        var container = new MyContainer3();
+
+        container.Set.Add(1);
+        container.Set.Add(2);
+        container.Set.Add(3);
+
+        var bin = MemoryPackSerializer.Serialize(container);
+        var val = MemoryPackSerializer.Deserialize<MyContainer3>(bin);
+
+        Assert.AreEqual(val.Set.Count, 3);
+        Assert.AreEqual(val.Set.Contains(1), true);
+        Assert.AreEqual(val.Set.Contains(2), true);
+        Assert.AreEqual(val.Set.Contains(3), true);
+    }
+
+    [Test]
     public void CheckIsRegistered()
     {
         //if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<int, string>>())

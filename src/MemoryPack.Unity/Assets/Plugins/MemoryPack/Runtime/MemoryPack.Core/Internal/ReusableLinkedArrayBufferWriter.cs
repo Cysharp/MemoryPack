@@ -171,11 +171,11 @@ internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         return result;
     }
 
-    public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
+    public void WriteToAndReset(ref MemoryPackWriter writer)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif
     {
         if (totalWritten == 0) return;

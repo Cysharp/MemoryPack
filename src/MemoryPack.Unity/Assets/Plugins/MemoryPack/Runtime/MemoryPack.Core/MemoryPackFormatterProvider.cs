@@ -375,11 +375,11 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
         this.message = message;
     }
 
-    public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref object? value)
+    public void Serialize(ref MemoryPackWriter writer, ref object? value)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif        
     {
         Throw();
@@ -427,7 +427,7 @@ internal sealed class ErrorMemoryPackFormatter<T> : MemoryPackFormatter<T>
         this.message = message;
     }
 
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T? value)
     {
         Throw();
     }

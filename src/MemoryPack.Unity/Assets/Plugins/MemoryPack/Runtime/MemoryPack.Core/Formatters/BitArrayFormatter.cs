@@ -19,7 +19,7 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
     // serialize [m_length, m_array]
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref BitArray? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref BitArray? value)
     {
         if (value == null)
         {

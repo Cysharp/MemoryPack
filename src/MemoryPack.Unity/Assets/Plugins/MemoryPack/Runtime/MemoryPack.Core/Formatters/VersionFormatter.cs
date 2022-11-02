@@ -17,7 +17,7 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
     // Serialize as [Major, Minor, Build, Revision]
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Version? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref Version? value)
     {
         if (value == null)
         {

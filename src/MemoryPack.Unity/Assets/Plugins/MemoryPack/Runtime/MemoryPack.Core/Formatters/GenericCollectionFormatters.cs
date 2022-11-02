@@ -16,7 +16,7 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
     where TCollection : ICollection<TElement?>, new()
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TCollection? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref TCollection? value)
     {
         if (value == null)
         {
@@ -62,7 +62,7 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
     where TSet : ISet<TElement?>, new()
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TSet? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref TSet? value)
     {
         if (value == null)
         {
@@ -117,7 +117,7 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
     }
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref TDictionary? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref TDictionary? value)
     {
         if (value == null)
         {

@@ -252,7 +252,7 @@ public partial class TypeMeta
             staticRegisterFormatterMethod = "public static void ";
             staticMemoryPackableMethod = "public static void ";
             scopedRef = "ref";
-            constraint = "where TBufferWriter : class, System.Buffers.IBufferWriter<byte>";
+            constraint = context.IsForUnity ? "" : "where TBufferWriter : class, System.Buffers.IBufferWriter<byte>";
             registerBody = $"MemoryPackFormatterProvider.Register(new {Symbol.Name}Formatter());";
             registerT = "RegisterFormatter();";
         }
@@ -265,6 +265,9 @@ public partial class TypeMeta
             registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
             registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
         }
+        string serializeMethodSignarture = context.IsForUnity
+            ? "Serialize(ref MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
         writer.AppendLine($$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
@@ -289,7 +292,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
     }
 
     [global::MemoryPack.Internal.Preserve]
-    {{staticMemoryPackableMethod}}Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
+    {{staticMemoryPackableMethod}}{{serializeMethodSignarture}} writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
@@ -321,7 +324,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     sealed class {{Symbol.Name}}Formatter : MemoryPackFormatter<{{TypeName}}>
     {
         [global::MemoryPack.Internal.Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,  {{scopedRef}} {{TypeName}} value)
+        public override void {{serializeMethodSignarture}} writer,  {{scopedRef}} {{TypeName}} value)
         {
             {{TypeName}}.Serialize(ref writer, ref value);
         }
@@ -455,20 +458,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
                 if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_IDictionary_T))
                 {
-                    // Unity IL2CPP safety, requires dummy serialize
-
                     var kv = string.Join(", ", item.TypeArguments.Select(x => x.FullyQualifiedToString()));
                     sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<System.Collections.Generic.KeyValuePair<{kv}>>())");
                     sb.AppendLine($"{indent}{{");
-                    sb.AppendLine($"{indent}    var f = new MemoryPack.Formatters.KeyValuePairFormatter<{kv}>();");
-                    sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(f);");
-                    sb.AppendLine($"{indent}    if (!bool.Parse(\"true\"))");
-                    sb.AppendLine($"{indent}    {{");
-                    sb.AppendLine($"{indent}        var bufferWriter = MemoryPack.Internal.NullBufferWriter.Instance;");
-                    sb.AppendLine($"{indent}        var writer = new MemoryPackWriter<MemoryPack.Internal.NullBufferWriter>(ref bufferWriter, MemoryPackSerializeOptions.Default);");
-                    sb.AppendLine($"{indent}        var kvpDefault = default(System.Collections.Generic.KeyValuePair<{kv}>);");
-                    sb.AppendLine($"{indent}        f.Serialize(ref writer, ref kvpDefault!);");
-                    sb.AppendLine($"{indent}    }}");
+                    sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.KeyValuePairFormatter<{kv}>());");
                     sb.AppendLine($"{indent}}}");
                     break;
                 }
@@ -662,6 +655,9 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
+        string serializeMethodSignarture = context.IsForUnity
+            ? "Serialize(ref MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
         var code = $$"""
 
@@ -691,7 +687,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 {{EmitUnionTypeToTagField()}}
 
         [global::MemoryPack.Internal.Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, {{scopedRef}} {{TypeName}}? value)
+        public override void {{serializeMethodSignarture}} writer, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}

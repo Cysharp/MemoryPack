@@ -24,20 +24,20 @@ using static MemoryPack.Internal.MemoryMarshalEx;
 #endif
 
 [StructLayout(LayoutKind.Auto)]
-public ref partial struct MemoryPackWriter<TBufferWriter>
+public ref partial struct MemoryPackWriter
 #if NET7_0_OR_GREATER
-    where TBufferWriter : IBufferWriter<byte>
+    
 #else
-    where TBufferWriter : class, IBufferWriter<byte>
+    
 #endif
 {
     const int DepthLimit = 1000;
 
 #if NET7_0_OR_GREATER
-    ref TBufferWriter bufferWriter;
+    ref IBufferWriter<byte> bufferWriter;
     ref byte bufferReference;
 #else
-    TBufferWriter bufferWriter;
+    IBufferWriter<byte> bufferWriter;
     Span<byte> bufferReference;
 #endif
     int bufferLength;
@@ -50,7 +50,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public int WrittenCount => writtenCount;
     public MemoryPackSerializeOptions Options => options;
 
-    public MemoryPackWriter(ref TBufferWriter writer, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref IBufferWriter<byte> writer, MemoryPackSerializeOptions options)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
@@ -68,7 +68,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     // optimized ctor, avoid first GetSpan call if we can.
-    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref IBufferWriter<byte> writer, byte[] firstBufferOfWriter, MemoryPackSerializeOptions options)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
@@ -85,7 +85,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.options = options;
     }
 
-    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref IBufferWriter<byte> writer, Span<byte> firstBufferOfWriter, MemoryPackSerializeOptions options)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;

@@ -23,7 +23,7 @@ public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
 where T : unmanaged
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T value)
     {
         Unsafe.WriteUnaligned(ref writer.GetSpanReference(Unsafe.SizeOf<T>()), value);
         writer.Advance(Unsafe.SizeOf<T>());
@@ -41,7 +41,7 @@ where T : unmanaged
 public sealed class DangerousUnmanagedFormatter<T> : MemoryPackFormatter<T>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T? value)
     {
         Unsafe.WriteUnaligned(ref writer.GetSpanReference(Unsafe.SizeOf<T>()), value);
         writer.Advance(Unsafe.SizeOf<T>());

@@ -20,7 +20,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
     // {i-length, j-length, [total-length, values]}
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,]? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T?[,]? value)
     {
         if (value == null)
         {
@@ -131,7 +131,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
     // {i-length, j-length, k-length, [total-length, values]}
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,,]? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T?[,,]? value)
     {
         if (value == null)
         {
@@ -249,7 +249,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
     // {i-length, j-length, k-length, l-length, [total-length, values]}
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[,,,]? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T?[,,,]? value)
     {
         if (value == null)
         {

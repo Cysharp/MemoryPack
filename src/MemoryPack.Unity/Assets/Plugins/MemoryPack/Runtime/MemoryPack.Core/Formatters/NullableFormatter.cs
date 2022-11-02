@@ -20,7 +20,7 @@ public sealed class NullableFormatter<T> : MemoryPackFormatter<T?>
     // to keep same result, check if type is unmanaged.
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
