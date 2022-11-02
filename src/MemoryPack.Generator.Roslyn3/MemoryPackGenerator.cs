@@ -30,6 +30,11 @@ public partial class MemoryPackGenerator : ISourceGenerator
         var compiation = context.Compilation;
         var generateContext = new GeneratorContext(context);
 
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_DebugNonUnityMode", out var nonUnity))
+        {
+            generateContext.IsForUnity = !bool.Parse(nonUnity);
+        }
+
         foreach (var syntax in receiver.ClassDeclarations)
         {
             Generate(syntax, compiation, logPath, generateContext);
@@ -82,7 +87,7 @@ public partial class MemoryPackGenerator : ISourceGenerator
 
         public bool IsNet7OrGreater => false; // No IncrementalGenerator is always not NET7
 
-        public bool IsForUnity => true;
+        public bool IsForUnity { get; set; } = true;
 
         public void AddSource(string hintName, string source)
         {
