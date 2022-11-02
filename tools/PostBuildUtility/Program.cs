@@ -12,11 +12,24 @@ public class Runner : ConsoleAppBase
     {
         var replaceSet = new Dictionary<string, string>
         {
+            // to C# 9
             {"scoped ref", "ref" },
             {"scoped in", "in" },
             {"scoped Span", "Span" },
             {"scoped ReadOnlySpan", "ReadOnlySpan" },
             {"file static", "internal static" },
+            // remove <TBufferWriter> for IL2CPP safety
+            {"Serialize<TBufferWriter>", "Serialize" },
+            {"<TBufferWriter>", "" },
+            {"<TBufferWriter, ", "<" },
+            {", TBufferWriter>", ">" },
+            {"where TBufferWriter : class, IBufferWriter<byte>;", ";" },
+            {"where TBufferWriter : class, IBufferWriter<byte>", "" },
+            {"where TBufferWriter : IBufferWriter<byte>", "" },
+            {"MemoryPackWriter<ReusableLinkedArrayBufferWriter>", "MemoryPackWriter" },
+            {"TBufferWriter", "IBufferWriter<byte>" },
+            {"new MemoryPackWriter(ref bufferWriter", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter)" },
+            {"new MemoryPackWriter(ref tempBuffer", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref tempBuffer)" },
         };
 
         System.Console.WriteLine("Start to modify code.");

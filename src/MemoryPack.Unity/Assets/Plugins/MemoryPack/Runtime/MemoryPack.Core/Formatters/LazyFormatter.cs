@@ -15,7 +15,7 @@ namespace MemoryPack.Formatters {
 public sealed class LazyFormatter<T> : MemoryPackFormatter<Lazy<T?>>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Lazy<T?>? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref Lazy<T?>? value)
     {
         if (value == null)
         {

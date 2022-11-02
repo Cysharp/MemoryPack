@@ -68,7 +68,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter), bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
             Serialize(ref writer, value);
             return bufferWriter.ToArrayAndReset();
         }
@@ -78,11 +78,11 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static unsafe void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
+    public static unsafe void Serialize<T>(in IBufferWriter<byte> bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
@@ -124,16 +124,16 @@ public static partial class MemoryPackSerializer
         }
 #endif
 
-        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
         Serialize(ref writer, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
+    public static void Serialize<T>(ref MemoryPackWriter writer, in T? value)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif
     {
         writer.WriteValue(value);

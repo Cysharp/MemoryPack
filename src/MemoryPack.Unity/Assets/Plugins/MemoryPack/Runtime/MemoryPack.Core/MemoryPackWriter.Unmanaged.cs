@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack {
 
-public ref partial struct MemoryPackWriter<TBufferWriter>
+public ref partial struct MemoryPackWriter
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUnmanaged<T1>(in T1 value1)

@@ -19,7 +19,7 @@ namespace MemoryPack.Formatters {
 public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref BigInteger value)
+    public override void Serialize(ref MemoryPackWriter writer, ref BigInteger value)
     {
 #if !UNITY_2021_2_OR_NEWER
         Span<byte> temp = stackalloc byte[255];

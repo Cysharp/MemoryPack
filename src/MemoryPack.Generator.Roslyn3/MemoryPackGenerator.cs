@@ -82,6 +82,8 @@ public partial class MemoryPackGenerator : ISourceGenerator
 
         public bool IsNet7OrGreater => false; // No IncrementalGenerator is always not NET7
 
+        public bool IsForUnity => true;
+
         public void AddSource(string hintName, string source)
         {
             context.AddSource(hintName, source);

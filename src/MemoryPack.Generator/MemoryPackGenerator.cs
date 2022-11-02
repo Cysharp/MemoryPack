@@ -234,6 +234,8 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
 
         public bool IsNet7OrGreater { get; }
 
+        public bool IsForUnity => false;
+
         public void AddSource(string hintName, string source)
         {
             context.AddSource(hintName, source);

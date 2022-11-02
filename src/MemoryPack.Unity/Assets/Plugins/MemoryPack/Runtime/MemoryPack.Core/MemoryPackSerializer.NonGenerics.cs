@@ -29,7 +29,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter), bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
             Serialize(type, ref writer, value);
             return bufferWriter.ToArrayAndReset();
         }
@@ -39,23 +39,23 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value, MemoryPackSerializeOptions? options = default)
+    public static unsafe void Serialize(Type type, in IBufferWriter<byte> bufferWriter, object? value, MemoryPackSerializeOptions? options = default)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif
     {
-        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
         Serialize(type, ref writer, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Serialize<TBufferWriter>(Type type, ref MemoryPackWriter<TBufferWriter> writer, object? value)
+    public static void Serialize(Type type, ref MemoryPackWriter writer, object? value)
 #if NET7_0_OR_GREATER
-        where TBufferWriter : IBufferWriter<byte>
+        
 #else
-        where TBufferWriter : class, IBufferWriter<byte>
+        
 #endif
     {
         writer.GetFormatter(type).Serialize(ref writer, ref value);

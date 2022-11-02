@@ -18,7 +18,7 @@ public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
     where T : IMemoryPackable<T>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref T? value)
     {
         writer.WritePackable(value);
     }

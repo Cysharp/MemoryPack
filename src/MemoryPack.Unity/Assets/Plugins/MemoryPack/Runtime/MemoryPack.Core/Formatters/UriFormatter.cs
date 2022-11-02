@@ -18,7 +18,7 @@ public sealed class UriFormatter : MemoryPackFormatter<Uri>
     // treat as a string(OriginalString).
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Uri? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref Uri? value)
     {
         writer.WriteString(value?.OriginalString);
     }

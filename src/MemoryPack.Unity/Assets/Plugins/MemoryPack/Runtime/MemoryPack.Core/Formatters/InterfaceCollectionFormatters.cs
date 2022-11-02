@@ -49,12 +49,12 @@ namespace MemoryPack.Formatters
     internal static class InterfaceCollectionFormatterUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, [NotNullWhen(false)] ref TCollection? value)
+        public static bool TrySerializeOptimized<TCollection, TElement>(ref MemoryPackWriter writer, [NotNullWhen(false)] ref TCollection? value)
             where TCollection : IEnumerable<TElement>
 #if NET7_0_OR_GREATER
-            where TBufferWriter : IBufferWriter<byte>
+            
 #else
-            where TBufferWriter : class, IBufferWriter<byte>
+            
 #endif
         {
             if (value == null)
@@ -82,15 +82,15 @@ namespace MemoryPack.Formatters
             return false;
         }
 
-        public static void SerializeCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, ref TCollection? value)
+        public static void SerializeCollection<TCollection, TElement>(ref MemoryPackWriter writer, ref TCollection? value)
             where TCollection : ICollection<TElement>
 #if NET7_0_OR_GREATER
-            where TBufferWriter : IBufferWriter<byte>
+            
 #else
-            where TBufferWriter : class, IBufferWriter<byte>
+            
 #endif
         {
-            if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
+            if (TrySerializeOptimized<TCollection, TElement>(ref writer, ref value)) return;
 
             var formatter = writer.GetFormatter<TElement>();
             writer.WriteCollectionHeader(value.Count);
@@ -101,15 +101,15 @@ namespace MemoryPack.Formatters
             }
         }
 
-        public static void SerializeReadOnlyCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, ref TCollection? value)
+        public static void SerializeReadOnlyCollection<TCollection, TElement>(ref MemoryPackWriter writer, ref TCollection? value)
             where TCollection : IReadOnlyCollection<TElement>
 #if NET7_0_OR_GREATER
-            where TBufferWriter : IBufferWriter<byte>
+            
 #else
-            where TBufferWriter : class, IBufferWriter<byte>
+            
 #endif
         {
-            if (TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref writer, ref value)) return;
+            if (TrySerializeOptimized<TCollection, TElement>(ref writer, ref value)) return;
 
             var formatter = writer.GetFormatter<TElement>();
             writer.WriteCollectionHeader(value.Count);
@@ -133,9 +133,9 @@ namespace MemoryPack.Formatters
     public sealed class InterfaceEnumerableFormatter<T> : MemoryPackFormatter<IEnumerable<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IEnumerable<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IEnumerable<T?>? value)
         {
-            if (TrySerializeOptimized<TBufferWriter, IEnumerable<T?>, T?>(ref writer, ref value)) return;
+            if (TrySerializeOptimized<IEnumerable<T?>, T?>(ref writer, ref value)) return;
 
             if (value.TryGetNonEnumeratedCountEx(out var count))
             {
@@ -153,7 +153,7 @@ namespace MemoryPack.Formatters
                 var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
                 try
                 {
-                    var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                    var tempWriter = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref tempBuffer), writer.Options);
 
                     count = 0;
                     var formatter = writer.GetFormatter<T?>();
@@ -196,9 +196,9 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ICollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ICollection<T?>? value)
         {
-            SerializeCollection<TBufferWriter, ICollection<T?>, T?>(ref writer, ref value);
+            SerializeCollection<ICollection<T?>, T?>(ref writer, ref value);
         }
 
         [Preserve]
@@ -220,9 +220,9 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyCollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IReadOnlyCollection<T?>? value)
         {
-            SerializeReadOnlyCollection<TBufferWriter, IReadOnlyCollection<T?>, T?>(ref writer, ref value);
+            SerializeReadOnlyCollection<IReadOnlyCollection<T?>, T?>(ref writer, ref value);
         }
 
         [Preserve]
@@ -244,9 +244,9 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IList<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IList<T?>? value)
         {
-            SerializeCollection<TBufferWriter, IList<T?>, T?>(ref writer, ref value);
+            SerializeCollection<IList<T?>, T?>(ref writer, ref value);
         }
 
         [Preserve]
@@ -268,9 +268,9 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyList<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IReadOnlyList<T?>? value)
         {
-            SerializeReadOnlyCollection<TBufferWriter, IReadOnlyList<T?>, T?>(ref writer, ref value);
+            SerializeReadOnlyCollection<IReadOnlyList<T?>, T?>(ref writer, ref value);
         }
 
         [Preserve]
@@ -293,7 +293,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IDictionary<TKey, TValue>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IDictionary<TKey, TValue>? value)
         {
             if (value == null)
             {
@@ -346,7 +346,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlyDictionary<TKey, TValue>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IReadOnlyDictionary<TKey, TValue>? value)
         {
             if (value == null)
             {
@@ -399,7 +399,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ILookup<TKey, TElement>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ILookup<TKey, TElement>? value)
         {
             if (value == null)
             {
@@ -456,7 +456,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IGrouping<TKey, TElement>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IGrouping<TKey, TElement>? value)
         {
             if (value == null)
             {
@@ -503,7 +503,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ISet<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ISet<T?>? value)
         {
             if (value == null)
             {
@@ -557,7 +557,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref IReadOnlySet<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref IReadOnlySet<T?>? value)
         {
             if (value == null)
             {

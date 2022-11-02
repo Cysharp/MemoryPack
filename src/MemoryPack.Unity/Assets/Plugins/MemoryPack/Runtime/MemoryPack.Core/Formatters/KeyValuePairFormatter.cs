@@ -15,7 +15,7 @@ namespace MemoryPack.Formatters {
 public sealed class KeyValuePairFormatter<TKey, TValue> : MemoryPackFormatter<KeyValuePair<TKey?, TValue?>>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref KeyValuePair<TKey?, TValue?> value)
+    public override void Serialize(ref MemoryPackWriter writer, ref KeyValuePair<TKey?, TValue?> value)
     {
         if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey?, TValue?>>())
         {

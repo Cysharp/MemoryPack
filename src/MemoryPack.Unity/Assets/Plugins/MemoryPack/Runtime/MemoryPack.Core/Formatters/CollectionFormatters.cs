@@ -61,7 +61,7 @@ namespace MemoryPack.Formatters
     public sealed class ListFormatter<T> : MemoryPackFormatter<List<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref List<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref List<T?>? value)
         {
             if (value == null)
             {
@@ -122,7 +122,7 @@ namespace MemoryPack.Formatters
     public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Stack<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref Stack<T?>? value)
         {
             if (value == null)
             {
@@ -186,7 +186,7 @@ namespace MemoryPack.Formatters
         // Queue is circular buffer, can't optimize like List, Stack.
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Queue<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref Queue<T?>? value)
         {
             if (value == null)
             {
@@ -238,7 +238,7 @@ namespace MemoryPack.Formatters
     public sealed class LinkedListFormatter<T> : MemoryPackFormatter<LinkedList<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref LinkedList<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref LinkedList<T?>? value)
         {
             if (value == null)
             {
@@ -287,7 +287,7 @@ namespace MemoryPack.Formatters
     public sealed class HashSetFormatter<T> : MemoryPackFormatter<HashSet<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref HashSet<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref HashSet<T?>? value)
         {
             if (value == null)
             {
@@ -346,7 +346,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref PriorityQueue<TElement?, TPriority?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref PriorityQueue<TElement?, TPriority?>? value)
         {
             if (value == null)
             {
@@ -398,7 +398,7 @@ namespace MemoryPack.Formatters
     public sealed class CollectionFormatter<T> : MemoryPackFormatter<Collection<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Collection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref Collection<T?>? value)
         {
             if (value == null)
             {
@@ -447,7 +447,7 @@ namespace MemoryPack.Formatters
     public sealed class ObservableCollectionFormatter<T> : MemoryPackFormatter<ObservableCollection<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ObservableCollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ObservableCollection<T?>? value)
         {
             if (value == null)
             {
@@ -496,7 +496,7 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentQueueFormatter<T> : MemoryPackFormatter<ConcurrentQueue<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ConcurrentQueue<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ConcurrentQueue<T?>? value)
         {
             if (value == null)
             {
@@ -553,7 +553,7 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentStackFormatter<T> : MemoryPackFormatter<ConcurrentStack<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ConcurrentStack<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ConcurrentStack<T?>? value)
         {
             if (value == null)
             {
@@ -618,7 +618,7 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentBagFormatter<T> : MemoryPackFormatter<ConcurrentBag<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ConcurrentBag<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ConcurrentBag<T?>? value)
         {
             if (value == null)
             {
@@ -681,7 +681,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Dictionary<TKey, TValue?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref Dictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -740,7 +740,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref SortedDictionary<TKey, TValue?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref SortedDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -799,7 +799,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref SortedList<TKey, TValue?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref SortedList<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -858,7 +858,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ConcurrentDictionary<TKey, TValue?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ConcurrentDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -913,7 +913,7 @@ namespace MemoryPack.Formatters
     public sealed class ReadOnlyCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyCollection<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlyCollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlyCollection<T?>? value)
         {
             if (value == null)
             {
@@ -950,7 +950,7 @@ namespace MemoryPack.Formatters
     public sealed class ReadOnlyObservableCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyObservableCollection<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlyObservableCollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlyObservableCollection<T?>? value)
         {
             if (value == null)
             {
@@ -987,7 +987,7 @@ namespace MemoryPack.Formatters
     public sealed class BlockingCollectionFormatter<T> : MemoryPackFormatter<BlockingCollection<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref BlockingCollection<T?>? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref BlockingCollection<T?>? value)
         {
             if (value == null)
             {

@@ -44,7 +44,7 @@ namespace MemoryPack.Formatters
             where T : unmanaged
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T[]? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref T[]? value)
         {
             writer.WriteUnmanagedArray(value);
         }
@@ -60,7 +60,7 @@ namespace MemoryPack.Formatters
     public sealed class DangerousUnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T[]? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref T[]? value)
         {
             writer.DangerousWriteUnmanagedArray(value);
         }
@@ -76,7 +76,7 @@ namespace MemoryPack.Formatters
     public sealed class ArrayFormatter<T> : MemoryPackFormatter<T?[]>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T?[]? value)
+        public override void Serialize(ref MemoryPackWriter writer, ref T?[]? value)
         {
             writer.WriteArray(value);
         }
@@ -92,7 +92,7 @@ namespace MemoryPack.Formatters
     public sealed class ArraySegmentFormatter<T> : MemoryPackFormatter<ArraySegment<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ArraySegment<T?> value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ArraySegment<T?> value)
         {
             writer.WriteSpan(value.AsMemory().Span);
         }
@@ -109,7 +109,7 @@ namespace MemoryPack.Formatters
     public sealed class MemoryFormatter<T> : MemoryPackFormatter<Memory<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Memory<T?> value)
+        public override void Serialize(ref MemoryPackWriter writer, ref Memory<T?> value)
         {
             writer.WriteSpan(value.Span);
         }
@@ -125,7 +125,7 @@ namespace MemoryPack.Formatters
     public sealed class ReadOnlyMemoryFormatter<T> : MemoryPackFormatter<ReadOnlyMemory<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlyMemory<T?> value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlyMemory<T?> value)
         {
             writer.WriteSpan(value.Span);
         }
@@ -141,7 +141,7 @@ namespace MemoryPack.Formatters
     public sealed class ReadOnlySequenceFormatter<T> : MemoryPackFormatter<ReadOnlySequence<T?>>
     {
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref ReadOnlySequence<T?> value)
+        public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlySequence<T?> value)
         {
             if (value.IsSingleSegment)
             {

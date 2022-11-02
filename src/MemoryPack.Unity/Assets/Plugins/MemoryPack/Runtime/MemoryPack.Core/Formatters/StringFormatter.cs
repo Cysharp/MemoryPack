@@ -15,7 +15,7 @@ namespace MemoryPack.Formatters {
 public sealed class StringFormatter : MemoryPackFormatter<string>
 {
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref string? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref string? value)
     {
         writer.WriteString(value);
     }

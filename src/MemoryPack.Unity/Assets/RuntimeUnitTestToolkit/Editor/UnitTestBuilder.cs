@@ -4,6 +4,7 @@ using RuntimeUnitTestToolkit;
 using RuntimeUnitTestToolkit.Editor;
 using System;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -409,6 +410,9 @@ public static partial class UnitTestBuilder
             UnityEngine.Debug.Log("Modify ScriptBackend to " + settings.ScriptBackend);
             PlayerSettings.SetScriptingBackend(targetGroup, settings.ScriptBackend);
         }
+
+        // MemoryPack changed:
+        EditorUserBuildSettings.il2CppCodeGeneration = Il2CppCodeGeneration.OptimizeSpeed; //runtime
 
         var buildOptions = new BuildPlayerOptions
         {

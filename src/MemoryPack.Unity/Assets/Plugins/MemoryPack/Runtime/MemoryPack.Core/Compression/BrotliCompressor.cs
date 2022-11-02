@@ -115,8 +115,8 @@ public
         }
     }
 
-    public void CopyTo<TBufferWriter>(TBufferWriter destBufferWriter)
-        where TBufferWriter : IBufferWriter<byte>
+    public void CopyTo(IBufferWriter<byte> destBufferWriter)
+        
     {
         ThrowIfDisposed();
 
@@ -139,8 +139,8 @@ public
         }
     }
 
-    static int CompressCore<TBufferWriter>(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, TBufferWriter destBufferWriter, int? initialLength, bool isFinalBlock)
-        where TBufferWriter : IBufferWriter<byte>
+    static int CompressCore(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, IBufferWriter<byte> destBufferWriter, int? initialLength, bool isFinalBlock)
+        
     {
         var writtenNotAdvanced = 0;
 

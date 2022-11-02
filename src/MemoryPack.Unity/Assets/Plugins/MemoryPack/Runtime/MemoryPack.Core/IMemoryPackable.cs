@@ -24,8 +24,8 @@ public interface IMemoryPackable<T> : IMemoryPackFormatterRegister
     // see proposal https://github.com/dotnet/csharplang/issues/6010
 
 #if NET7_0_OR_GREATER
-    static abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref T? value)
-        where TBufferWriter : IBufferWriter<byte>;
+    static abstract void Serialize(ref MemoryPackWriter writer, ref T? value)
+        ;
     static abstract void Deserialize(ref MemoryPackReader reader, ref T? value);
 #endif
 }

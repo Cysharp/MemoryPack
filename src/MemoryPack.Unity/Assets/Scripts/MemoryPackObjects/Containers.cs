@@ -18,4 +18,10 @@ namespace Models
     {
         public List<int> List = new List<int>();
     }
+
+    [MemoryPackable]
+    public partial class MyContainer3
+    {
+        public HashSet<long> Set = new HashSet<long>();
+    }
 }

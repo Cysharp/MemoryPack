@@ -32,7 +32,7 @@ public sealed partial class TypeFormatter : MemoryPackFormatter<Type>
 #endif
 
     [Preserve]
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Type? value)
+    public override void Serialize(ref MemoryPackWriter writer, ref Type? value)
     {
         var full = value?.AssemblyQualifiedName;
         if (full == null)
