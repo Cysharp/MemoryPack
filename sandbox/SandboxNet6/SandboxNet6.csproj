@@ -11,7 +11,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
-        <ProjectReference Include="..\..\src\MemoryPack.Generator.Roslyn3\MemoryPack.Generator.Roslyn3.csproj">
+        <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
