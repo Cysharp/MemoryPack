@@ -436,6 +436,10 @@ public partial class VersionCheck
 }
 ```
 
+In use-case, store old data(to file, to redis, etc...) and read to new schema is always ok. In RPC scenario, schema exists both client server, the client must be updated before the server. An updated client has no problem connecting to the old server but old client can not connect to new server.
+
+There are plans to include an option in the future to allow client/server bidirectional version tolerance, although the performance will be inferior. However, currently there is none.
+
 Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
 Serialization info
