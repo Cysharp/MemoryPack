@@ -403,7 +403,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         
 {{Members.Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
 
-        {{(!isVersionTolerant ? "" : "readCount = " + count + ";")}}
+        {{(!isVersionTolerant ? "" : "var readCount = " + count + ";")}}
         if (count == {{count}})
         {
             {{(IsValueType ? "" : "if (value == null)")}}

@@ -93,8 +93,6 @@ public class TakoyakiX : IMemoryPackable<TakoyakiX>
 
     public static void Deserialize(ref MemoryPackReader reader, scoped ref TakoyakiX? value)
     {
-        var readCount = 0;
-
         if (!reader.TryReadObjectHeader(out var count))
         {
             value = default!;
@@ -112,7 +110,7 @@ public class TakoyakiX : IMemoryPackable<TakoyakiX>
         int __Foo;
         string __Bar;
 
-        readCount = 2;
+        var readCount = 2;
         if (count == 2)
         {
             if (value == null)
