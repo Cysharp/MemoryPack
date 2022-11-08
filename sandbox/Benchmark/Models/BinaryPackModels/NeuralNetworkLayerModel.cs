@@ -18,6 +18,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [Orleans.GenerateSerializer]
     public sealed partial class NeuralNetworkLayerModel : IInitializable, IEquatable<NeuralNetworkLayerModel>
     {
         [Key(0), Id(0), ProtoMember(1)]

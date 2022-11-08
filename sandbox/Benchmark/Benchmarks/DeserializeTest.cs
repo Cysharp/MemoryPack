@@ -6,6 +6,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Serialization;
 using Orleans.Serialization.Buffers;
+using Orleans.Serialization.Session;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -18,19 +19,20 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Benchmarks;
 
-//[GenericTypeArguments(typeof(int))]
-//[GenericTypeArguments(typeof(Vector3[]))]
-//[GenericTypeArguments(typeof(JsonResponseModel))]
-//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+[GenericTypeArguments(typeof(int))]
+[GenericTypeArguments(typeof(Vector3[]))]
+[GenericTypeArguments(typeof(JsonResponseModel))]
+[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 public class DeserializeTest<T> : SerializerTestBase<T>
 {
-    //SerializerSessionPool pool;
-    //Serializer<T> orleansSerializer;
+    Serializer<T> orleansSerializer;
 
+    SerializerSession session;
     byte[] payloadMessagePack;
     byte[] payloadMemoryPack;
     byte[] payloadProtobuf;
     byte[] payloadJson;
+    byte[] payloadOrleans;
 
     public DeserializeTest()
         : base()
@@ -39,10 +41,10 @@ public class DeserializeTest<T> : SerializerTestBase<T>
         var serviceProvider = new ServiceCollection()
             .AddSerializer(builder => builder.AddAssembly(typeof(SerializeTest<>).Assembly))
             .BuildServiceProvider();
-        //pool = serviceProvider.GetRequiredService<SerializerSessionPool>();
-        //orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
+        session = serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
+        orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
 
-        //var serialize1 = orleansSerializer.SerializeToArray(value);
+        payloadOrleans = orleansSerializer.SerializeToArray(value);
         payloadMessagePack = MessagePackSerializer.Serialize(value);
         payloadMemoryPack = MemoryPackSerializer.Serialize(value);
         using var stream = new MemoryStream();
@@ -75,9 +77,11 @@ public class DeserializeTest<T> : SerializerTestBase<T>
         return System.Text.Json.JsonSerializer.Deserialize<T>(payloadJson);
     }
 
-    //[Benchmark, BenchmarkCategory(Categories.Bytes)]
-    //public byte[] OrleansSerialize()
-    //{
-    //    return orleansSerializer.SerializeToArray(value);
-    //}
+    [Benchmark]
+    public T OrleansDeserialize()
+    {
+        session.PartialReset();
+        var reader = Reader.Create(payloadOrleans, session);
+        return orleansSerializer.Deserialize(ref reader);
+    }
 }

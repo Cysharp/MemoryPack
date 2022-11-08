@@ -57,7 +57,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 
 
-BenchmarkRunner.Run<StaticAbstractVsFormatter>(config, args);
+//BenchmarkRunner.Run<StaticAbstractVsFormatter>(config, args);
 
 //BenchmarkRunner.Run<Compression<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<Compression<Vector3[]>>(config, args);
@@ -66,10 +66,10 @@ BenchmarkRunner.Run<StaticAbstractVsFormatter>(config, args);
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-//BenchmarkSwitcher.FromTypes(new[]{
-//    typeof(SerializeTest<>),
-//    typeof(DeserializeTest<>) })
-//    .RunAllJoined(config);
+BenchmarkSwitcher.FromTypes(new[]{
+    typeof(SerializeTest<>),
+    typeof(DeserializeTest<>) })
+    .RunAllJoined(config);
 
 #endif
 

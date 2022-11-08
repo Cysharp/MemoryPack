@@ -42,8 +42,8 @@ public class SerializeTest<T> : SerializerTestBase<T>
     ArrayBufferWriter<byte> writer;
     MemoryStream stream;
     Utf8JsonWriter jsonWriter;
-    //SerializerSessionPool pool;
-    //Serializer<T> orleansSerializer;
+    SerializerSession session;
+    Serializer<T> orleansSerializer;
 
     public SerializeTest()
         : base()
@@ -52,13 +52,13 @@ public class SerializeTest<T> : SerializerTestBase<T>
         var serviceProvider = new ServiceCollection()
             .AddSerializer(builder => builder.AddAssembly(typeof(SerializeTest<>).Assembly))
             .BuildServiceProvider();
-        //pool = serviceProvider.GetRequiredService<SerializerSessionPool>();
-        //orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
+        session = serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
+        orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
 
         // create buffers
         stream = new MemoryStream();
 
-        //var serialize1 = orleansSerializer.SerializeToArray(value);
+        var serialize1 = orleansSerializer.SerializeToArray(value);
         var serialize2 = MessagePackSerializer.Serialize(value);
         ProtoBuf.Serializer.Serialize(stream, value);
         var serialize3 = stream.ToArray();
@@ -113,11 +113,11 @@ public class SerializeTest<T> : SerializerTestBase<T>
         return array;
     }
 
-    //[Benchmark, BenchmarkCategory(Categories.Bytes)]
-    //public byte[] OrleansSerialize()
-    //{
-    //    return orleansSerializer.SerializeToArray(value);
-    //}
+    [Benchmark, BenchmarkCategory(Categories.Bytes)]
+    public byte[] OrleansSerialize()
+    {
+        return orleansSerializer.SerializeToArray(value);
+    }
 
     [Benchmark, BenchmarkCategory(Categories.BufferWriter)]
     public void MessagePackBufferWriter()
@@ -163,44 +163,37 @@ public class SerializeTest<T> : SerializerTestBase<T>
         jsonWriter.Reset(writer);
     }
 
-    // https://github.com/dotnet/orleans/pull/7984/
-    // should use `session.PartialReset();`, not with using ?
+    // benchmark code is used orleans one. https://github.com/dotnet/orleans/pull/7984/
 
-    //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
-    //public void OrleansBufferWriter()
-    //{
-    //    using (var session = pool.GetSession())
-    //    {
-    //        var writer = Writer.CreatePooled(session);
-    //        try
-    //        {
-    //            orleansSerializer.Serialize(value, ref writer);
-    //            writer.Commit();
-    //        }
-    //        finally
-    //        {
-    //            writer.Dispose();
-    //        }
-    //    }
-    //}
+    [Benchmark, BenchmarkCategory(Categories.BufferWriter)]
+    public void OrleansWriterPooledArrayBufferWriter()
+    {
+        var writer = Writer.CreatePooled(session);
+        try
+        {
+            orleansSerializer.Serialize(value, ref writer);
+        }
+        finally
+        {
+            writer.Dispose();
+            session.PartialReset();
+        }
+    }
 
-    //[Benchmark, BenchmarkCategory(Categories.BufferWriter)]
-    //public void OrleansBufferWriter2()
-    //{
-    //    using (var session = pool.GetSession())
-    //    {
-    //        // writer is ArrayBufferWriter<byte>
-    //        var writer2 = writer.CreateWriter(session);
-    //        try
-    //        {
-    //            orleansSerializer.Serialize(value, ref writer2);
-    //            writer2.Commit();
-    //        }
-    //        finally
-    //        {
-    //            writer2.Dispose();
-    //        }
-    //        writer.Clear(); // reuse ArrayBufferWriter<byte>
-    //    }
-    //}
+    [Benchmark, BenchmarkCategory(Categories.BufferWriter)]
+    public void OrleansWriterArrayBufferWriter()
+    {
+        var writer = this.writer.CreateWriter(session);
+        try
+        {
+            orleansSerializer.Serialize(value, ref writer);
+        }
+        finally
+        {
+            writer.Dispose();
+            session.PartialReset();
+        }
+
+        this.writer.Clear(); // clear ArrayBufferWriter<byte>
+    }
 }

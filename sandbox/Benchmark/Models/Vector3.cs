@@ -11,7 +11,7 @@ namespace Benchmark.Models;
 
 [MessagePackObject]
 [ProtoContract]
-// [GenerateSerializer]
+[GenerateSerializer]
 public struct Vector3
 {
     [Key(0)]

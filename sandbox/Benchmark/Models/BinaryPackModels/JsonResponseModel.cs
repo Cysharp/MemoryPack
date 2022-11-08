@@ -19,7 +19,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
-    // [Orleans.GenerateSerializer]
+    [Orleans.GenerateSerializer]
     public sealed partial class JsonResponseModel : IInitializable, IEquatable<JsonResponseModel>
     {
         [MemoryPackConstructor]
@@ -103,6 +103,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [Orleans.GenerateSerializer]
     public sealed partial class ApiModelContainer : IInitializable, IEquatable<ApiModelContainer>
     {
         [Key(0), Id(0), ProtoMember(1)]
@@ -142,6 +143,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [Orleans.GenerateSerializer]
     public sealed partial class RestApiModel : IInitializable, IEquatable<RestApiModel>
     {
         [Key(0), Id(0), ProtoMember(1)]
@@ -315,6 +317,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [Orleans.GenerateSerializer]
     public sealed partial class MediaInfoModel : IInitializable, IEquatable<MediaInfoModel>
     {
         [Key(0), Id(0), ProtoMember(1)]
@@ -366,6 +369,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [Orleans.GenerateSerializer]
     public sealed partial class ImageModel : IInitializable, IEquatable<ImageModel>
     {
         [Key(0), Id(0), ProtoMember(1)]
