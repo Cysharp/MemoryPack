@@ -29,7 +29,8 @@ public enum MemberKind
 
     Object, // others allow
     RefLike, // not allowed
-    NonSerializable // not allowed
+    NonSerializable, // not allowed
+    Blank // blank marker
 }
 
 partial class TypeMeta
@@ -41,7 +42,7 @@ partial class TypeMeta
     public SerializeLayout SerializeLayout { get; }
     /// <summary>MinimallyQualifiedFormat(include generics T)</summary>
     public string TypeName { get; }
-    public MemberMeta[] Members { get; }
+    public MemberMeta[] Members { get; private set; }
     public bool IsValueType { get; set; }
     public bool IsUnmanagedType { get; }
     public bool IsUnion { get; }
@@ -256,7 +257,7 @@ partial class TypeMeta
             return true;
         }
 
-        // GenerateType.Object validation
+        // GenerateType.Objector VersionTorelant validation
 
         var noError = true;
 
@@ -482,6 +483,14 @@ partial class MemberMeta
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
 
+    MemberMeta()
+    {
+        this.Symbol = null!;
+        this.Name = null!;
+        this.MemberType = null!;
+        this.Kind = MemberKind.Blank;
+    }
+
     public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
     {
         this.Symbol = symbol;
@@ -539,6 +548,11 @@ partial class MemberMeta
         }
 
         Kind = ParseMemberKind(symbol, MemberType, references);
+    }
+
+    public static MemberMeta CreateEmpty()
+    {
+        return new MemberMeta();
     }
 
     public Location GetLocation(TypeDeclarationSyntax fallback)

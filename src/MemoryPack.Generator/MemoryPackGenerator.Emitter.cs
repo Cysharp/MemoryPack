@@ -90,7 +90,7 @@ using MemoryPack;
         sb.AppendLine();
 
         // Write document comment as remarks
-        if (typeMeta.GenerateType == GenerateType.Object)
+        if (typeMeta.GenerateType is GenerateType.Object or GenerateType.VersionTolerant)
         {
             BuildDebugInfo(sb, typeMeta, true);
 
@@ -232,8 +232,26 @@ public partial class TypeMeta
         }
         else
         {
-            serializeBody = EmitSerializeBody();
+            var originalMembers = Members;
+            if (GenerateType == GenerateType.VersionTolerant)
+            {
+                // for emit time, replace padded empty
+                if (Members.Length != 0)
+                {
+                    var maxOrder = Members.Max(x => x.Order);
+                    var tempMembers = new MemberMeta[maxOrder + 1];
+                    for (int i = 0; i <= maxOrder; i++)
+                    {
+                        tempMembers[i] = Members.FirstOrDefault(x => x.Order == i) ?? MemberMeta.CreateEmpty();
+                    }
+                    Members = tempMembers;
+                }
+            }
+
+            serializeBody = EmitSerializeBody(context.IsForUnity);
             deserializeBody = EmitDeserializeBody();
+
+            Members = originalMembers;
         }
 
         var classOrStructOrRecord = (IsRecord, IsValueType) switch
@@ -346,15 +364,46 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         var count = Members.Length;
 
+        var isVersionTolerant = this.GenerateType == GenerateType.VersionTolerant;
+        var readBeginBody = "";
+        var readEndBody = "";
+        var commentOutInvalidBody = "";
+
+        if (isVersionTolerant)
+        {
+            readBeginBody = """
+        Span<int> deltas = stackalloc int[count];
+        var delta = 0;
+        for (int i = 0; i < count; i++)
+        {
+            deltas[i] = reader.ReadVarIntInt32();
+        }
+""";
+
+            readEndBody = """
+        if (count == readCount) goto END;
+
+        for (int i = readCount; i < count; i++)
+        {
+            reader.Advance(deltas[i]);
+        }
+""";
+
+            commentOutInvalidBody = "// ";
+        }
+
         return $$"""
         if (!reader.TryReadObjectHeader(out var count))
         {
             value = default!;
             goto END;
         }
+
+{{readBeginBody}}
         
 {{Members.Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
 
+        {{(!isVersionTolerant ? "" : "readCount = " + count + ";")}}
         if (count == {{count}})
         {
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -367,17 +416,17 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
 {{Members.Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
 
-{{Members.Select(x => "                " + x.EmitReadRefDeserialize()).NewLine()}}
+{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order)).NewLine()}}
 
                 goto SET;
             }
 {{(IsValueType ? "#endif" : "")}}
         }
-        else if (count > {{count}})
-        {
-            MemoryPackSerializationException.ThrowInvalidPropertyCount({{count}}, count);
-            goto END;
-        }
+        {{commentOutInvalidBody}}else if (count > {{count}})
+        {{commentOutInvalidBody}}{
+            {{commentOutInvalidBody}}MemoryPackSerializationException.ThrowInvalidPropertyCount({{count}}, count);
+            {{commentOutInvalidBody}}goto READ_END;
+        {{commentOutInvalidBody}}}
         else
         {
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -391,7 +440,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{(IsValueType ? "#endif" : "")}}
 
             if (count == 0) goto SKIP_READ;
-{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize() + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
+{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
 
     SKIP_READ:
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -408,13 +457,15 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
 {{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.{x.Name} = __{x.Name};").NewLine()}}
-        goto END;
+        goto READ_END;
 
     NEW:
         value = {{EmitConstructor()}}
         {
 {{EmitDeserializeConstruction("            ")}}
         };
+    READ_END:
+{{readEndBody}}
 """;
     }
 
@@ -471,8 +522,13 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         return sb.ToString();
     }
 
-    string EmitSerializeBody()
+    string EmitSerializeBody(bool isForUnity)
     {
+        if (this.GenerateType == GenerateType.VersionTolerant)
+        {
+            return EmitVersionTorelantSerializeBody(isForUnity);
+        }
+
         return $$"""
 {{(!IsValueType ? $$"""
         if (value == null)
@@ -482,17 +538,68 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 """ : "")}}
 
-{{EmitSerializeMembers(Members, "        ")}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false)}}
 """;
     }
 
-    public string EmitSerializeMembers(MemberMeta[] members, string indent)
+    string EmitVersionTorelantSerializeBody(bool isForUnity)
+    {
+        var newTempWriter = isForUnity
+            ? "new MemoryPackWriter(ref tempBuffer, writer.Options)"
+            : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options)";
+
+        return $$"""
+{{(!IsValueType ? $$"""
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            goto END;
+        }
+""" : "")}}
+
+        var tempBuffer = MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Rent();
+        try
+        {
+            Span<int> offsets = stackalloc int[{{Members.Length}}];
+            var tempWriter = {{newTempWriter}};
+
+{{EmitSerializeMembers(Members, "            ", toTempWriter: true)}}
+
+            tempWriter.Flush();
+            
+            writer.WriteObjectHeader({{Members.Length}});
+            for (int i = 0; i < {{Members.Length}}; i++)
+            {
+                int delta;
+                if (i == 0)
+                {
+                    delta = offsets[i];
+                }
+                else
+                {
+                    delta = offsets[i] - offsets[i - 1];
+                }
+                writer.WriteVarInt(delta);
+            }
+            
+            tempBuffer.WriteToAndReset(ref writer);
+        }
+        finally
+        {
+            ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
+        }
+""";
+    }
+
+    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter)
     {
         // members is guranteed writable.
-        if (members.Length == 0)
+        if (members.Length == 0 && !toTempWriter)
         {
             return $"{indent}writer.WriteObjectHeader(0);";
         }
+
+        var writer = toTempWriter ? "tempWriter" : "writer";
 
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
@@ -500,13 +607,21 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             if (members[i].Kind != MemberKind.Unmanaged)
             {
                 sb.Append(indent);
-                if (i == 0)
+                if (i == 0 && !toTempWriter)
                 {
-                    sb.AppendLine($"writer.WriteObjectHeader({Members.Length});");
+                    sb.AppendLine($"{writer}.WriteObjectHeader({Members.Length});");
                     sb.Append(indent);
                 }
 
-                sb.AppendLine(members[i].EmitSerialize());
+                sb.Append(members[i].EmitSerialize(writer));
+                if (toTempWriter)
+                {
+                    sb.AppendLine($" offsets[{i}] = tempWriter.WrittenCount;");
+                }
+                else
+                {
+                    sb.AppendLine();
+                }
                 continue;
             }
 
@@ -529,15 +644,15 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
             // write method
             sb.Append(indent);
-            if (optimizeFrom == 0)
+            if (optimizeFrom == 0 && !toTempWriter)
             {
-                sb.Append("writer.WriteUnmanagedWithObjectHeader(");
+                sb.Append($"{writer}.WriteUnmanagedWithObjectHeader(");
                 sb.Append(members.Length);
                 sb.Append(", ");
             }
             else
             {
-                sb.Append("writer.WriteUnmanaged(");
+                sb.Append($"{writer}.WriteUnmanaged(");
             }
 
             for (int index = optimizeFrom; index <= optimizeTo; index++)
@@ -549,7 +664,16 @@ partial {{classOrStructOrRecord}} {{TypeName}}
                 sb.Append("value.");
                 sb.Append(members[index].Name);
             }
-            sb.AppendLine(");");
+            sb.Append(");");
+
+            if (toTempWriter)
+            {
+                sb.AppendLine($" offsets[{i}] = tempWriter.WrittenCount;");
+            }
+            else
+            {
+                sb.AppendLine();
+            }
 
             i = optimizeTo;
         }
@@ -567,7 +691,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             if (members[i].Kind != MemberKind.Unmanaged)
             {
                 sb.Append(indent);
-                sb.AppendLine(members[i].EmitReadToDeserialize());
+                sb.AppendLine(members[i].EmitReadToDeserialize(i));
                 continue;
             }
 
@@ -878,26 +1002,28 @@ public partial class MethodMeta
 
 public partial class MemberMeta
 {
-    public string EmitSerialize()
+    public string EmitSerialize(string writer)
     {
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"writer.WritePackable(value.{Name});";
+                return $"{writer}.WritePackable(value.{Name});";
             case MemberKind.Unmanaged:
-                return $"writer.WriteUnmanaged(value.{Name});";
+                return $"{writer}.WriteUnmanaged(value.{Name});";
             case MemberKind.String:
-                return $"writer.WriteString(value.{Name});";
+                return $"{writer}.WriteString(value.{Name});";
             case MemberKind.UnmanagedArray:
-                return $"writer.WriteUnmanagedArray(value.{Name});";
+                return $"{writer}.WriteUnmanagedArray(value.{Name});";
             case MemberKind.Array:
-                return $"writer.WriteArray(value.{Name});";
+                return $"{writer}.WriteArray(value.{Name});";
+            case MemberKind.Blank:
+                return "";
             default:
-                return $"writer.WriteValue(value.{Name});";
+                return $"{writer}.WriteValue(value.{Name});";
         }
     }
 
-    public string EmitReadToDeserialize()
+    public string EmitReadToDeserialize(int i)
     {
         switch (Kind)
         {
@@ -911,12 +1037,14 @@ public partial class MemberMeta
                 return $"__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Array:
                 return $"__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+            case MemberKind.Blank:
+                return $"reader.Advance(deltas[{i}]);";
             default:
                 return $"__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
     }
 
-    public string EmitReadRefDeserialize()
+    public string EmitReadRefDeserialize(int i)
     {
         switch (Kind)
         {
@@ -930,6 +1058,8 @@ public partial class MemberMeta
                 return $"reader.ReadUnmanagedArray(ref __{Name});";
             case MemberKind.Array:
                 return $"reader.ReadArray(ref __{Name});";
+            case MemberKind.Blank:
+                return $"reader.Advance(deltas[{i}]);";
             default:
                 return $"reader.ReadValue(ref __{Name});";
         }

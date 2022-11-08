@@ -4,6 +4,7 @@
 public enum GenerateType
 {
     Object,
+    VersionTolerant,
     Collection,
     NoGenerate
 }

@@ -72,3 +72,6 @@ public partial class GenricUnionB<T> : IGenericUnion<T>
     public T? Value { get; set; }
     public double MyProperty { get; set; }
 }
+
+
+

@@ -5,6 +5,7 @@ using MemoryPack;
 using MemoryPack.Compression;
 using MemoryPack.Formatters;
 using Samples;
+using SandboxConsoleApp;
 using System;
 using System.Buffers;
 using System.Collections;
@@ -24,14 +25,16 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var v = new Subset();
-v.MyBool = true;
-v.MyByte = 10;
-v.MySByte = -99;
-v.MyShort = -1000;
+var v = new TakoyakiX
+{
+    Foo = 1999,
+    Bar = "hogemogehugahuga"
+};
 
 
 var bin = MemoryPackSerializer.Serialize(v);
+
+var v2 = MemoryPackSerializer.Deserialize<TakoyakiX>(bin);
 
 Console.WriteLine(bin);
 
