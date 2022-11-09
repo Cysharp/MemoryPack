@@ -155,6 +155,8 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
+        if (count == 0) return;
+
         var rest = bufferLength - count;
         if (rest < 0)
         {
@@ -326,6 +328,18 @@ public ref partial struct MemoryPackReader
         return str;
     }
 
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T1 ReadUnmanaged<T1>()
+        where T1 : unmanaged
+    {
+        var size = Unsafe.SizeOf<T1>();
+        ref var spanRef = ref GetSpanReference(size);
+        var value1 = Unsafe.ReadUnaligned<T1>(ref spanRef);
+        Advance(size);
+        return value1;
+    }
+
 #if NET7_0_OR_GREATER
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -377,7 +391,7 @@ public ref partial struct MemoryPackReader
         return value;
     }
 
-#region ReadArray/Span
+    #region ReadArray/Span
 
     public T?[]? ReadArray<T>()
     {
@@ -451,9 +465,9 @@ public ref partial struct MemoryPackReader
         }
     }
 
-#endregion
+    #endregion
 
-#region UnmanagedArray/Span
+    #region UnmanagedArray/Span
 
     public T[]? ReadUnmanagedArray<T>()
         where T : unmanaged
@@ -548,7 +562,7 @@ public ref partial struct MemoryPackReader
         Advance(byteCount);
     }
 
-#endregion
+    #endregion
 
     public void ReadSpanWithoutReadLengthHeader<T>(int length, ref Span<T?> value)
     {

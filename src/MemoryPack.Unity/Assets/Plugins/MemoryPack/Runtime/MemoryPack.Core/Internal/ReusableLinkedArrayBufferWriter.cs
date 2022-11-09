@@ -22,7 +22,9 @@ using static MemoryMarshal;
 using static MemoryPack.Internal.MemoryMarshalEx;
 #endif
 
-internal static class ReusableLinkedArrayBufferWriterPool
+// internal but used by generator code
+
+public static class ReusableLinkedArrayBufferWriterPool
 {
     static readonly ConcurrentQueue<ReusableLinkedArrayBufferWriter> queue = new ConcurrentQueue<ReusableLinkedArrayBufferWriter>();
 
@@ -43,7 +45,7 @@ internal static class ReusableLinkedArrayBufferWriterPool
 }
 
 // This class has large buffer so should cache [ThreadStatic] or Pool.
-internal sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
+public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 {
     const int InitialBufferSize = 262144; // 256K(32768, 65536, 131072, 262144)
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];

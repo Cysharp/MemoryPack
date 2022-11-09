@@ -14,7 +14,9 @@ public sealed class MemoryPackableAttribute : Attribute
     public MemoryPackableAttribute(GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
     {
         this.GenerateType = generateType;
-        this.SerializeLayout = serializeLayout;
+        this.SerializeLayout = (generateType == GenerateType.VersionTolerant)
+            ? SerializeLayout.Explicit
+            : serializeLayout;
     }
 
     // set SerializeLayout only allows Object
@@ -28,6 +30,7 @@ public sealed class MemoryPackableAttribute : Attribute
 public enum GenerateType
 {
     Object,
+    VersionTolerant,
     Collection,
     NoGenerate
 }
