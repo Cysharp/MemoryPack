@@ -855,7 +855,7 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 `(byte memberCount, [varint byte-length-of-values...], [values...])`
 
-Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these sepc, first sbyte is value or typeCode and next X byte is value. 0~127 = unsigned byte value, -1~-120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
+Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these sepc, first sbyte is value or typeCode and next X byte is value. 0 to 127 = unsigned byte value, -1 to -120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
 
 ### Tuple
 
