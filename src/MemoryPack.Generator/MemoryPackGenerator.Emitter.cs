@@ -545,7 +545,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     string EmitVersionTorelantSerializeBody(bool isForUnity)
     {
         var newTempWriter = isForUnity
-            ? "new MemoryPackWriter(ref tempBuffer, writer.Options)"
+            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.Options)"
             : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options)";
 
         return $$"""

@@ -1,5 +1,6 @@
 ﻿using MemoryPack;
 using MemoryPack.Formatters;
+using MemoryPack.Tests.Models;
 using Models;
 using NUnit.Framework;
 using System;
@@ -50,6 +51,15 @@ public class BuiltinTest
         Debug.Log("Payload size:" + bin.Length);
         var v2 = MemoryPackSerializer.Deserialize<Takoyaki>(bin);
         Debug.Log("OK Deserialzie:" + v2.MyProperty);
+    }
+
+    [Test]
+    public void SerializeVersionTolerant()
+    {
+        var bin = MemoryPackSerializer.Serialize(new VersionTolerant3 { MyProperty1 = 9999, MyProperty2 = 3, MyProperty3 = 99 });
+        Debug.Log("Payload size:" + bin.Length);
+        var v2 = MemoryPackSerializer.Deserialize<VersionTolerant3>(bin);
+        Debug.Log("OK Deserialzie:" + (v2.MyProperty1, v2.MyProperty2, v2.MyProperty3));
     }
 
     [Test]

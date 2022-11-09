@@ -1,4 +1,13 @@
-﻿namespace MemoryPack;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+
+#nullable enable
+namespace MemoryPack {
 
 // VarInt, first sbyte is value or typeCode
 
@@ -28,7 +37,7 @@ internal static class VarIntCodes
     public const sbyte Int64 = -128;
 }
 
-public ref partial struct MemoryPackWriter<TBufferWriter>
+public ref partial struct MemoryPackWriter
 {
     public void WriteVarInt(byte x)
     {
@@ -434,4 +443,6 @@ public ref partial struct MemoryPackReader
                 return typeCode;
         }
     }
+}
+
 }
