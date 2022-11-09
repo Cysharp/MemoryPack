@@ -35,7 +35,6 @@ jobs:
           dotnet-version: |
             6.0.x
             7.0.x
-          include-prerelease: "true"
       # pack nuget
       - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
       - run: dotnet test -c Release --no-build
