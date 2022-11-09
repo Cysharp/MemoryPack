@@ -146,6 +146,8 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
+        if (count == 0) return;
+
         var rest = bufferLength - count;
         if (rest < 0)
         {

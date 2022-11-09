@@ -83,6 +83,10 @@ partial class TypeMeta
                 // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
                 this.GenerateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
                 this.SerializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
+                if (this.GenerateType == GenerateType.VersionTolerant)
+                {
+                    this.SerializeLayout = SerializeLayout.Explicit; // version-torelant, always explicit.
+                }
             }
         }
 
@@ -377,8 +381,8 @@ partial class TypeMeta
                 }
             }
 
-            // Annotated MemoryPackOrder must be continuous number from zero.
-            if (noError)
+            // Annotated MemoryPackOrder must be continuous number from zero if GenerateType.Object.
+            if (noError && GenerateType == GenerateType.Object)
             {
                 var expectedOrder = 0;
                 foreach (var item in Members)
@@ -483,11 +487,12 @@ partial class MemberMeta
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
 
-    MemberMeta()
+    MemberMeta(int order)
     {
         this.Symbol = null!;
         this.Name = null!;
         this.MemberType = null!;
+        this.Order = order;
         this.Kind = MemberKind.Blank;
     }
 
@@ -550,9 +555,9 @@ partial class MemberMeta
         Kind = ParseMemberKind(symbol, MemberType, references);
     }
 
-    public static MemberMeta CreateEmpty()
+    public static MemberMeta CreateEmpty(int order)
     {
-        return new MemberMeta();
+        return new MemberMeta(order);
     }
 
     public Location GetLocation(TypeDeclarationSyntax fallback)

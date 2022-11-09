@@ -25,7 +25,7 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var v = new TakoyakiX
+var v = new TakoyakiY
 {
     Foo = 1999,
     Bar = "hogemogehugahuga"
@@ -34,7 +34,7 @@ var v = new TakoyakiX
 
 var bin = MemoryPackSerializer.Serialize(v);
 
-var v2 = MemoryPackSerializer.Deserialize<TakoyakiX>(bin);
+var v2 = MemoryPackSerializer.Deserialize<TakoyakiY>(bin);
 
 Console.WriteLine(bin);
 

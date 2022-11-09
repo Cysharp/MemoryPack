@@ -14,9 +14,10 @@ namespace SandboxConsoleApp;
 [MemoryPackable(GenerateType.VersionTolerant)]
 public partial class TakoyakiY
 {
-    // [MemoryPackOrder(10)]
-    public int Foo { get; set; }
+    [MemoryPackOrder(1)]
     public string? Bar { get; set; }
+    [MemoryPackOrder(10)]
+    public int Foo { get; set; }
 }
 
 public class TakoyakiX : IMemoryPackable<TakoyakiX>

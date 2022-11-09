@@ -242,7 +242,7 @@ public partial class TypeMeta
                     var tempMembers = new MemberMeta[maxOrder + 1];
                     for (int i = 0; i <= maxOrder; i++)
                     {
-                        tempMembers[i] = Members.FirstOrDefault(x => x.Order == i) ?? MemberMeta.CreateEmpty();
+                        tempMembers[i] = Members.FirstOrDefault(x => x.Order == i) ?? MemberMeta.CreateEmpty(i);
                     }
                     Members = tempMembers;
                 }
@@ -401,7 +401,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
 {{readBeginBody}}
         
-{{Members.Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
 
         {{(!isVersionTolerant ? "" : "var readCount = " + count + ";")}}
         if (count == {{count}})
@@ -414,7 +414,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
-{{Members.Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
 
 {{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order)).NewLine()}}
 
@@ -431,11 +431,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             {{(IsValueType ? "" : "if (value == null)")}}
             {
-{{Members.Select(x => $"               __{x.Name} = default!;").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = default!;").NewLine()}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
-{{Members.Select(x => $"               __{x.Name} = value.{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = value.{x.Name};").NewLine()}}
             }
 {{(IsValueType ? "#endif" : "")}}
 
@@ -456,7 +456,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
-{{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.{x.Name} = __{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.{x.Name} = __{x.Name};").NewLine()}}
         goto READ_END;
 
     NEW:
@@ -586,7 +586,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         finally
         {
-            ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
+            MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
         }
 """;
     }
