@@ -591,6 +591,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
     }
 
+    // toTempWriter is VersionTolerant
     public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter)
     {
         // members is guranteed writable.
@@ -604,7 +605,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (members[i].Kind != MemberKind.Unmanaged)
+            if (members[i].Kind != MemberKind.Unmanaged || toTempWriter)
             {
                 sb.Append(indent);
                 if (i == 0 && !toTempWriter)
