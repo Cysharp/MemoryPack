@@ -329,6 +329,8 @@ switch (reData)
 }
 ```
 
+`tag` allows `0` ~ `65535`, it is especially efficient for less than `250`.
+
 Serialize API
 ---
 Serialize has three overloads.
@@ -877,8 +879,9 @@ String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, rep
 ### Union
 
 `(byte tag, value)`
+`(250, ushort tag, value)`
 
-First unsigned byte is tag that for discriminated value type, tag allows `0` to `249`, `255` represents union is `null`.
+First unsgined byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
 
 License
 ---

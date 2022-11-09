@@ -44,10 +44,10 @@ public enum SerializeLayout
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
 public sealed class MemoryPackUnionAttribute : Attribute
 {
-    public byte Tag { get; }
+    public ushort Tag { get; }
     public Type Type { get; }
 
-    public MemoryPackUnionAttribute(byte tag, Type type)
+    public MemoryPackUnionAttribute(ushort tag, Type type)
     {
         this.Tag = tag;
         this.Type = type;

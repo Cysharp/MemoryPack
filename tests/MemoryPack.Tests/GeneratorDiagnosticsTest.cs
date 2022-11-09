@@ -503,25 +503,6 @@ public partial class Hoge
 }
 """);
     }
-
-    [Fact]
-    public void MEMPACK032_UnionTag250()
-    {
-        Compile(32, """
-using MemoryPack;
-
-[MemoryPackable]
-[MemoryPackUnion(250, typeof(MyClass1))]
-public partial interface IMyClass
-{
-}
-
-[MemoryPackable]
-public partial class MyClass1 : IMyClass
-{
-}
-""", allowMultipleError: true);
-    }
 }
 
 

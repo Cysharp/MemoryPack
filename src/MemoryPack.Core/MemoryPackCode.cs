@@ -8,6 +8,8 @@ public static class MemoryPackCode
 
     // Object/Union Header
     // 0~249 is member count or tag, 250~254 is unused, 255 is null
+    public const byte WideTag = 250; // for Union, 250 is wide tag
+
     public const byte Reserved1 = 250;
     public const byte Reserved2 = 251;
     public const byte Reserved3 = 252;

@@ -53,7 +53,7 @@ partial class TypeMeta
     public MethodMeta[] OnSerialized { get; }
     public MethodMeta[] OnDeserializing { get; }
     public MethodMeta[] OnDeserialized { get; }
-    public (byte Tag, INamedTypeSymbol Type)[] UnionTags { get; }
+    public (ushort Tag, INamedTypeSymbol Type)[] UnionTags { get; }
     public bool IsUseEmptyConstructor => Constructor == null || Constructor.Parameters.IsEmpty;
 
     public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
@@ -135,12 +135,12 @@ partial class TypeMeta
             this.UnionTags = symbol.GetAttributes()
                 .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPackUnionAttribute))
                 .Where(x => x.ConstructorArguments.Length == 2)
-                .Select(x => ((byte)x.ConstructorArguments[0].Value!, (INamedTypeSymbol)x.ConstructorArguments[1].Value!))
+                .Select(x => ((ushort)x.ConstructorArguments[0].Value!, (INamedTypeSymbol)x.ConstructorArguments[1].Value!))
                 .ToArray();
         }
         else
         {
-            this.UnionTags = Array.Empty<(byte, INamedTypeSymbol)>();
+            this.UnionTags = Array.Empty<(ushort, INamedTypeSymbol)>();
         }
     }
 
@@ -458,12 +458,6 @@ partial class TypeMeta
                 if (!item.Type.ContainsAttribute(reference.MemoryPackableAttribute))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberMustBeMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
-                    noError = false;
-                }
-
-                if (item.Tag >= 250) // MemoryPackCode.Reserved1
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTag250, syntax.Identifier.GetLocation(), Symbol.Name, Members.Length));
                     noError = false;
                 }
             }
