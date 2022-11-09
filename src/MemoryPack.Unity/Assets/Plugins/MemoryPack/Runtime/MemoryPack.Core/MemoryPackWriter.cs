@@ -205,9 +205,20 @@ public ref partial struct MemoryPackWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUnionHeader(byte tag)
+    public void WriteUnionHeader(ushort tag)
     {
-        WriteObjectHeader(tag);
+        if (tag < MemoryPackCode.WideTag)
+        {
+            GetSpanReference(1) = (byte)tag;
+            Advance(1);
+        }
+        else
+        {
+            ref var spanRef = ref GetSpanReference(3);
+            Unsafe.WriteUnaligned(ref spanRef, MemoryPackCode.WideTag);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), tag);
+            Advance(3);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

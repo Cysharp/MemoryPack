@@ -63,7 +63,13 @@ export class MemoryPackWriter {
         this.writeUint8(nullObject);
     }
     writeUnionHeader(tag) {
-        this.writeUint8(tag);
+        if (tag < 250) {
+            this.writeUint8(tag);
+        }
+        else {
+            this.writeUint8(250);
+            this.writeUint16(tag);
+        }
     }
     writeNullUnionHeader() {
         this.writeUint8(nullObject);

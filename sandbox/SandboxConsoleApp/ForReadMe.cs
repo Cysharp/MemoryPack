@@ -77,6 +77,7 @@ public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
 [MemoryPackable]
 [MemoryPackUnion(0, typeof(FooClass))]
 [MemoryPackUnion(249, typeof(BarClass))]
+// [MemoryPackUnion(250, typeof(BarClass), useWideTag: true)]
 public partial interface IUnionSample
 {
 }
@@ -154,5 +155,5 @@ public partial class MyDictContainer
 {
     public Dictionary<int, string>? MD { get; set; }
 
-  
+
 }

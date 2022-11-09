@@ -34,7 +34,7 @@ public partial class Derived2 : Derived1
 
 [MemoryPackable]
 [MemoryPackUnion(0, typeof(Impl1))]
-[MemoryPackUnion(1, typeof(Impl2))]
+[MemoryPackUnion(253, typeof(Impl2))]
 public partial interface IUnionInterface
 {
     int MyProperty { get; }

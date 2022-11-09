@@ -195,9 +195,25 @@ public ref partial struct MemoryPackReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryReadUnionHeader(out byte tag)
+    public bool TryReadUnionHeader(out ushort tag)
     {
-        return TryReadObjectHeader(out tag);
+        var firstTag = GetSpanReference(1);
+        Advance(1);
+        if (firstTag < MemoryPackCode.WideTag)
+        {
+            tag = firstTag;
+            return true;
+        }
+        else if (firstTag == MemoryPackCode.WideTag)
+        {
+            ReadUnmanaged(out tag);
+            return true;
+        }
+        else
+        {
+            tag = 0;
+            return false;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

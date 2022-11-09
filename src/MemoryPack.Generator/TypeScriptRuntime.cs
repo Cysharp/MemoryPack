@@ -86,7 +86,12 @@ export class MemoryPackWriter {
     }
 
     public writeUnionHeader(tag: number) {
-        this.writeUint8(tag);
+        if (tag < 250) {
+            this.writeUint8(tag);
+        } else {
+            this.writeUint8(250);
+            this.writeUint16(tag);
+        }
     }
 
     public writeNullUnionHeader(): void {
@@ -484,9 +489,16 @@ export class MemoryPackReader {
 
     public tryReadUnionHeader(): [boolean, number] {
         const tag = this.readUint8();
-        return (tag == nullObject)
-            ? [false, 0]
-            : [true, tag];
+        if (tag < 250) {
+            return [true, tag];
+        }
+        else if (tag == 250) {
+            const tag2 = this.readUint16();
+            return [true, tag2];
+        }
+        else {
+            return [false, 0];
+        }
     }
 
     public tryReadCollectionHeader(): [boolean, number] {

@@ -260,12 +260,4 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor UnionTag250 = new(
-        id: "MEMPACK032",
-        title: "Union tag limit",
-        messageFormat: "The MemoryPackable object '{0}' union tag is '{1}', however limit size is 249",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
 }

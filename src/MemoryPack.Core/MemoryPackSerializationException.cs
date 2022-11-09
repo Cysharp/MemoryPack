@@ -82,7 +82,7 @@ public class MemoryPackSerializationException : Exception
     }
 
     [DoesNotReturn]
-    public static void ThrowInvalidTag(byte tag, Type baseType)
+    public static void ThrowInvalidTag(ushort tag, Type baseType)
     {
         throw new MemoryPackSerializationException($"Data read tag: {tag} but not found in {baseType.FullName} MemoryPackUnion annotations.");
     }
