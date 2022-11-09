@@ -18,6 +18,7 @@ Other than performance, MemoryPack has these features.
 * Reflectionless non-generics APIs
 * Deserialize into existing instance
 * Polymorphism(Union) serialization
+* limited version-tolerant(fast/default) and full version-tolerant support
 * PipeWriter/Reader based streaming serialization
 * TypeScript code generation and ASP.NET Core Formatter
 * Unity(2021.3) IL2CPP Support via .NET Source Generator
@@ -396,11 +397,13 @@ MemoryPack will attempt to overwrite as much as possible, but if the conditions 
 
 Version tolerant
 ---
-MemoryPack supports schema evolution limitedly.
+In default(`GeneratType.Object`), MemoryPack supports schema evolution limitedly.
 
 * unmanaged struct can't change any more
-* MemoryPackable objects, members can be added, but not deleted
-* MemoryPackable objects, can't change member order
+* members can add, but can not delete
+* can change member name
+* can't change member order
+* can't change member type
 
 ```csharp
 [MemoryPackable]
@@ -438,9 +441,55 @@ public partial class VersionCheck
 
 In use-case, store old data(to file, to redis, etc...) and read to new schema is always ok. In RPC scenario, schema exists both client server, the client must be updated before the server. An updated client has no problem connecting to the old server but old client can not connect to new server.
 
-There are plans to include an option in the future to allow client/server bidirectional version tolerance, although the performance will be inferior. However, currently there is none.
-
 Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
+
+When using `GnerateType.VersionTolerant`, it supports full version-torlerant.
+
+* unmanaged struct can't change any more
+* All members must add `[MemoryPackOrder]` explicitly
+* members can add, can delete but not reuse order(can use missing order)
+* can change member name
+* can't change member order
+* can't change member type
+
+```csharp
+// Ok to serialize/deserialize both 
+// VersionTolerantObject1 -> VersionTolerantObject2 and 
+// VersionTolerantObject2 -> VersionTolerantObject1
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class VersionTolerantObject1
+{
+    [MemoryPackOrder(0)]
+    public int MyProperty0 { get; set; } = default;
+
+    [MemoryPackOrder(1)]
+    public long MyProperty1 { get; set; } = default;
+
+    [MemoryPackOrder(2)]
+    public short MyProperty2 { get; set; } = default;
+}
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class VersionTolerantObject2
+{
+    [MemoryPackOrder(0)]
+    public int MyProperty0 { get; set; } = default;
+
+    // deleted
+    //[MemoryPackOrder(1)]
+    //public long MyProperty1 { get; set; } = default;
+
+    [MemoryPackOrder(2)]
+    public short MyProperty2 { get; set; } = default;
+
+    // added
+    [MemoryPackOrder(3)]
+    public short MyProperty3 { get; set; } = default;
+}
+```
+
+`GnerateType.VersionTolerant` is slower than `GeneratType.Object` in serializing. Also, the payload size will be slightly larger.
 
 Serialization info
 ----
@@ -776,14 +825,15 @@ Source Generator is also used officially by Unity by [com.unity.properties](http
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Six types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Seven types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
 Endian must be `Little Endian`. However reference C# implementation does not care endianness so can not use on big-endian machine. However modern computers are usually little-endian.
 
-There are six types of format.
+There are seven types of format.
 
 * Unmanaged struct
 * Object
+* Version Tolerant Object
 * Tuple
 * Collection
 * String
@@ -798,6 +848,12 @@ Unmanaged struct is C# struct that no contains reference type, similar constrain
 `(byte memberCount, [values...])`
 
 Object has 1byte unsigned byte as member count in header. Member count allows `0` to `249`, `255` represents object is `null`. Values store memorypack value for the number of member count.
+
+### Version Tolerant Object
+
+`(byte memberCount, [varint byte-length-of-values...], [values...])`
+
+Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these sepc, first sbyte is value or typeCode and next X byte is value. 0~127 = unsigned byte value, -1~-120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
 
 ### Tuple
 
