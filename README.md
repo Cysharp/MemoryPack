@@ -857,7 +857,7 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 
 `(byte memberCount, [varint byte-length-of-values...], [values...])`
 
-Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these sepc, first sbyte is value or typeCode and next X byte is value. 0 to 127 = unsigned byte value, -1 to -120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
+Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these spec, first sbyte is value or typeCode and next X byte is value. 0 to 127 = unsigned byte value, -1 to -120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
 
 ### Tuple
 
@@ -880,7 +880,7 @@ String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, rep
 
 ### Union
 
-`(byte tag, value)`
+`(byte tag, value)`  
 `(250, ushort tag, value)`
 
 First unsgined byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
