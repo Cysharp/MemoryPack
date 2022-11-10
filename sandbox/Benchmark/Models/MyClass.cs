@@ -41,3 +41,19 @@ public partial class MyClass
     [Id(4)]
     public string? LastName { get; set; }
 }
+
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class VersionTolerantMyClass
+{
+    [MemoryPackOrder(0)]
+    public int X { get; set; }
+    [MemoryPackOrder(1)]
+    public int Y { get; set; }
+    [MemoryPackOrder(2)]
+    public int Z { get; set; }
+    [MemoryPackOrder(3)]
+    public string? FirstName { get; set; }
+    [MemoryPackOrder(4)]
+    public string? LastName { get; set; }
+}

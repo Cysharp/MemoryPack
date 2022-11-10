@@ -19,10 +19,10 @@ using System.Threading.Tasks;
 
 namespace Benchmark.Benchmarks;
 
-[GenericTypeArguments(typeof(int))]
-[GenericTypeArguments(typeof(Vector3[]))]
-[GenericTypeArguments(typeof(JsonResponseModel))]
-[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
+//[GenericTypeArguments(typeof(int))]
+//[GenericTypeArguments(typeof(Vector3[]))]
+//[GenericTypeArguments(typeof(JsonResponseModel))]
+//[GenericTypeArguments(typeof(NeuralNetworkLayerModel))]
 public class DeserializeTest<T> : SerializerTestBase<T>
 {
     Serializer<T> orleansSerializer;

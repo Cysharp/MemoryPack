@@ -20,7 +20,7 @@ using System.Reflection;
 
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
-    .AddColumn(StatisticColumn.OperationsPerSecond)
+    // .AddColumn(StatisticColumn.OperationsPerSecond)
     .AddExporter(DefaultExporters.Plain)
     .AddExporter(MarkdownExporter.Default)
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1)); // .AddJob(Job.ShortRun);
@@ -45,7 +45,7 @@ var config = ManualConfig.CreateMinimumViable()
 
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
-//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+
 
 //BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
 
@@ -54,8 +54,10 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
 
 
+BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
-
+//BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);
+//BenchmarkRunner.Run<DeserializeTest<Vector3[]>>(config, args);
 
 //BenchmarkRunner.Run<StaticAbstractVsFormatter>(config, args);
 
@@ -66,10 +68,12 @@ var config = ManualConfig.CreateMinimumViable()
 
 //BenchmarkRunner.Run<GetLocalVsStaticField>(config, args);
 
-BenchmarkSwitcher.FromTypes(new[]{
-    typeof(SerializeTest<>),
-    typeof(DeserializeTest<>) })
-    .RunAllJoined(config);
+//BenchmarkRunner.Run<VersionTolerant>(config, args);
+
+//BenchmarkSwitcher.FromTypes(new[]{
+//    typeof(SerializeTest<>),
+//    typeof(DeserializeTest<>) })
+//    .RunAllJoined(config);
 
 #endif
 
