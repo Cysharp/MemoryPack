@@ -81,3 +81,29 @@ public partial class VersionTolerant5
     [MemoryPackOrder(5)]
     public string MyProperty6 { get; set; } = default!;
 }
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class Version1
+{
+    [MemoryPackOrder(0)]
+    public int Id { get; set; }
+
+    [MemoryPackOrder(1)]
+    public string Name { get; set; } = default!;
+}
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class Version2
+{
+    [MemoryPackOrder(0)]
+    public int Id { get; set; }
+
+    //deleted
+    //[MemoryPackOrder(1)] 
+    //public string Name { get; set; } = default!;
+
+    [MemoryPackOrder(2)]
+    public string FirstName { get; set; } = default!;
+    [MemoryPackOrder(3)]
+    public string LastName { get; set; } = default!;
+}

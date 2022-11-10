@@ -373,7 +373,6 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             readBeginBody = """
         Span<int> deltas = stackalloc int[count];
-        var delta = 0;
         for (int i = 0; i < count; i++)
         {
             deltas[i] = reader.ReadVarIntInt32();
@@ -416,7 +415,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
 {{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
 
-{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order)).NewLine()}}
+{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType == GenerateType.VersionTolerant)).NewLine()}}
 
                 goto SET;
             }
@@ -440,7 +439,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{(IsValueType ? "#endif" : "")}}
 
             if (count == 0) goto SKIP_READ;
-{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
+{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order, GenerateType == GenerateType.VersionTolerant) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
 
     SKIP_READ:
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -689,10 +688,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (members[i].Kind != MemberKind.Unmanaged)
+            if (members[i].Kind != MemberKind.Unmanaged || GenerateType == GenerateType.VersionTolerant)
             {
                 sb.Append(indent);
-                sb.AppendLine(members[i].EmitReadToDeserialize(i));
+                sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType == GenerateType.VersionTolerant));
                 continue;
             }
 
@@ -1024,45 +1023,57 @@ public partial class MemberMeta
         }
     }
 
-    public string EmitReadToDeserialize(int i)
+    public string EmitReadToDeserialize(int i, bool requireDeltaCheck)
     {
+        var equalDefault = Kind == MemberKind.Blank
+            ? "{ }"
+            : $"{{ __{Name} = default; }}";
+
+        var pre = requireDeltaCheck
+            ? $"if (deltas[{i}] == 0) {equalDefault} else "
+            : "";
+
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"{pre}__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged(out __{Name});";
+                return $"{pre}reader.ReadUnmanaged(out __{Name});";
             case MemberKind.String:
-                return $"__{Name} = reader.ReadString();";
+                return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
-                return $"__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"{pre}__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Array:
-                return $"__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"{pre}__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Blank:
-                return $"reader.Advance(deltas[{i}]);";
+                return $"{pre}reader.Advance(deltas[{i}]);";
             default:
-                return $"__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+                return $"{pre}__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
     }
 
-    public string EmitReadRefDeserialize(int i)
+    public string EmitReadRefDeserialize(int i, bool requireDeltaCheck)
     {
+        var pre = requireDeltaCheck
+            ? $"if (deltas[{i}] != 0) "
+            : "";
+
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"reader.ReadPackable(ref __{Name});";
+                return $"{pre}reader.ReadPackable(ref __{Name});";
             case MemberKind.Unmanaged:
-                return $"reader.ReadUnmanaged(out __{Name});";
+                return $"{pre}reader.ReadUnmanaged(out __{Name});";
             case MemberKind.String:
-                return $"__{Name} = reader.ReadString();";
+                return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
-                return $"reader.ReadUnmanagedArray(ref __{Name});";
+                return $"{pre}reader.ReadUnmanagedArray(ref __{Name});";
             case MemberKind.Array:
-                return $"reader.ReadArray(ref __{Name});";
+                return $"{pre}reader.ReadArray(ref __{Name});";
             case MemberKind.Blank:
-                return $"reader.Advance(deltas[{i}]);";
+                return $"{pre}reader.Advance(deltas[{i}]);";
             default:
-                return $"reader.ReadValue(ref __{Name});";
+                return $"{pre}reader.ReadValue(ref __{Name});";
         }
     }
 }

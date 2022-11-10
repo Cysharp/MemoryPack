@@ -95,4 +95,36 @@ public class VersionTolerantTest
         CheckArray(d);
         d.Versioned.MyProperty3.Should().Be(32);
     }
+
+    [Fact]
+    public void More()
+    {
+        var v3 = new VersionTolerant3 { MyProperty1 = 1000, MyProperty2 = 2000, MyProperty3 = 3000 };
+        var v4 = new VersionTolerant4 { MyProperty1 = 4000, MyProperty3 = 5000 };
+
+        var bin3 = MemoryPackSerializer.Serialize(v3);
+        var bin4 = MemoryPackSerializer.Serialize(v4);
+
+        var r_v4 = MemoryPackSerializer.Deserialize<VersionTolerant4>(bin3);
+        r_v4.MyProperty1.Should().Be(1000);
+        r_v4.MyProperty3.Should().Be(3000);
+
+        var r_v3 = MemoryPackSerializer.Deserialize<VersionTolerant3>(bin4);
+        r_v3.MyProperty1.Should().Be(4000);
+        r_v3.MyProperty2.Should().Be(0);
+        r_v3.MyProperty3.Should().Be(5000);
+    }
+
+    [Fact]
+    public void More2()
+    {
+        var v1 = new Version1 { Id = 99, Name = "foo" };
+        var v2 = new Version2 { Id = 9999, FirstName = "a", LastName = "b" };
+
+        var bin1 = MemoryPackSerializer.Serialize(v1);
+        var bin2 = MemoryPackSerializer.Serialize(v2);
+
+        var r = MemoryPackSerializer.Deserialize<Version1>(bin2);
+        r.Id.Should().Be(9999);
+    }
 }
