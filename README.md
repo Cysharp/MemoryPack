@@ -7,7 +7,7 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 > Measure by .NET 7 / Ryzen 9 5950X machine. These serializers has `IBufferWriter<byte>` method, serialize using `ArrayBuffer<byte>` and reuse to avoid measure buffer copy.
 
-For standard object, MemoryPack is x10 faster and x2 ~ 5 faster than other binary serializers. For struct array, MemoryPack gots boosted power, x50 ~ 200 faster than other serializers.
+For standard object, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack gots boosted power, x50 ~ x200 faster than other serializers.
 
 MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator(.NET Standard 2.1(.NET 5, 6) and Unity support is also exists).
 
