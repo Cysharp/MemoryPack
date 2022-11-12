@@ -277,6 +277,18 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class HashSetFormatter<T> : MemoryPackFormatter<HashSet<T?>>
     {
+        readonly IEqualityComparer<T?>? equalityComparer;
+
+        public HashSetFormatter()
+            : this(null)
+        {
+        }
+
+        public HashSetFormatter(IEqualityComparer<T?>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref HashSet<T?>? value)
         {
@@ -306,7 +318,7 @@ namespace MemoryPack.Formatters
 
             if (value == null)
             {
-                value = new HashSet<T?>(length);
+                value = new HashSet<T?>(length, equalityComparer);
             }
             else
             {
@@ -743,6 +755,19 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IComparer<TKey>? comparer;
+
+        public SortedDictionaryFormatter()
+            : this(null)
+        {
+
+        }
+
+        public SortedDictionaryFormatter(IComparer<TKey>? comparer)
+        {
+            this.comparer = comparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SortedDictionary<TKey, TValue?>? value)
         {
@@ -773,7 +798,7 @@ namespace MemoryPack.Formatters
 
             if (value == null)
             {
-                value = new SortedDictionary<TKey, TValue?>();
+                value = new SortedDictionary<TKey, TValue?>(comparer);
             }
             else
             {
@@ -800,6 +825,19 @@ namespace MemoryPack.Formatters
             {
                 MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
             }
+        }
+
+        readonly IComparer<TKey>? comparer;
+
+        public SortedListFormatter()
+            : this(null)
+        {
+
+        }
+
+        public SortedListFormatter(IComparer<TKey>? comparer)
+        {
+            this.comparer = comparer;
         }
 
         [Preserve]
@@ -832,7 +870,7 @@ namespace MemoryPack.Formatters
 
             if (value == null)
             {
-                value = new SortedList<TKey, TValue?>(length);
+                value = new SortedList<TKey, TValue?>(length, comparer);
             }
             else
             {
@@ -859,6 +897,19 @@ namespace MemoryPack.Formatters
             {
                 MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
             }
+        }
+
+        readonly IEqualityComparer<TKey>? equalityComparer;
+
+        public ConcurrentDictionaryFormatter()
+            : this(null)
+        {
+
+        }
+
+        public ConcurrentDictionaryFormatter(IEqualityComparer<TKey>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
         }
 
         [Preserve]
@@ -896,7 +947,7 @@ namespace MemoryPack.Formatters
 
             if (value == null)
             {
-                value = new ConcurrentDictionary<TKey, TValue?>();
+                value = new ConcurrentDictionary<TKey, TValue?>(equalityComparer);
             }
             else
             {

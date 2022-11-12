@@ -49,9 +49,12 @@ public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPa
 }
 
 [Preserve]
-public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TSet?>
-    where TSet : ISet<TElement?>, new()
+public abstract class GenericSetFormatterBase<TSet, TElement> : MemoryPackFormatter<TSet?>
+    where TSet : ISet<TElement?>
 {
+    [Preserve]
+    protected abstract TSet CreateSet();
+
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TSet? value)
     {
@@ -82,7 +85,7 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
 
         var formatter = reader.GetFormatter<TElement?>();
 
-        var collection = new TSet();
+        var collection = CreateSet();
         for (int i = 0; i < length; i++)
         {
             TElement? v = default;
@@ -95,17 +98,30 @@ public sealed class GenericSetFormatter<TSet, TElement> : MemoryPackFormatter<TS
 }
 
 [Preserve]
-public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : MemoryPackFormatter<TDictionary?>
-    where TKey : notnull
-    where TDictionary : IDictionary<TKey, TValue?>, new()
+public sealed class GenericSetFormatter<TSet, TElement> : GenericSetFormatterBase<TSet, TElement>
+    where TSet : ISet<TElement?>, new()
 {
-    static GenericDictionaryFormatter()
+    protected override TSet CreateSet()
+    {
+        return new();
+    }
+}
+
+[Preserve]
+public abstract class GenericDictionaryFormatterBase<TDictionary, TKey, TValue> : MemoryPackFormatter<TDictionary?>
+    where TKey : notnull
+    where TDictionary : IDictionary<TKey, TValue?>
+{
+    static GenericDictionaryFormatterBase()
     {
         if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
         {
             MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
         }
     }
+
+    [Preserve]
+    protected abstract TDictionary CreateDictionary();
 
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TDictionary? value)
@@ -137,7 +153,7 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
 
         var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
-        var collection = new TDictionary();
+        var collection = CreateDictionary();
         for (int i = 0; i < length; i++)
         {
             KeyValuePair<TKey, TValue?> v = default;
@@ -146,5 +162,17 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Memo
         }
 
         value = collection;
+    }
+}
+
+[Preserve]
+public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : GenericDictionaryFormatterBase<TDictionary, TKey, TValue>
+    where TKey : notnull
+    where TDictionary : IDictionary<TKey, TValue?>, new()
+{
+    [Preserve]
+    protected override TDictionary CreateDictionary()
+    {
+        return new();
     }
 }

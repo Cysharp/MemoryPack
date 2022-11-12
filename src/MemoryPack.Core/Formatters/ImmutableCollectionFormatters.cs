@@ -333,6 +333,21 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IEqualityComparer<TKey>? keyEqualityComparer;
+        readonly IEqualityComparer<TValue?>? valueEqualityComparer;
+
+        public ImmutableDictionaryFormatter()
+            : this(null, null)
+        {
+
+        }
+
+        public ImmutableDictionaryFormatter(IEqualityComparer<TKey>? keyEqualityComparer, IEqualityComparer<TValue?>? valueEqualityComparer)
+        {
+            this.keyEqualityComparer = keyEqualityComparer;
+            this.valueEqualityComparer = valueEqualityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableDictionary<TKey, TValue?>? value)
         {
@@ -363,12 +378,16 @@ namespace MemoryPack.Formatters
             if (length == 0)
             {
                 value = ImmutableDictionary<TKey, TValue?>.Empty;
+                if (keyEqualityComparer != null || valueEqualityComparer != null)
+                {
+                    value = value.WithComparers(keyEqualityComparer, valueEqualityComparer);
+                }
                 return;
             }
 
             var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
-            var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>();
+            var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>(keyEqualityComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -383,6 +402,19 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableHashSetFormatter<T> : MemoryPackFormatter<ImmutableHashSet<T?>>
     {
+        readonly IEqualityComparer<T?>? equalityComparer;
+
+        public ImmutableHashSetFormatter()
+            : this(null)
+        {
+
+        }
+
+        public ImmutableHashSetFormatter(IEqualityComparer<T?>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableHashSet<T?>? value)
         {
@@ -413,19 +445,23 @@ namespace MemoryPack.Formatters
             if (length == 0)
             {
                 value = ImmutableHashSet<T?>.Empty;
+                if (equalityComparer != null)
+                {
+                    value = value.WithComparer(equalityComparer);
+                }
                 return;
             }
 
             if (length == 1)
             {
                 var item = reader.ReadValue<T>();
-                value = ImmutableHashSet.Create(item);
+                value = ImmutableHashSet.Create(equalityComparer, item);
                 return;
             }
 
             var formatter = reader.GetFormatter<T?>();
 
-            var builder = ImmutableHashSet.CreateBuilder<T?>();
+            var builder = ImmutableHashSet.CreateBuilder<T?>(equalityComparer);
             for (int i = 0; i < length; i++)
             {
                 T? item = default;
@@ -447,6 +483,21 @@ namespace MemoryPack.Formatters
             {
                 MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
             }
+        }
+
+        readonly IComparer<TKey>? keyComparer;
+        readonly IEqualityComparer<TValue?>? valueEqualityComparer;
+
+        public ImmutableSortedDictionaryFormatter()
+            : this(null, null)
+        {
+
+        }
+
+        public ImmutableSortedDictionaryFormatter(IComparer<TKey>? keyComparer, IEqualityComparer<TValue?>? valueEqualityComparer)
+        {
+            this.keyComparer = keyComparer;
+            this.valueEqualityComparer = valueEqualityComparer;
         }
 
         [Preserve]
@@ -479,12 +530,16 @@ namespace MemoryPack.Formatters
             if (length == 0)
             {
                 value = ImmutableSortedDictionary<TKey, TValue?>.Empty;
+                if (keyComparer != null || valueEqualityComparer != null)
+                {
+                    value = value.WithComparers(keyComparer, valueEqualityComparer);
+                }
                 return;
             }
 
             var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
-            var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue?>();
+            var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue?>(keyComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -499,6 +554,19 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableSortedSetFormatter<T> : MemoryPackFormatter<ImmutableSortedSet<T?>>
     {
+        readonly IComparer<T>? keyComparer;
+
+        public ImmutableSortedSetFormatter()
+            : this(null)
+        {
+
+        }
+
+        public ImmutableSortedSetFormatter(IComparer<T>? keyComparer)
+        {
+            this.keyComparer = keyComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableSortedSet<T?>? value)
         {
@@ -529,19 +597,23 @@ namespace MemoryPack.Formatters
             if (length == 0)
             {
                 value = ImmutableSortedSet<T?>.Empty;
+                if (keyComparer != null)
+                {
+                    value = value.WithComparer(keyComparer);
+                }
                 return;
             }
 
             if (length == 1)
             {
                 var item = reader.ReadValue<T>();
-                value = ImmutableSortedSet.Create(item);
+                value = ImmutableSortedSet.Create(keyComparer, item);
                 return;
             }
 
             var formatter = reader.GetFormatter<T?>();
 
-            var builder = ImmutableSortedSet.CreateBuilder<T?>();
+            var builder = ImmutableSortedSet.CreateBuilder<T?>(keyComparer);
             for (int i = 0; i < length; i++)
             {
                 T? item = default;
@@ -806,6 +878,21 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IEqualityComparer<TKey>? keyEqualityComparer;
+        readonly IEqualityComparer<TValue?>? valueEqualityComparer;
+
+        public InterfaceImmutableDictionaryFormatter()
+            : this(null, null)
+        {
+
+        }
+
+        public InterfaceImmutableDictionaryFormatter(IEqualityComparer<TKey>? keyEqualityComparer, IEqualityComparer<TValue?>? valueEqualityComparer)
+        {
+            this.keyEqualityComparer = keyEqualityComparer;
+            this.valueEqualityComparer = valueEqualityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IImmutableDictionary<TKey, TValue?>? value)
         {
@@ -835,13 +922,20 @@ namespace MemoryPack.Formatters
 
             if (length == 0)
             {
-                value = ImmutableDictionary<TKey, TValue?>.Empty;
+                if (keyEqualityComparer != null || valueEqualityComparer != null)
+                {
+                    value = ImmutableDictionary<TKey, TValue?>.Empty.WithComparers(keyEqualityComparer, valueEqualityComparer);
+                }
+                else
+                {
+                    value = ImmutableDictionary<TKey, TValue?>.Empty;
+                }
                 return;
             }
 
             var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
 
-            var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>();
+            var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>(keyEqualityComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
                 KeyValuePair<TKey, TValue?> v = default;
@@ -856,6 +950,19 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class InterfaceImmutableSetFormatter<T> : MemoryPackFormatter<IImmutableSet<T?>>
     {
+        readonly IEqualityComparer<T?>? equalityComparer;
+
+        public InterfaceImmutableSetFormatter()
+            : this(null)
+        {
+
+        }
+
+        public InterfaceImmutableSetFormatter(IEqualityComparer<T?>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IImmutableSet<T?>? value)
         {
@@ -885,20 +992,27 @@ namespace MemoryPack.Formatters
 
             if (length == 0)
             {
-                value = ImmutableHashSet<T?>.Empty;
+                if (equalityComparer != null)
+                {
+                    value = ImmutableHashSet<T?>.Empty.WithComparer(equalityComparer);
+                }
+                else
+                {
+                    value = ImmutableHashSet<T?>.Empty;
+                }
                 return;
             }
 
             if (length == 1)
             {
                 var item = reader.ReadValue<T>();
-                value = ImmutableHashSet.Create(item);
+                value = ImmutableHashSet.Create(equalityComparer, item);
                 return;
             }
 
             var formatter = reader.GetFormatter<T?>();
 
-            var builder = ImmutableHashSet.CreateBuilder<T?>();
+            var builder = ImmutableHashSet.CreateBuilder<T?>(equalityComparer);
             for (int i = 0; i < length; i++)
             {
                 T? item = default;
