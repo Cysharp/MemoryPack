@@ -554,7 +554,7 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableSortedSetFormatter<T> : MemoryPackFormatter<ImmutableSortedSet<T?>>
     {
-        readonly IComparer<T>? keyComparer;
+        readonly IComparer<T?>? keyComparer;
 
         public ImmutableSortedSetFormatter()
             : this(null)
@@ -562,7 +562,7 @@ namespace MemoryPack.Formatters
 
         }
 
-        public ImmutableSortedSetFormatter(IComparer<T>? keyComparer)
+        public ImmutableSortedSetFormatter(IComparer<T?>? keyComparer)
         {
             this.keyComparer = keyComparer;
         }
