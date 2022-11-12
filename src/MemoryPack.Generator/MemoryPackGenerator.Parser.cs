@@ -612,7 +612,15 @@ partial class MemberMeta
                     var elemType = array.ElementType;
                     if (elemType.IsUnmanagedType)
                     {
-                        return MemberKind.UnmanagedArray;
+                        if (elemType is INamedTypeSymbol unmanagedNts && unmanagedNts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
+                        {
+                            // T?[] can not use Write/ReadUnmanagedArray
+                            return MemberKind.Array;
+                        }
+                        else
+                        {
+                            return MemberKind.UnmanagedArray;
+                        }
                     }
                     else
                     {

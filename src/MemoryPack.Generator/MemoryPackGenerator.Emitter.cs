@@ -525,7 +525,14 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         if (this.GenerateType == GenerateType.VersionTolerant)
         {
-            return EmitVersionTorelantSerializeBody(isForUnity);
+            if (this.Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.UnmanagedArray or MemberKind.Blank))
+            {
+                return EmitVersionTorelantSerializeBodyOptimized(isForUnity);
+            }
+            else
+            {
+                return EmitVersionTorelantSerializeBody(isForUnity);
+            }
         }
 
         return $$"""
@@ -537,7 +544,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 """ : "")}}
 
-{{EmitSerializeMembers(Members, "        ", toTempWriter: false)}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: true)}}
 """;
     }
 
@@ -562,7 +569,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             Span<int> offsets = stackalloc int[{{Members.Length}}];
             var tempWriter = {{newTempWriter}};
 
-{{EmitSerializeMembers(Members, "            ", toTempWriter: true)}}
+{{EmitSerializeMembers(Members, "            ", toTempWriter: true, writeObjectHeader: false)}}
 
             tempWriter.Flush();
             
@@ -590,11 +597,43 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
     }
 
+    // Optimized is all member is fixed size
+    string EmitVersionTorelantSerializeBodyOptimized(bool isForUnity)
+    {
+        static string EmitLengthHeader(MemberMeta[] members)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in members)
+            {
+                sb.AppendLine("        " + item.EmitVarIntLength());
+            }
+            return sb.ToString();
+        }
+
+        var newTempWriter = isForUnity
+            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.Options)"
+            : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options)";
+
+        return $$"""
+{{(!IsValueType ? $$"""
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            goto END;
+        }
+""" : "")}}
+
+        writer.WriteObjectHeader({{Members.Length}});
+{{EmitLengthHeader(Members)}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: false)}}
+""";
+    }
+
     // toTempWriter is VersionTolerant
-    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter)
+    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader)
     {
         // members is guranteed writable.
-        if (members.Length == 0 && !toTempWriter)
+        if (members.Length == 0 && writeObjectHeader)
         {
             return $"{indent}writer.WriteObjectHeader(0);";
         }
@@ -607,7 +646,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             if (members[i].Kind != MemberKind.Unmanaged || toTempWriter)
             {
                 sb.Append(indent);
-                if (i == 0 && !toTempWriter)
+                if (i == 0 && writeObjectHeader)
                 {
                     sb.AppendLine($"{writer}.WriteObjectHeader({Members.Length});");
                     sb.Append(indent);
@@ -644,7 +683,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
             // write method
             sb.Append(indent);
-            if (optimizeFrom == 0 && !toTempWriter)
+            if (optimizeFrom == 0 && writeObjectHeader)
             {
                 sb.Append($"{writer}.WriteUnmanagedWithObjectHeader(");
                 sb.Append(members.Length);
@@ -1020,6 +1059,23 @@ public partial class MemberMeta
                 return "";
             default:
                 return $"{writer}.WriteValue(value.{Name});";
+        }
+    }
+
+    public string EmitVarIntLength()
+    {
+        switch (Kind)
+        {
+            case MemberKind.Unmanaged:
+                return $"writer.WriteVarInt(System.Runtime.CompilerServices.Unsafe.SizeOf<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>());";
+            case MemberKind.String:
+                return $"writer.WriteVarInt(writer.GetStringWriteLength(value.{Name}));";
+            case MemberKind.UnmanagedArray:
+                return $"writer.WriteVarInt(writer.GetUnmanageArrayWriteLength<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(value.{Name}));";
+            case MemberKind.Blank:
+                return $"writer.WriteVarInt(0);";
+            default:
+                throw new InvalidOperationException("This MemberKind is not supported, Kind:" + Kind);
         }
     }
 

@@ -40,7 +40,23 @@ public sealed class VersionFormatter : MemoryPackFormatter<Version>
         if (count != 4) MemoryPackSerializationException.ThrowInvalidPropertyCount(4, count);
 
         reader.ReadUnmanaged(out int major, out int minor, out int build, out int revision);
-        value = new Version(major, minor, build, revision);
+
+        // when use new Version(major, minor), build and revision will be -1, it can not use constructor.
+        if (revision == -1)
+        {
+            if (build == -1)
+            {
+                value = new Version(major, minor);
+            }
+            else
+            {
+                value = new Version(major, minor, build);
+            }
+        }
+        else
+        {
+            value = new Version(major, minor, build, revision);
+        }
     }
 }
 
