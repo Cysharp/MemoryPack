@@ -857,7 +857,7 @@ Install via UPM git URL package or asset package(MemoryPack.*.*.*.unitypackage) 
 
 * https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack
 
-If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.4.2. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.4.2`.
+If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.6.0. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.6.0`.
 
 Supporting minimum Unity version is `2021.3`. The dependency managed DLL `System.Runtime.CompilerServices.Unsafe/6.0.0` is included with unitypackage. For git references, you will need to add them in another way as they are not included to avoid unnecessary dependencies; either extract the dll from unitypackage or download it from the [NuGet page](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/6.0.0).
 
