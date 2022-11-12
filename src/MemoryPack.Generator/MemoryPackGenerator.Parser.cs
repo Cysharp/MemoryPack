@@ -548,16 +548,18 @@ partial class MemberMeta
             throw new Exception("member is not field or property.");
         }
 
-        var customFormatterAttr = symbol.GetImplAttribute(references.MemoryPackCustomFormatterAttribute);
-        if (customFormatterAttr != null)
+        if (references.MemoryPackCustomFormatterAttribute != null)
         {
-            CustomFormatter = customFormatterAttr.AttributeClass;
-            Kind = MemberKind.CustomFormatter;
+            var customFormatterAttr = symbol.GetImplAttribute(references.MemoryPackCustomFormatterAttribute);
+            if (customFormatterAttr != null)
+            {
+                CustomFormatter = customFormatterAttr.AttributeClass;
+                Kind = MemberKind.CustomFormatter;
+                return;
+            }
         }
-        else
-        {
-            Kind = ParseMemberKind(symbol, MemberType, references);
-        }
+
+        Kind = ParseMemberKind(symbol, MemberType, references);
     }
 
     public static MemberMeta CreateEmpty(int order)

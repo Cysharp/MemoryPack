@@ -2,6 +2,8 @@
 
 namespace MemoryPack;
 
+#if !UNITY_2021_2_OR_NEWER
+
 public sealed class Utf8StringFormatterAttribute : MemoryPackCustomFormatterAttribute<string>
 {
     public override IMemoryPackFormatter<string> GetFormatter()
@@ -27,3 +29,5 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
         return formatter;
     }
 }
+
+#endif
