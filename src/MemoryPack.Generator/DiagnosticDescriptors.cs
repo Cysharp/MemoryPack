@@ -260,4 +260,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptNotSupportedCustomFormatter = new(
+        id: "MEMPACK032",
+        title: "not allow GenerateTypeScript type",
+        messageFormat: "GenerateTypeScript type '{0}' member '{1}' is annnotated [MemoryPackCustomFormatter] that not supported in typescript generation",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

@@ -30,7 +30,8 @@ public enum MemberKind
     Object, // others allow
     RefLike, // not allowed
     NonSerializable, // not allowed
-    Blank // blank marker
+    Blank, // blank marker
+    CustomFormatter, // used [MemoryPackCustomFormatterAttribtue]
 }
 
 partial class TypeMeta
@@ -472,6 +473,7 @@ partial class MemberMeta
     public ISymbol Symbol { get; }
     public string Name { get; }
     public ITypeSymbol MemberType { get; }
+    public INamedTypeSymbol? CustomFormatter { get; set; }
     public bool IsField { get; }
     public bool IsProperty { get; }
     public bool IsSettable { get; }
@@ -544,6 +546,17 @@ partial class MemberMeta
         else
         {
             throw new Exception("member is not field or property.");
+        }
+
+        if (references.MemoryPackCustomFormatterAttribute != null)
+        {
+            var customFormatterAttr = symbol.GetImplAttribute(references.MemoryPackCustomFormatterAttribute);
+            if (customFormatterAttr != null)
+            {
+                CustomFormatter = customFormatterAttr.AttributeClass;
+                Kind = MemberKind.CustomFormatter;
+                return;
+            }
         }
 
         Kind = ParseMemberKind(symbol, MemberType, references);

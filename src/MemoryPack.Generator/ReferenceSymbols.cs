@@ -12,6 +12,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackConstructorAttribute { get; }
     public INamedTypeSymbol MemoryPackAllowSerializeAttribute { get; }
     public INamedTypeSymbol MemoryPackOrderAttribute { get; }
+    public INamedTypeSymbol? MemoryPackCustomFormatterAttribute { get; } // Unity is null.
     public INamedTypeSymbol MemoryPackIgnoreAttribute { get; }
     public INamedTypeSymbol MemoryPackIncludeAttribute { get; }
     public INamedTypeSymbol MemoryPackOnSerializingAttribute { get; }
@@ -33,6 +34,7 @@ public class ReferenceSymbols
         MemoryPackConstructorAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackConstructorAttribute");
         MemoryPackAllowSerializeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackAllowSerializeAttribute");
         MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");
+        MemoryPackCustomFormatterAttribute = compilation.GetTypeByMetadataName("MemoryPack.MemoryPackCustomFormatterAttribute`1")?.ConstructUnboundGenericType();
         MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");
         MemoryPackIncludeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute");
         MemoryPackOnSerializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializingAttribute");
@@ -103,6 +105,7 @@ public class ReferenceSymbols
             { "System.Collections.Generic.Queue<>", "global::MemoryPack.Formatters.QueueFormatter<TREPLACE>" },
             { "System.Collections.Generic.LinkedList<>", "global::MemoryPack.Formatters.LinkedListFormatter<TREPLACE>" },
             { "System.Collections.Generic.HashSet<>", "global::MemoryPack.Formatters.HashSetFormatter<TREPLACE>" },
+            { "System.Collections.Generic.SortedSet<>", "global::MemoryPack.Formatters.SortedSetFormatter<TREPLACE>" },
             { "System.Collections.Generic.PriorityQueue<,>", "global::MemoryPack.Formatters.PriorityQueueFormatter<TREPLACE>" },
             { "System.Collections.ObjectModel.ObservableCollection<>", "global::MemoryPack.Formatters.ObservableCollectionFormatter<TREPLACE>" },
             { "System.Collections.ObjectModel.Collection<>", "global::MemoryPack.Formatters.CollectionFormatter<TREPLACE>" },

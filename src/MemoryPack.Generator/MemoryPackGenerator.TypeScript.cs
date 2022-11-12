@@ -65,7 +65,7 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
             }
         }
 
-        // add ipmort(enum, union, memorypackable)
+        // add import(enum, union, memorypackable)
         foreach (var item in collector.GetEnums())
         {
             sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}.js\"; ");
@@ -148,6 +148,15 @@ export const enum {{typeSymbol.Name}} {
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptDoesNotAllowGenerics, syntax.Identifier.GetLocation(), typeSymbol.Name));
             return false;
+        }
+
+        foreach (var item in type.Members)
+        {
+            if (item.Kind == MemberKind.CustomFormatter)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptNotSupportedCustomFormatter, item.GetLocation(syntax), typeSymbol.Name));
+                return false;
+            }
         }
 
         return true;

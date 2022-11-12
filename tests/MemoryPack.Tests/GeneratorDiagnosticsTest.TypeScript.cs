@@ -157,6 +157,22 @@ public partial class Hoge
 """, true);
     }
 
+    [Fact]
+    public void MEMPACK032_GenerateTypeScriptNotSupportedType()
+    {
+        Compile2(32, """
+using MemoryPack;
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Hoge
+{
+    [Utf8StringFormatter]
+    public string MyProperty { get; set; }
+}
+""", true);
+    }
+
 
     class TypeScriptOptionProvider : AnalyzerConfigOptionsProvider
     {

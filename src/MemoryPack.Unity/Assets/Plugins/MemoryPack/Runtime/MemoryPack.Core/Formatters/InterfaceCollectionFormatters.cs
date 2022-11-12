@@ -292,6 +292,19 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IEqualityComparer<TKey>? equalityComparer;
+
+        public InterfaceDictionaryFormatter()
+            : this(null)
+        {
+
+        }
+
+        public InterfaceDictionaryFormatter(IEqualityComparer<TKey>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref IDictionary<TKey, TValue>? value)
         {
@@ -319,7 +332,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var dict = new Dictionary<TKey, TValue>();
+            var dict = new Dictionary<TKey, TValue>(equalityComparer);
 
             var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
             for (int i = 0; i < length; i++)
@@ -343,6 +356,19 @@ namespace MemoryPack.Formatters
             {
                 MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue>());
             }
+        }
+
+        readonly IEqualityComparer<TKey>? equalityComparer;
+
+        public InterfaceReadOnlyDictionaryFormatter()
+            : this(null)
+        {
+
+        }
+
+        public InterfaceReadOnlyDictionaryFormatter(IEqualityComparer<TKey>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
         }
 
         [Preserve]
@@ -372,7 +398,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var dict = new Dictionary<TKey, TValue>();
+            var dict = new Dictionary<TKey, TValue>(equalityComparer);
 
             var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
             for (int i = 0; i < length; i++)
@@ -397,6 +423,20 @@ namespace MemoryPack.Formatters
                 MemoryPackFormatterProvider.Register(new InterfaceGroupingFormatter<TKey, TElement>());
             }
         }
+
+        readonly IEqualityComparer<TKey>? equalityComparer;
+
+        public InterfaceLookupFormatter()
+            : this(null)
+        {
+
+        }
+
+        public InterfaceLookupFormatter(IEqualityComparer<TKey>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
 
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref ILookup<TKey, TElement>? value)
@@ -425,7 +465,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var dict = new Dictionary<TKey, IGrouping<TKey, TElement>>();
+            var dict = new Dictionary<TKey, IGrouping<TKey, TElement>>(equalityComparer);
 
             var formatter = reader.GetFormatter<IGrouping<TKey, TElement>>();
             for (int i = 0; i < length; i++)
@@ -502,6 +542,18 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IEqualityComparer<T?>? equalityComparer;
+
+        public InterfaceSetFormatter()
+            : this(null)
+        {
+        }
+
+        public InterfaceSetFormatter(IEqualityComparer<T?>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref ISet<T?>? value)
         {
@@ -529,7 +581,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var set = new HashSet<T?>(length);
+            var set = new HashSet<T?>(length, equalityComparer);
 
             var formatter = reader.GetFormatter<T>();
             for (int i = 0; i < length; i++)
@@ -554,6 +606,18 @@ namespace MemoryPack.Formatters
             {
                 MemoryPackFormatterProvider.Register(new HashSetFormatter<T>());
             }
+        }
+
+        readonly IEqualityComparer<T?>? equalityComparer;
+
+        public InterfaceReadOnlySetFormatter()
+            : this(null)
+        {
+        }
+
+        public InterfaceReadOnlySetFormatter(IEqualityComparer<T?>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
         }
 
         [Preserve]
@@ -583,7 +647,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var set = new HashSet<T?>(length);
+            var set = new HashSet<T?>(length, equalityComparer);
 
             var formatter = reader.GetFormatter<T>();
             for (int i = 0; i < length; i++)
