@@ -184,6 +184,36 @@ public ref partial struct MemoryPackWriter
         return MemoryPackFormatterProvider.GetFormatter<T>();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int GetStringWriteLength(string? value)
+    {
+        if (value == null || value.Length == 0)
+        {
+            return 4;
+        }
+
+        if (serializeStringAsUtf8)
+        {
+            return Encoding.UTF8.GetByteCount(value) + 8;
+        }
+        else
+        {
+            return (value.Length * 2) + 4;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int GetUnmanageArrayWriteLength<T>(T[]? value)
+        where T : unmanaged
+    {
+        if (value == null || value.Length == 0)
+        {
+            return 4;
+        }
+
+        return (Unsafe.SizeOf<T>() * value.Length) + 4;
+    }
+
     // Write methods
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
