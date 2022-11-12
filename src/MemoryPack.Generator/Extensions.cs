@@ -19,6 +19,24 @@ internal static class Extensions
         return symbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attribtue));
     }
 
+    public static AttributeData? GetImplAttribute(this ISymbol symbol, INamedTypeSymbol implAttribtue)
+    {
+        return symbol.GetAttributes().FirstOrDefault(x =>
+        {
+            if (x.AttributeClass == null) return false;
+            if (x.AttributeClass.EqualsUnconstructedGenericType(implAttribtue)) return true;
+
+            foreach (var item in x.AttributeClass.GetAllBaseTypes())
+            {
+                if (item.EqualsUnconstructedGenericType(implAttribtue))
+                {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
     public static IEnumerable<ISymbol> GetAllMembers(this INamedTypeSymbol symbol, bool withoutOverride = true)
     {
         // Iterate Parent -> Derived

@@ -14,13 +14,14 @@ public partial class Sample2
 {
     [MemoryPackAllowSerialize]
     public NotSerializableType? NotSerializableProperty { get; set; }
+
+
 }
 
 public class NotSerializableType
 {
 
 }
-
 
 
 [MemoryPackable]

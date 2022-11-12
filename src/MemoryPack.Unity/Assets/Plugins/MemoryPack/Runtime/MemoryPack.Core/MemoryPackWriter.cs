@@ -429,6 +429,15 @@ public ref partial struct MemoryPackWriter
         depth--;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteValueWithFormatter<TFormatter, T>(TFormatter formatter, in T? value)
+        where TFormatter : IMemoryPackFormatter<T>
+    {
+        depth++;
+        formatter.Serialize(ref this, ref Unsafe.AsRef(value));
+        depth--;
+    }
+
     #region WriteArray/Span
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

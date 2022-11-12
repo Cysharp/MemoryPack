@@ -74,4 +74,3 @@ public partial class GenricUnionB<T> : IGenericUnion<T>
 }
 
 
-

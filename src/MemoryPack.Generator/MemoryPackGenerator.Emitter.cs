@@ -63,6 +63,7 @@ partial class MemoryPackGenerator
 #pragma warning disable CS0219 // Variable assigned but never used
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Possible null reference assignment
+#pragma warning disable CS8602
 #pragma warning disable CS8604 // Possible null reference argument for parameter
 #pragma warning disable CS8619
 #pragma warning disable CS8620
@@ -283,13 +284,15 @@ public partial class TypeMeta
             registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
             registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
         }
-        string serializeMethodSignarture = context.IsForUnity
+        var serializeMethodSignarture = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
         writer.AppendLine($$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
 {
+{{EmitCustomFormatters()}}
+
     static {{Symbol.Name}}()
     {
         {{registerT}}
@@ -518,6 +521,17 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
         }
 
+        return sb.ToString();
+    }
+
+    string EmitCustomFormatters()
+    {
+        var sb = new StringBuilder();
+        foreach (var item in Members.Where(x => x.Kind == MemberKind.CustomFormatter))
+        {
+            var fieldOrProp = item.IsField ? "Field" : "Property";
+            sb.AppendLine($"    static readonly IMemoryPackFormatter<{item.MemberType.FullyQualifiedToString()}> __{item.Name}Formatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<{item.CustomFormatter!.FullyQualifiedToString()}>(typeof({this.Symbol.FullyQualifiedToString()}).Get{fieldOrProp}(\"{item.Name}\", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();");
+        }
         return sb.ToString();
     }
 
@@ -1057,6 +1071,8 @@ public partial class MemberMeta
                 return $"{writer}.WriteArray(value.{Name});";
             case MemberKind.Blank:
                 return "";
+            case MemberKind.CustomFormatter:
+                return $"{writer}.WriteValueWithFormatter(__{Name}Formatter, value.{Name});";
             default:
                 return $"{writer}.WriteValue(value.{Name});";
         }
@@ -1103,6 +1119,11 @@ public partial class MemberMeta
                 return $"{pre}__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Blank:
                 return $"{pre}reader.Advance(deltas[{i}]);";
+            case MemberKind.CustomFormatter:
+                {
+                    var mt = MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    return $"{pre}__{Name} = reader.ReadValueWithFormatter<IMemoryPackFormatter<{mt}>, {mt}>(__{Name}Formatter);";
+                }
             default:
                 return $"{pre}__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
         }
@@ -1128,6 +1149,8 @@ public partial class MemberMeta
                 return $"{pre}reader.ReadArray(ref __{Name});";
             case MemberKind.Blank:
                 return $"{pre}reader.Advance(deltas[{i}]);";
+            case MemberKind.CustomFormatter:
+                return $"{pre}reader.ReadValueWithFormatter(__{Name}Formatter, ref __{Name});";
             default:
                 return $"{pre}reader.ReadValue(ref __{Name});";
         }

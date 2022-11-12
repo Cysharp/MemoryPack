@@ -79,6 +79,12 @@ public sealed class MemoryPackOrderAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
+{
+    public abstract IMemoryPackFormatter<T> GetFormatter();
+}
+
 // similar naming as System.Text.Json attribtues
 // https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonattribute
 

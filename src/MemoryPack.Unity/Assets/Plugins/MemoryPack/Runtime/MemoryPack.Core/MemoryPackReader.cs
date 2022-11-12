@@ -407,6 +407,22 @@ public ref partial struct MemoryPackReader
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadValueWithFormatter<TFormatter, T>(TFormatter formatter, ref T? value)
+        where TFormatter : IMemoryPackFormatter<T>
+    {
+        formatter.Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadValueWithFormatter<TFormatter, T>(TFormatter formatter)
+        where TFormatter : IMemoryPackFormatter<T>
+    {
+        T? value = default;
+        formatter.Deserialize(ref this, ref value);
+        return value;
+    }
+
     #region ReadArray/Span
 
     public T?[]? ReadArray<T>()

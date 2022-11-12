@@ -671,6 +671,19 @@ namespace MemoryPack.Formatters
             }
         }
 
+        readonly IEqualityComparer<TKey>? equalityComparer;
+
+        public DictionaryFormatter()
+            : this(null)
+        {
+
+        }
+
+        public DictionaryFormatter(IEqualityComparer<TKey>? equalityComparer)
+        {
+            this.equalityComparer = equalityComparer;
+        }
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Dictionary<TKey, TValue?>? value)
         {
@@ -701,7 +714,7 @@ namespace MemoryPack.Formatters
 
             if (value == null)
             {
-                value = new Dictionary<TKey, TValue?>(length);
+                value = new Dictionary<TKey, TValue?>(length, equalityComparer);
             }
             else
             {
