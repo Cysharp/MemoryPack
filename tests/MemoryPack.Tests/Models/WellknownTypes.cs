@@ -84,6 +84,7 @@ public partial class HogeHoge
 #if NET7_0_OR_GREATER
     public IReadOnlySet<int> P59;
 #endif
+    public SortedSet<int> P60;
 
     // tuples
     public Tuple<int, string, int> T3;

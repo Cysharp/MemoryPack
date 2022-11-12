@@ -36,6 +36,7 @@ namespace MemoryPack
             { typeof(Queue<>), typeof(QueueFormatter<>) },
             { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
             { typeof(HashSet<>), typeof(HashSetFormatter<>) },
+            { typeof(SortedSet<>), typeof(SortedSetFormatter<>) },
 #if NET7_0_OR_GREATER
             { typeof(PriorityQueue<,>), typeof(PriorityQueueFormatter<,>) },
 #endif
@@ -328,6 +329,67 @@ namespace MemoryPack.Formatters
             if (value == null)
             {
                 value = new HashSet<T?>(length, equalityComparer);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            var formatter = reader.GetFormatter<T?>();
+            for (int i = 0; i < length; i++)
+            {
+                T? v = default;
+                formatter.Deserialize(ref reader, ref v);
+                value.Add(v);
+            }
+        }
+    }
+
+    [Preserve]
+    public sealed class SortedSetFormatter<T> : MemoryPackFormatter<SortedSet<T?>>
+    {
+        readonly IComparer<T?>? comparer;
+
+        public SortedSetFormatter()
+            : this(null)
+        {
+        }
+
+        public SortedSetFormatter(IComparer<T?>? comparer)
+        {
+            this.comparer = comparer;
+        }
+
+        [Preserve]
+        public override void Serialize(ref MemoryPackWriter writer, ref SortedSet<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+        }
+
+        [Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, ref SortedSet<T?>? value)
+        {
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            if (value == null)
+            {
+                value = new SortedSet<T?>(comparer);
             }
             else
             {
