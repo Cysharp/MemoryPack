@@ -18,6 +18,8 @@ namespace MemoryPack.Formatters {
 [Preserve]
 public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
 {
+    public static readonly BigIntegerFormatter Default = new BigIntegerFormatter();
+
     [Preserve]
     public override void Serialize(ref MemoryPackWriter writer, ref BigInteger value)
     {

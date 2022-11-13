@@ -13,6 +13,8 @@ namespace MemoryPack.Formatters;
 public sealed class UnmanagedFormatter<T> : MemoryPackFormatter<T>
 where T : unmanaged
 {
+    public static readonly UnmanagedFormatter<T> Default = new UnmanagedFormatter<T>();
+
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T value)
     {
@@ -31,6 +33,8 @@ where T : unmanaged
 [Preserve]
 public sealed class DangerousUnmanagedFormatter<T> : MemoryPackFormatter<T>
 {
+    public static readonly DangerousUnmanagedFormatter<T> Default = new DangerousUnmanagedFormatter<T>();
+
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {

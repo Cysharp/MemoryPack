@@ -41,8 +41,10 @@ namespace MemoryPack.Formatters
 {
     [Preserve]
     public sealed class UnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
-            where T : unmanaged
+        where T : unmanaged
     {
+        public static readonly UnmanagedArrayFormatter<T> Default = new UnmanagedArrayFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref T[]? value)
         {
@@ -59,6 +61,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class DangerousUnmanagedArrayFormatter<T> : MemoryPackFormatter<T[]>
     {
+        public static readonly DangerousUnmanagedArrayFormatter<T> Default = new DangerousUnmanagedArrayFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref T[]? value)
         {
@@ -75,6 +79,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ArrayFormatter<T> : MemoryPackFormatter<T?[]>
     {
+        public static readonly ArrayFormatter<T> Default = new ArrayFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref T?[]? value)
         {
@@ -91,6 +97,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ArraySegmentFormatter<T> : MemoryPackFormatter<ArraySegment<T?>>
     {
+        public static readonly ArraySegmentFormatter<T> Default = new ArraySegmentFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref ArraySegment<T?> value)
         {
@@ -108,6 +116,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class MemoryFormatter<T> : MemoryPackFormatter<Memory<T?>>
     {
+        public static readonly MemoryFormatter<T> Default = new MemoryFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref Memory<T?> value)
         {
@@ -124,6 +134,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ReadOnlyMemoryFormatter<T> : MemoryPackFormatter<ReadOnlyMemory<T?>>
     {
+        public static readonly ReadOnlyMemoryFormatter<T> Default = new ReadOnlyMemoryFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlyMemory<T?> value)
         {
@@ -140,6 +152,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ReadOnlySequenceFormatter<T> : MemoryPackFormatter<ReadOnlySequence<T?>>
     {
+        public static readonly ReadOnlySequenceFormatter<T> Default = new ReadOnlySequenceFormatter<T>();
+
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlySequence<T?> value)
         {

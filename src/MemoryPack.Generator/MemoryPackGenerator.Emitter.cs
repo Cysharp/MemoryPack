@@ -500,7 +500,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         collector.Visit(this, false);
 
         var types = collector.GetTypes()
-            .Select(x => (x, reference.KnownTypes.GetNonDefaultFormatterName(x)))
+            .Select(x => (x, reference.KnownTypes.GetNonDefaultGenericsFormatterName(x)))
             .Where(x => x.Item2 != null)
             .Where(x =>
             {

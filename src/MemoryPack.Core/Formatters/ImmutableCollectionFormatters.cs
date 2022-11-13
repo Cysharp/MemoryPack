@@ -34,6 +34,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableArrayFormatter<T> : MemoryPackFormatter<ImmutableArray<T?>>
     {
+        public static readonly ImmutableArrayFormatter<T> Default = new ImmutableArrayFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableArray<T?> value)
         {
@@ -79,6 +81,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableListFormatter<T> : MemoryPackFormatter<ImmutableList<T?>>
     {
+        public static readonly ImmutableListFormatter<T> Default = new ImmutableListFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableList<T?>? value)
         {
@@ -136,6 +140,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableQueueFormatter<T> : MemoryPackFormatter<ImmutableQueue<T?>>
     {
+        public static readonly ImmutableQueueFormatter<T> Default = new ImmutableQueueFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableQueue<T?>? value)
         {
@@ -228,6 +234,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableStackFormatter<T> : MemoryPackFormatter<ImmutableStack<T?>>
     {
+        public static readonly ImmutableStackFormatter<T> Default = new ImmutableStackFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ImmutableStack<T?>? value)
         {
@@ -322,6 +330,8 @@ namespace MemoryPack.Formatters
     public sealed class ImmutableDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ImmutableDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
+        public static readonly ImmutableDictionaryFormatter<TKey, TValue> Default = new ImmutableDictionaryFormatter<TKey, TValue>();
+
         static ImmutableDictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -399,6 +409,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableHashSetFormatter<T> : MemoryPackFormatter<ImmutableHashSet<T?>>
     {
+        public static readonly ImmutableHashSetFormatter<T> Default = new ImmutableHashSetFormatter<T>();
+
         readonly IEqualityComparer<T?>? equalityComparer;
 
         public ImmutableHashSetFormatter()
@@ -474,6 +486,8 @@ namespace MemoryPack.Formatters
     public sealed class ImmutableSortedDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ImmutableSortedDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
+        public static readonly ImmutableSortedDictionaryFormatter<TKey, TValue> Default = new ImmutableSortedDictionaryFormatter<TKey, TValue>();
+
         static ImmutableSortedDictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -551,6 +565,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ImmutableSortedSetFormatter<T> : MemoryPackFormatter<ImmutableSortedSet<T?>>
     {
+        public static readonly ImmutableSortedSetFormatter<T> Default = new ImmutableSortedSetFormatter<T>();
+
         readonly IComparer<T?>? keyComparer;
 
         public ImmutableSortedSetFormatter()
@@ -625,6 +641,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class InterfaceImmutableListFormatter<T> : MemoryPackFormatter<IImmutableList<T?>>
     {
+        public static readonly InterfaceImmutableListFormatter<T> Default = new InterfaceImmutableListFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IImmutableList<T?>? value)
         {
@@ -682,6 +700,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class InterfaceImmutableQueueFormatter<T> : MemoryPackFormatter<IImmutableQueue<T?>>
     {
+        public static readonly InterfaceImmutableQueueFormatter<T> Default = new InterfaceImmutableQueueFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IImmutableQueue<T?>? value)
         {
@@ -774,6 +794,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class InterfaceImmutableStackFormatter<T> : MemoryPackFormatter<IImmutableStack<T?>>
     {
+        public static readonly InterfaceImmutableStackFormatter<T> Default = new InterfaceImmutableStackFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IImmutableStack<T?>? value)
         {
@@ -867,6 +889,8 @@ namespace MemoryPack.Formatters
     public sealed class InterfaceImmutableDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IImmutableDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
+        public static readonly InterfaceImmutableDictionaryFormatter<TKey, TValue> Default = new InterfaceImmutableDictionaryFormatter<TKey, TValue>();
+
         static InterfaceImmutableDictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -947,6 +971,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class InterfaceImmutableSetFormatter<T> : MemoryPackFormatter<IImmutableSet<T?>>
     {
+        public static readonly InterfaceImmutableSetFormatter<T> Default = new InterfaceImmutableSetFormatter<T>();
+
         readonly IEqualityComparer<T?>? equalityComparer;
 
         public InterfaceImmutableSetFormatter()

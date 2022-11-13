@@ -52,6 +52,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ListFormatter<T> : MemoryPackFormatter<List<T?>>
     {
+        public static readonly ListFormatter<T> Default = new ListFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
         {
@@ -113,6 +115,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class StackFormatter<T> : MemoryPackFormatter<Stack<T?>>
     {
+        public static readonly StackFormatter<T> Default = new StackFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Stack<T?>? value)
         {
@@ -175,6 +179,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class QueueFormatter<T> : MemoryPackFormatter<Queue<T?>>
     {
+        public static readonly QueueFormatter<T> Default = new QueueFormatter<T>();
+
         // Queue is circular buffer, can't optimize like List, Stack.
 
         [Preserve]
@@ -229,6 +235,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class LinkedListFormatter<T> : MemoryPackFormatter<LinkedList<T?>>
     {
+        public static readonly LinkedListFormatter<T> Default = new LinkedListFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref LinkedList<T?>? value)
         {
@@ -278,6 +286,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class HashSetFormatter<T> : MemoryPackFormatter<HashSet<T?>>
     {
+        public static readonly HashSetFormatter<T> Default = new HashSetFormatter<T>();
+
         readonly IEqualityComparer<T?>? equalityComparer;
 
         public HashSetFormatter()
@@ -339,6 +349,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class SortedSetFormatter<T> : MemoryPackFormatter<SortedSet<T?>>
     {
+        public static readonly SortedSetFormatter<T> Default = new SortedSetFormatter<T>();
+
         readonly IComparer<T?>? comparer;
 
         public SortedSetFormatter()
@@ -402,6 +414,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class PriorityQueueFormatter<TElement, TPriority> : MemoryPackFormatter<PriorityQueue<TElement?, TPriority?>>
     {
+        public static readonly PriorityQueueFormatter<TElement, TPriority> Default = new PriorityQueueFormatter<TElement, TPriority>();
+
         static PriorityQueueFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<(TElement?, TPriority?)>())
@@ -462,6 +476,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class CollectionFormatter<T> : MemoryPackFormatter<Collection<T?>>
     {
+        public static readonly CollectionFormatter<T> Default = new CollectionFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Collection<T?>? value)
         {
@@ -511,6 +527,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ObservableCollectionFormatter<T> : MemoryPackFormatter<ObservableCollection<T?>>
     {
+        public static readonly ObservableCollectionFormatter<T> Default = new ObservableCollectionFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ObservableCollection<T?>? value)
         {
@@ -560,6 +578,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ConcurrentQueueFormatter<T> : MemoryPackFormatter<ConcurrentQueue<T?>>
     {
+        public static readonly ConcurrentQueueFormatter<T> Default = new ConcurrentQueueFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentQueue<T?>? value)
         {
@@ -617,6 +637,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ConcurrentStackFormatter<T> : MemoryPackFormatter<ConcurrentStack<T?>>
     {
+        public static readonly ConcurrentStackFormatter<T> Default = new ConcurrentStackFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentStack<T?>? value)
         {
@@ -682,6 +704,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ConcurrentBagFormatter<T> : MemoryPackFormatter<ConcurrentBag<T?>>
     {
+        public static readonly ConcurrentBagFormatter<T> Default = new ConcurrentBagFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ConcurrentBag<T?>? value)
         {
@@ -737,6 +761,8 @@ namespace MemoryPack.Formatters
     public sealed class DictionaryFormatter<TKey, TValue> : MemoryPackFormatter<Dictionary<TKey, TValue?>>
         where TKey : notnull
     {
+        public static readonly DictionaryFormatter<TKey, TValue> Default = new DictionaryFormatter<TKey, TValue>();
+
         static DictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -809,6 +835,8 @@ namespace MemoryPack.Formatters
     public sealed class SortedDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<SortedDictionary<TKey, TValue?>>
         where TKey : notnull
     {
+        public static readonly SortedDictionaryFormatter<TKey, TValue> Default = new SortedDictionaryFormatter<TKey, TValue>();
+
         static SortedDictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -881,6 +909,8 @@ namespace MemoryPack.Formatters
     public sealed class SortedListFormatter<TKey, TValue> : MemoryPackFormatter<SortedList<TKey, TValue?>>
         where TKey : notnull
     {
+        public static readonly SortedListFormatter<TKey, TValue> Default = new SortedListFormatter<TKey, TValue>();
+
         static SortedListFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -953,6 +983,8 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ConcurrentDictionary<TKey, TValue?>>
         where TKey : notnull
     {
+        public static readonly ConcurrentDictionaryFormatter<TKey, TValue> Default = new ConcurrentDictionaryFormatter<TKey, TValue>();
+
         static ConcurrentDictionaryFormatter()
         {
             if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
@@ -1029,6 +1061,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ReadOnlyCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyCollection<T?>>
     {
+        public static readonly ReadOnlyCollectionFormatter<T> Default = new ReadOnlyCollectionFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyCollection<T?>? value)
         {
@@ -1066,6 +1100,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class ReadOnlyObservableCollectionFormatter<T> : MemoryPackFormatter<ReadOnlyObservableCollection<T?>>
     {
+        public static readonly ReadOnlyObservableCollectionFormatter<T> Default = new ReadOnlyObservableCollectionFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReadOnlyObservableCollection<T?>? value)
         {
@@ -1103,6 +1139,8 @@ namespace MemoryPack.Formatters
     [Preserve]
     public sealed class BlockingCollectionFormatter<T> : MemoryPackFormatter<BlockingCollection<T?>>
     {
+        public static readonly BlockingCollectionFormatter<T> Default = new BlockingCollectionFormatter<T>();
+
         [Preserve]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BlockingCollection<T?>? value)
         {

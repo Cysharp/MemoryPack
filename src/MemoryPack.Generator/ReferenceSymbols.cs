@@ -249,7 +249,7 @@ public class ReferenceSymbols
             return false;
         }
 
-        public string? GetNonDefaultFormatterName(ITypeSymbol? type)
+        public string? GetNonDefaultGenericsFormatterName(ITypeSymbol? type)
         {
             if (type == null) return null;
 

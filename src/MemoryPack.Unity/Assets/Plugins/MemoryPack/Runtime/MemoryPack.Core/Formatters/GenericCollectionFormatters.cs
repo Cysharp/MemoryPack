@@ -15,6 +15,8 @@ namespace MemoryPack.Formatters {
 public sealed class GenericCollectionFormatter<TCollection, TElement> : MemoryPackFormatter<TCollection?>
     where TCollection : ICollection<TElement?>, new()
 {
+    public static readonly GenericCollectionFormatter<TCollection, TElement> Default = new GenericCollectionFormatter<TCollection, TElement>();
+
     [Preserve]
     public override void Serialize(ref MemoryPackWriter writer, ref TCollection? value)
     {
@@ -110,6 +112,8 @@ public abstract class GenericSetFormatterBase<TSet, TElement> : MemoryPackFormat
 public sealed class GenericSetFormatter<TSet, TElement> : GenericSetFormatterBase<TSet, TElement>
     where TSet : ISet<TElement?>, new()
 {
+    public static readonly GenericSetFormatter<TSet, TElement> Default = new GenericSetFormatter<TSet, TElement>();
+
     protected override TSet CreateSet()
     {
         return new();
@@ -179,6 +183,8 @@ public sealed class GenericDictionaryFormatter<TDictionary, TKey, TValue> : Gene
     where TKey : notnull
     where TDictionary : IDictionary<TKey, TValue?>, new()
 {
+    public static readonly GenericDictionaryFormatter<TDictionary, TKey, TValue> Default = new GenericDictionaryFormatter<TDictionary, TKey, TValue>();
+
     [Preserve]
     protected override TDictionary CreateDictionary()
     {

@@ -9,6 +9,8 @@ namespace MemoryPack.Formatters;
 [Preserve]
 public sealed class BigIntegerFormatter : MemoryPackFormatter<BigInteger>
 {
+    public static readonly BigIntegerFormatter Default = new BigIntegerFormatter();
+
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BigInteger value)
     {

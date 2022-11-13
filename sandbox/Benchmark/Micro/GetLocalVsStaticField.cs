@@ -1,4 +1,5 @@
 ﻿using MemoryPack;
+using MemoryPack.Formatters;
 using MessagePack.Formatters;
 using Microsoft.Diagnostics.Tracing.Parsers.ClrPrivate;
 using Orleans.Serialization.Buffers;
@@ -15,10 +16,14 @@ public class GetLocalVsStaticField
 {
     ArrayBufferWriter<byte> bufferWriter;
 
+    IMemoryPackFormatter<int> interfaceFormatter;
+    UnmanagedFormatter<int> directFormatter;
+
     public GetLocalVsStaticField()
     {
         bufferWriter = new ArrayBufferWriter<byte>();
-        GetFromProvider();
+        interfaceFormatter = UnmanagedFormatter<int>.Default;
+        directFormatter = UnmanagedFormatter<int>.Default;
     }
 
     [Benchmark(Baseline = true)]
@@ -38,10 +43,46 @@ public class GetLocalVsStaticField
     {
         using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
         var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
-        var provider = writer.GetFormatter<int>();
+        var formatter = writer.GetFormatter<int>();
         for (int i = 0; i < 100; i++)
         {
-            provider.Serialize(ref writer, ref i);
+            formatter.Serialize(ref writer, ref i);
+        }
+        bufferWriter.Clear();
+    }
+
+    [Benchmark]
+    public void GetFromFieldInterface()
+    {
+        using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
+        for (int i = 0; i < 100; i++)
+        {
+            interfaceFormatter.Serialize(ref writer, ref i);
+        }
+        bufferWriter.Clear();
+    }
+
+    [Benchmark]
+    public void GetFromFieldDirect()
+    {
+        using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
+        for (int i = 0; i < 100; i++)
+        {
+            directFormatter.Serialize(ref writer, ref i);
+        }
+        bufferWriter.Clear();
+    }
+
+    [Benchmark]
+    public void WriteUnmanaged()
+    {
+        using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
+        for (int i = 0; i < 100; i++)
+        {
+            writer.WriteUnmanaged(i);
         }
         bufferWriter.Clear();
     }

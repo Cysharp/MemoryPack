@@ -16,6 +16,8 @@ namespace MemoryPack.Formatters {
 [Preserve]
 public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
 {
+    public static readonly BitArrayFormatter Default = new BitArrayFormatter();
+
     // serialize [m_length, m_array]
 
     [Preserve]
