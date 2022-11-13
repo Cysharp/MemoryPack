@@ -91,7 +91,7 @@ using MemoryPack;
         sb.AppendLine();
 
         // Write document comment as remarks
-        if (typeMeta.GenerateType is GenerateType.Object or GenerateType.VersionTolerant)
+        if (typeMeta.GenerateType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
             BuildDebugInfo(sb, typeMeta, true);
 
@@ -234,7 +234,7 @@ public partial class TypeMeta
         else
         {
             var originalMembers = Members;
-            if (GenerateType == GenerateType.VersionTolerant)
+            if (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
             {
                 // for emit time, replace padded empty
                 if (Members.Length != 0)
@@ -367,10 +367,12 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         var count = Members.Length;
 
-        var isVersionTolerant = this.GenerateType == GenerateType.VersionTolerant;
+        var isVersionTolerant = this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference;
         var readBeginBody = "";
         var readEndBody = "";
         var commentOutInvalidBody = "";
+        var circularReferenceBody = "";
+        var circularReferenceBody2 = "";
 
         if (isVersionTolerant)
         {
@@ -393,6 +395,27 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
             commentOutInvalidBody = "// ";
         }
+        if (GenerateType == GenerateType.CircularReference)
+        {
+            circularReferenceBody = $$"""
+        uint id;
+        if (count == MemoryPackCode.ReferenceId)
+        {
+            id = reader.ReadVarIntUInt32();
+            value = ({{TypeName}})reader.OptionalState.GetObjectReference(id);
+            goto END;
+        }
+""";
+
+            circularReferenceBody2 = $$"""
+        id = reader.ReadVarIntUInt32();
+        if (value == null)
+        {
+            value = new {{TypeName}}();
+        }
+        reader.OptionalState.AddObjectReference(id, value);
+""";
+        }
 
         return $$"""
         if (!reader.TryReadObjectHeader(out var count))
@@ -400,9 +423,9 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             value = default!;
             goto END;
         }
-
+{{circularReferenceBody}}
 {{readBeginBody}}
-        
+{{circularReferenceBody2}}        
 {{Members.Where(x => x.Symbol != null).Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
 
         {{(!isVersionTolerant ? "" : "var readCount = " + count + ";")}}
@@ -418,7 +441,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
 {{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
 
-{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType == GenerateType.VersionTolerant)).NewLine()}}
+{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)).NewLine()}}
 
                 goto SET;
             }
@@ -442,7 +465,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{(IsValueType ? "#endif" : "")}}
 
             if (count == 0) goto SKIP_READ;
-{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order, GenerateType == GenerateType.VersionTolerant) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
+{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
 
     SKIP_READ:
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -537,7 +560,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     string EmitSerializeBody(bool isForUnity)
     {
-        if (this.GenerateType == GenerateType.VersionTolerant)
+        if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
             if (this.Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.UnmanagedArray or MemberKind.Blank))
             {
@@ -568,6 +591,19 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
             : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
 
+        var checkCircularReference = "";
+        if (GenerateType == GenerateType.CircularReference)
+        {
+            checkCircularReference = """
+        var (existsReference, id) = writer.OptionalState.GetOrAddReference(value);
+        if (existsReference)
+        {
+            writer.WriteObjectReferenceId(id);
+            goto END;
+        }
+""";
+        }
+
         return $$"""
 {{(!IsValueType ? $$"""
         if (value == null)
@@ -576,7 +612,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             goto END;
         }
 """ : "")}}
-
+{{checkCircularReference}}
         var tempBuffer = MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
@@ -601,7 +637,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
                 }
                 writer.WriteVarInt(delta);
             }
-            
+            {{(GenerateType == GenerateType.CircularReference ? "writer.WriteVarInt(id);" : "")}}
             tempBuffer.WriteToAndReset(ref writer);
         }
         finally
@@ -628,6 +664,19 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
             : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
 
+        var checkCircularReference = "";
+        if (GenerateType == GenerateType.CircularReference)
+        {
+            checkCircularReference = """
+        var (existsReference, id) = writer.OptionalState.GetOrAddReference(value);
+        if (existsReference)
+        {
+            writer.WriteObjectReferenceId(id);
+            goto END;
+        }
+""";
+        }
+
         return $$"""
 {{(!IsValueType ? $$"""
         if (value == null)
@@ -636,9 +685,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             goto END;
         }
 """ : "")}}
-
+{{checkCircularReference}}
         writer.WriteObjectHeader({{Members.Length}});
 {{EmitLengthHeader(Members)}}
+        {{(GenerateType == GenerateType.CircularReference ? "writer.WriteVarInt(id);" : "")}}
 {{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: false)}}
 """;
     }
@@ -741,10 +791,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (members[i].Kind != MemberKind.Unmanaged || GenerateType == GenerateType.VersionTolerant)
+            if (members[i].Kind != MemberKind.Unmanaged || (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference))
             {
                 sb.Append(indent);
-                sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType == GenerateType.VersionTolerant));
+                sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference));
                 continue;
             }
 

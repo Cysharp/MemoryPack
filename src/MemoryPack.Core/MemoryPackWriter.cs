@@ -226,6 +226,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteObjectReferenceId(uint referenceId)
+    {
+        GetSpanReference(1) = MemoryPackCode.ReferenceId;
+        Advance(1);
+        WriteVarInt(referenceId);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUnionHeader(ushort tag)
     {
         if (tag < MemoryPackCode.WideTag)

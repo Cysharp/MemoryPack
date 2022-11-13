@@ -84,7 +84,7 @@ partial class TypeMeta
                 // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
                 this.GenerateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
                 this.SerializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
-                if (this.GenerateType == GenerateType.VersionTolerant)
+                if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
                 {
                     this.SerializeLayout = SerializeLayout.Explicit; // version-torelant, always explicit.
                 }
@@ -260,6 +260,14 @@ partial class TypeMeta
             }
 
             return true;
+        }
+        if (GenerateType is GenerateType.CircularReference)
+        {
+            if (!this.IsUseEmptyConstructor)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CircularReferenceOnlyAllowsParameterlessConstructor, syntax.Identifier.GetLocation(), Symbol.Name));
+                return false;
+            }
         }
 
         // GenerateType.Objector VersionTorelant validation

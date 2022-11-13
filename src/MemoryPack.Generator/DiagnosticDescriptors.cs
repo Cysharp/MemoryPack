@@ -268,4 +268,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CircularReferenceOnlyAllowsParameterlessConstructor = new(
+        id: "MEMPACK033",
+        title: "CircularReference MemoryPack Object must require parameterless constructor",
+        messageFormat: "The MemoryPackable object '{0}' is GenerateType.CircularReference but not exists parameterless constructor.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

@@ -30,6 +30,7 @@ public class Runner : ConsoleAppBase
             {"TBufferWriter", "IBufferWriter<byte>" },
             {"new MemoryPackWriter(ref bufferWriter", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter)" },
             {"new MemoryPackWriter(ref tempBuffer", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref tempBuffer)" },
+            {"new MemoryPackWriter(ref state.BufferWriter", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref state.BufferWriter)" },
         };
 
         System.Console.WriteLine("Start to modify code.");

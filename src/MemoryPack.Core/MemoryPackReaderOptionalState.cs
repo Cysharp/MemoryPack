@@ -26,12 +26,12 @@ public static class MemoryPackReaderOptionalStatePool
 
 public sealed class MemoryPackReaderOptionalState : IDisposable
 {
-    readonly Dictionary<uint, object> RefToObject;
+    readonly Dictionary<uint, object> refToObject;
     public MemoryPackSerializeOptions Options { get; private set; }
 
     internal MemoryPackReaderOptionalState()
     {
-        RefToObject = new Dictionary<uint, object>();
+        refToObject = new Dictionary<uint, object>();
         Options = null!;
     }
 
@@ -40,9 +40,27 @@ public sealed class MemoryPackReaderOptionalState : IDisposable
         Options = options ?? MemoryPackSerializeOptions.Default;
     }
 
+    public object GetObjectReference(uint id)
+    {
+        if (refToObject.TryGetValue(id, out var value))
+        {
+            return value;
+        }
+        MemoryPackSerializationException.ThrowMessage("Object is not found in this reference id:" + id);
+        return null!;
+    }
+
+    public void AddObjectReference(uint id, object value)
+    {
+        if (!refToObject.TryAdd(id, value))
+        {
+            MemoryPackSerializationException.ThrowMessage("Object is already added, id:" + id);
+        }
+    }
+
     public void Reset()
     {
-        RefToObject.Clear();
+        refToObject.Clear();
         Options = null!;
     }
 

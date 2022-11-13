@@ -38,8 +38,7 @@ public enum GenerateType
 {
     Object,
     VersionTolerant,
-    // TODO:make circular-reference option
-    // CircularReference,
+    CircularReference,
     Collection,
     NoGenerate
 }

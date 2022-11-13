@@ -30,7 +30,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter(ref state.BufferWriter, state.BufferWriter.DangerousGetFirstBuffer(), state.OptionalState);
+            var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref state.BufferWriter), state.BufferWriter.DangerousGetFirstBuffer(), state.OptionalState);
             Serialize(type, ref writer, value);
             return state.BufferWriter.ToArrayAndReset();
         }

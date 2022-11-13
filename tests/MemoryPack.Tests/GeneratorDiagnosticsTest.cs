@@ -503,6 +503,29 @@ public partial class Hoge
 }
 """);
     }
+
+    [Fact]
+    public void MEMPACK033_CircularReferenceOnlyAllowsParameterlessConstructor()
+    {
+        Compile(33, """
+using MemoryPack;
+
+[MemoryPackable(GenerateType.CircularReference)]
+public partial class Hoge
+{
+    [MemoryPackOrder(0)]
+    public int Prop1 { get; set; }
+    [MemoryPackOrder(2)]
+    public int Prop2 { get; set; }
+
+    public Hoge(int prop1, int prop2)
+    {
+        this.Prop1 = prop1;
+        this.Prop2 = prop2;
+    }
+}
+""");
+    }
 }
 
 

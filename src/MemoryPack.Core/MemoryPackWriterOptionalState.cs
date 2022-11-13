@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace MemoryPack;
 
@@ -27,13 +29,16 @@ public static class MemoryPackWriterOptionalStatePool
 
 public sealed class MemoryPackWriterOptionalState : IDisposable
 {
-    readonly Dictionary<object, uint> ObjectToRef;
+    uint nextId;
+    readonly Dictionary<object, uint> objectToRef;
+
     public MemoryPackSerializeOptions Options { get; private set; }
 
     internal MemoryPackWriterOptionalState()
     {
-        ObjectToRef = new Dictionary<object, uint>(ReferenceEqualityComparer.Instance);
+        objectToRef = new Dictionary<object, uint>(ReferenceEqualityComparer.Instance);
         Options = null!;
+        nextId = 0;
     }
 
     internal void Init(MemoryPackSerializeOptions? options)
@@ -43,8 +48,36 @@ public sealed class MemoryPackWriterOptionalState : IDisposable
 
     public void Reset()
     {
-        ObjectToRef.Clear();
+        objectToRef.Clear();
         Options = null!;
+        nextId = 0;
+    }
+
+    public (bool existsReference, uint id) GetOrAddReference(object value)
+    {
+#if NET7_0_OR_GREATER
+        ref var id = ref CollectionsMarshal.GetValueRefOrAddDefault(objectToRef, value, out var exists);
+        if (exists)
+        {
+            return (true, id);
+        }
+        else
+        {
+            id = nextId++;
+            return (false, id);
+        }
+#else
+        if (objectToRef.TryGetValue(value, out var id))
+        {
+            return (true, id);
+        }
+        else
+        {
+            id = nextId++;
+            objectToRef.Add(value, id);
+            return (false, id);
+        }
+#endif
     }
 
     void IDisposable.Dispose()
