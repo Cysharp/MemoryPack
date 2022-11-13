@@ -144,7 +144,7 @@ namespace MemoryPack.Formatters
                 var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
                 try
                 {
-                    var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                    var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState);
 
                     count = 0;
                     var formatter = writer.GetFormatter<T?>();

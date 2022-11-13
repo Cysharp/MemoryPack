@@ -10,38 +10,46 @@ public class WriterTest
     {
         var buffer = new SpanControlWriter();
 
-        var writer = new MemoryPackWriter<SpanControlWriter>(ref buffer, MemoryPackSerializeOptions.Default);
-
-        buffer.ProvideSpanLength = 5;
-
-        writer.GetSpanReference(3);
-        writer.Advance(3);
-
-        buffer.SpanRequested.Should().Be(1);
-        buffer.AdvancedLength.Should().Be(0);
-
-        writer.GetSpanReference(2);
-        writer.Advance(2);
-
-        buffer.SpanRequested.Should().Be(1);
-        buffer.AdvancedLength.Should().Be(0);
-
-        // request more span
-        writer.GetSpanReference(3);
-        buffer.SpanRequested.Should().Be(2);
-        buffer.AdvancedLength.Should().Be(5);
-
-        // invalid advance
-        var error = false;
+        var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
         try
         {
-            writer.Advance(9999);
+            var writer = new MemoryPackWriter<SpanControlWriter>(ref buffer, state);
+
+            buffer.ProvideSpanLength = 5;
+
+            writer.GetSpanReference(3);
+            writer.Advance(3);
+
+            buffer.SpanRequested.Should().Be(1);
+            buffer.AdvancedLength.Should().Be(0);
+
+            writer.GetSpanReference(2);
+            writer.Advance(2);
+
+            buffer.SpanRequested.Should().Be(1);
+            buffer.AdvancedLength.Should().Be(0);
+
+            // request more span
+            writer.GetSpanReference(3);
+            buffer.SpanRequested.Should().Be(2);
+            buffer.AdvancedLength.Should().Be(5);
+
+            // invalid advance
+            var error = false;
+            try
+            {
+                writer.Advance(9999);
+            }
+            catch (MemoryPackSerializationException)
+            {
+                error = true;
+            }
+            error.Should().BeTrue();
         }
-        catch (MemoryPackSerializationException)
+        finally
         {
-            error = true;
+            state.Reset();
         }
-        error.Should().BeTrue();
     }
 
     [Fact]
@@ -50,28 +58,33 @@ public class WriterTest
         var buffer = new ArrayBufferWriter<byte>();
 
         {
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
 
             writer.WriteNullObjectHeader();
             writer.Flush();
 
             buffer.WrittenSpan[0].Should().Be(MemoryPackCode.NullObject);
             buffer.Clear();
+            state.Reset();
         }
         for (var i = 0; i < 250; i++)
         {
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
             writer.WriteObjectHeader((byte)i);
             writer.Flush();
 
             buffer.WrittenSpan[0].Should().Be((byte)i);
             buffer.Clear();
+            state.Reset();
         }
 
         for (byte i = MemoryPackCode.Reserved1; i <= MemoryPackCode.NullObject; i++)
         {
             if (i == 0) break;
-            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
             var error = false;
             try
             {
@@ -86,6 +99,7 @@ public class WriterTest
                 buffer.Clear();
             }
             error.Should().BeTrue();
+            state.Reset();
         }
     }
 

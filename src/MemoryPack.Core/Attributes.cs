@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace MemoryPack;
+﻿namespace MemoryPack;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackableAttribute : Attribute
@@ -31,6 +29,8 @@ public enum GenerateType
 {
     Object,
     VersionTolerant,
+    // TODO:make circular-reference option
+    // CircularReference,
     Collection,
     NoGenerate
 }

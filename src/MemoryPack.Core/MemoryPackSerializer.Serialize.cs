@@ -15,7 +15,9 @@ using static MemoryPack.Internal.MemoryMarshalEx;
 public static partial class MemoryPackSerializer
 {
     [ThreadStatic]
-    static ReusableLinkedArrayBufferWriter? threadStaticBufferWriter;
+    static SerializerWriterThreadStaticState? threadStaticState;
+    [ThreadStatic]
+    static MemoryPackWriterOptionalState? threadStaticWriterOptionalState;
 
     public static byte[] Serialize<T>(in T? value, MemoryPackSerializeOptions? options = default)
     {
@@ -43,7 +45,7 @@ public static partial class MemoryPackSerializer
             var dataSize = elementSize * length;
             var destArray = AllocateUninitializedArray<byte>(dataSize + 4);
             ref var head = ref MemoryMarshal.GetArrayDataReference(destArray);
-            
+
             Unsafe.WriteUnaligned(ref head, length);
             Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
 
@@ -51,21 +53,22 @@ public static partial class MemoryPackSerializer
         }
 #endif
 
-        var bufferWriter = threadStaticBufferWriter;
-        if (bufferWriter == null)
+        var state = threadStaticState;
+        if (state == null)
         {
-            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            state = threadStaticState = new SerializerWriterThreadStaticState();
         }
+        state.Init(options);
 
         try
         {
-            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref state.BufferWriter, state.BufferWriter.DangerousGetFirstBuffer(), state.OptionalState);
             Serialize(ref writer, value);
-            return bufferWriter.ToArrayAndReset();
+            return state.BufferWriter.ToArrayAndReset();
         }
         finally
         {
-            bufferWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -115,8 +118,22 @@ public static partial class MemoryPackSerializer
         }
 #endif
 
-        var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
-        Serialize(ref writer, value);
+        var state = threadStaticWriterOptionalState;
+        if (state == null)
+        {
+            state = threadStaticWriterOptionalState = new MemoryPackWriterOptionalState();
+        }
+        state.Init(options);
+
+        try
+        {
+            var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), state);
+            Serialize(ref writer, value);
+        }
+        finally
+        {
+            state.Reset();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,6 +160,29 @@ public static partial class MemoryPackSerializer
         finally
         {
             ReusableLinkedArrayBufferWriterPool.Return(tempWriter);
+        }
+    }
+
+    sealed class SerializerWriterThreadStaticState
+    {
+        public ReusableLinkedArrayBufferWriter BufferWriter;
+        public MemoryPackWriterOptionalState OptionalState;
+
+        public SerializerWriterThreadStaticState()
+        {
+            BufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            OptionalState = new MemoryPackWriterOptionalState();
+        }
+
+        public void Init(MemoryPackSerializeOptions? options)
+        {
+            OptionalState.Init(options);
+        }
+
+        public void Reset()
+        {
+            BufferWriter.Reset();
+            OptionalState.Reset();
         }
     }
 }
