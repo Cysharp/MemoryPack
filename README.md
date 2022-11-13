@@ -21,6 +21,7 @@ Other than performance, MemoryPack has these features.
 * Deserialize into existing instance
 * Polymorphism(Union) serialization
 * limited version-tolerant(fast/default) and full version-tolerant support
+* Circular reference serialization
 * PipeWriter/Reader based streaming serialization
 * TypeScript code generation and ASP.NET Core Formatter
 * Unity(2021.3) IL2CPP Support via .NET Source Generator
@@ -528,6 +529,58 @@ By checking the differences in this file, dangerous schema changes can be preven
 * member order change
 * member deletion
 
+Circular Reference
+---
+MemoryPack also supports circular reference. This allows the tree objects to be serialized as is.
+
+```csharp
+// to enable circular-reference, use GenerateType.CircularReference
+[MemoryPackable(GenerateType.CircularReference)]
+public partial class Node
+{
+    [MemoryPackOrder(0)]
+    public Node? Parent { get; set; }
+    [MemoryPackOrder(1)]
+    public Node[]? Children { get; set; }
+}
+```
+
+ For example, [System.Text.Json preserve-references](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/preserve-references) code will become like here.
+
+```csharp
+// https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/preserve-references?pivots=dotnet-7-0
+Employee tyler = new()
+{
+    Name = "Tyler Stein"
+};
+
+Employee adrian = new()
+{
+    Name = "Adrian King"
+};
+
+tyler.DirectReports = new List<Employee> { adrian };
+adrian.Manager = tyler;
+
+var bin = MemoryPackSerializer.Serialize(tyler);
+Employee? tylerDeserialized = MemoryPackSerializer.Deserialize<Employee>(bin);
+
+Console.WriteLine(tylerDeserialized?.DirectReports?[0].Manager == tylerDeserialized); // true
+
+[MemoryPackable(GenerateType.CircularReference)]
+public partial class Employee
+{
+    [MemoryPackOrder(0)]
+    public string? Name { get; set; }
+    [MemoryPackOrder(1)]
+    public Employee? Manager { get; set; }
+    [MemoryPackOrder(2)]
+    public List<Employee>? DirectReports { get; set; }
+}
+```
+
+`GenerateType.CircularReference` has the same characteristics as version-tolerant. However, as an additional constraint, only parameterless constructors are allowed. Also, object reference tracking is only done for objects marked with `GenerateType.CircularReference`. If you want to track any other object, wrap it.
+
 CustomFormatter
 ---
 If implements `MemoryPackCustomFormatterAttribute<T>`, you can configure to use custom formatter to MemoryPackObject's member.
@@ -871,15 +924,16 @@ Unity version is not supported CustomFormatter and ImmutableCollections.
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. Seven types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. These types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
 Endian must be `Little Endian`. However reference C# implementation does not care endianness so can not use on big-endian machine. However modern computers are usually little-endian.
 
-There are seven types of format.
+There are eight types of format.
 
 * Unmanaged struct
 * Object
 * Version Tolerant Object
+* Circular Reference Object
 * Tuple
 * Collection
 * String
@@ -900,6 +954,13 @@ Object has 1byte unsigned byte as member count in header. Member count allows `0
 `(byte memberCount, [varint byte-length-of-values...], [values...])`
 
 Version Tolerant Object is similar as Object but has byte length of values in header. varint follows these spec, first sbyte is value or typeCode and next X byte is value. 0 to 127 = unsigned byte value, -1 to -120 = signed byte value, -121 = byte, -122 = sbyte, -123 = ushort, -124 = short, -125 = uint, -126 = int, -127 = ulong, -128 = long.
+
+### Circular Reference Object
+
+`(byte memberCount, [varint byte-length-of-values...], varint referenceId, [values...])`
+`(250, varint referenceId)`
+
+Circular Reference Object is similar as Version Tolerant Object but if memberCount is 250, next varint(unsigned-int32) is referenceId. If not, after byte-length-of-values, varint referenceId is written.
 
 ### Tuple
 
