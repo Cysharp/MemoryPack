@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
-using System.Runtime.InteropServices;
-
 namespace MemoryPack {
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
@@ -40,6 +38,7 @@ public enum GenerateType
 {
     Object,
     VersionTolerant,
+    CircularReference,
     Collection,
     NoGenerate
 }

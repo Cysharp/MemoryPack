@@ -24,7 +24,8 @@ public class GetLocalVsStaticField
     [Benchmark(Baseline = true)]
     public void GetFromProvider()
     {
-        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, MemoryPackSerializeOptions.Default);
+        using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
         for (int i = 0; i < 100; i++)
         {
             writer.GetFormatter<int>().Serialize(ref writer, ref i);
@@ -35,7 +36,8 @@ public class GetLocalVsStaticField
     [Benchmark]
     public void GetFromLocal()
     {
-        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, MemoryPackSerializeOptions.Default);
+        using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref bufferWriter, state);
         var provider = writer.GetFormatter<int>();
         for (int i = 0; i < 100; i++)
         {

@@ -29,11 +29,13 @@ public ref partial struct MemoryPackReader
     byte[]? rentBuffer;
     int advancedCount;
     int consumed;   // total length of consumed
+    readonly MemoryPackReaderOptionalState optionalState;
 
     public int Consumed => consumed;
     public long Remaining => totalLength - consumed;
+    public MemoryPackReaderOptionalState OptionalState => optionalState;
 
-    public MemoryPackReader(in ReadOnlySequence<byte> sequence)
+    public MemoryPackReader(in ReadOnlySequence<byte> sequence, MemoryPackReaderOptionalState optionalState)
     {
         this.bufferSource = sequence.IsSingleSegment ? ReadOnlySequence<byte>.Empty : sequence;
         var span = sequence.FirstSpan;
@@ -47,9 +49,10 @@ public ref partial struct MemoryPackReader
         this.consumed = 0;
         this.rentBuffer = null;
         this.totalLength = sequence.Length;
+        this.optionalState = optionalState;
     }
 
-    public MemoryPackReader(ReadOnlySpan<byte> buffer)
+    public MemoryPackReader(ReadOnlySpan<byte> buffer, MemoryPackReaderOptionalState optionalState)
     {
         this.bufferSource = ReadOnlySequence<byte>.Empty;
 #if NET7_0_OR_GREATER
@@ -62,6 +65,7 @@ public ref partial struct MemoryPackReader
         this.consumed = 0;
         this.rentBuffer = null;
         this.totalLength = buffer.Length;
+        this.optionalState = optionalState;
     }
 
     // buffer operations

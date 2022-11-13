@@ -21,21 +21,22 @@ public static partial class MemoryPackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] Serialize(Type type, object? value, MemoryPackSerializeOptions? options = default)
     {
-        var bufferWriter = threadStaticBufferWriter;
-        if (bufferWriter == null)
+        var state = threadStaticState;
+        if (state == null)
         {
-            bufferWriter = threadStaticBufferWriter = new ReusableLinkedArrayBufferWriter(useFirstBuffer: true, pinned: true);
+            state = threadStaticState = new SerializerWriterThreadStaticState();
         }
+        state.Init(options);
 
         try
         {
-            var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter), bufferWriter.DangerousGetFirstBuffer(), options ?? MemoryPackSerializeOptions.Default);
+            var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref state.BufferWriter), state.BufferWriter.DangerousGetFirstBuffer(), state.OptionalState);
             Serialize(type, ref writer, value);
-            return bufferWriter.ToArrayAndReset();
+            return state.BufferWriter.ToArrayAndReset();
         }
         finally
         {
-            bufferWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -46,8 +47,22 @@ public static partial class MemoryPackSerializer
         
 #endif
     {
-        var writer = new MemoryPackWriter(ref Unsafe.AsRef(bufferWriter), options ?? MemoryPackSerializeOptions.Default);
-        Serialize(type, ref writer, value);
+        var state = threadStaticWriterOptionalState;
+        if (state == null)
+        {
+            state = threadStaticWriterOptionalState = new MemoryPackWriterOptionalState();
+        }
+        state.Init(options);
+
+        try
+        {
+            var writer = new MemoryPackWriter(ref Unsafe.AsRef(bufferWriter), state);
+            Serialize(type, ref writer, value);
+        }
+        finally
+        {
+            state.Reset();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,16 +93,23 @@ public static partial class MemoryPackSerializer
 
     // Deserialize
 
-    public static object? Deserialize(Type type, ReadOnlySpan<byte> buffer)
+    public static object? Deserialize(Type type, ReadOnlySpan<byte> buffer, MemoryPackSerializeOptions? options = default)
     {
         object? value = default;
-        Deserialize(type, buffer, ref value);
+        Deserialize(type, buffer, ref value, options);
         return value;
     }
 
-    public static void Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value)
+    public static void Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value, MemoryPackSerializeOptions? options = default)
     {
-        var reader = new MemoryPackReader(buffer);
+        var state = threadStaticReaderOptionalState;
+        if (state == null)
+        {
+            state = threadStaticReaderOptionalState = new MemoryPackReaderOptionalState();
+        }
+        state.Init(options);
+
+        var reader = new MemoryPackReader(buffer, state);
         try
         {
             reader.GetFormatter(type).Deserialize(ref reader, ref value);
@@ -95,19 +117,27 @@ public static partial class MemoryPackSerializer
         finally
         {
             reader.Dispose();
+            state.Reset();
         }
     }
 
-    public static object? Deserialize(Type type, in ReadOnlySequence<byte> buffer)
+    public static object? Deserialize(Type type, in ReadOnlySequence<byte> buffer, MemoryPackSerializeOptions? options = default)
     {
         object? value = default;
-        Deserialize(type, buffer, ref value);
+        Deserialize(type, buffer, ref value, options);
         return value;
     }
 
-    public static void Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value)
+    public static void Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value, MemoryPackSerializeOptions? options = default)
     {
-        var reader = new MemoryPackReader(buffer);
+        var state = threadStaticReaderOptionalState;
+        if (state == null)
+        {
+            state = threadStaticReaderOptionalState = new MemoryPackReaderOptionalState();
+        }
+        state.Init(options);
+
+        var reader = new MemoryPackReader(buffer, state);
         try
         {
             reader.GetFormatter(type).Deserialize(ref reader, ref value);
@@ -115,10 +145,11 @@ public static partial class MemoryPackSerializer
         finally
         {
             reader.Dispose();
+            state.Reset();
         }
     }
 
-    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, CancellationToken cancellationToken = default)
+    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
     {
         var builder = ReusableReadOnlySequenceBuilderPool.Rent();
         try
@@ -159,12 +190,12 @@ public static partial class MemoryPackSerializer
             // If single buffer, we can avoid ReadOnlySequence build cost.
             if (builder.TryGetSingleMemory(out var memory))
             {
-                return Deserialize(type, memory.Span);
+                return Deserialize(type, memory.Span, options);
             }
             else
             {
                 var seq = builder.Build();
-                var result = Deserialize(type, seq);
+                var result = Deserialize(type, seq, options);
                 return result;
             }
         }

@@ -14,7 +14,8 @@ public class VarIntTest
     {
         var buffer = new ArrayBufferWriter<byte>();
 
-        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, MemoryPackSerializeOptions.Default);
+        using var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
 
         writer.WriteVarInt(1);
         writer.WriteVarInt((byte)10);
@@ -43,7 +44,8 @@ public class VarIntTest
 
         writer.Flush();
 
-        var reader = new MemoryPackReader(buffer.WrittenSpan);
+        using var state2 = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(buffer.WrittenSpan, state2);
 
         var l = new long[24];
         for (int i = 0; i < l.Length; i++)

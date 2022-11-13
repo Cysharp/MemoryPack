@@ -36,12 +36,12 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     int depth; // check recursive serialize
     int writtenCount;
     readonly bool serializeStringAsUtf8;
-    readonly MemoryPackSerializeOptions options;
+    readonly MemoryPackWriterOptionalState optionalState;
 
     public int WrittenCount => writtenCount;
-    public MemoryPackSerializeOptions Options => options;
+    public MemoryPackWriterOptionalState OptionalState => optionalState;
 
-    public MemoryPackWriter(ref TBufferWriter writer, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref TBufferWriter writer, MemoryPackWriterOptionalState optionalState)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
@@ -54,12 +54,12 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
-        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
-        this.options = options;
+        this.serializeStringAsUtf8 = optionalState.Options.StringEncoding == StringEncoding.Utf8;
+        this.optionalState = optionalState;
     }
 
     // optimized ctor, avoid first GetSpan call if we can.
-    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
@@ -72,11 +72,11 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
-        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
-        this.options = options;
+        this.serializeStringAsUtf8 = optionalState.Options.StringEncoding == StringEncoding.Utf8;
+        this.optionalState = optionalState;
     }
 
-    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackSerializeOptions options)
+    public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
 #if NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
@@ -89,8 +89,8 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         this.advancedCount = 0;
         this.writtenCount = 0;
         this.depth = 0;
-        this.serializeStringAsUtf8 = options.StringEncoding == StringEncoding.Utf8;
-        this.options = options;
+        this.serializeStringAsUtf8 = optionalState.Options.StringEncoding == StringEncoding.Utf8;
+        this.optionalState = optionalState;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -223,6 +223,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         GetSpanReference(1) = MemoryPackCode.NullObject;
         Advance(1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteObjectReferenceId(uint referenceId)
+    {
+        GetSpanReference(1) = MemoryPackCode.ReferenceId;
+        Advance(1);
+        WriteVarInt(referenceId);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

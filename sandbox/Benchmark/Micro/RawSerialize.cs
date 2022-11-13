@@ -71,7 +71,8 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), state);
         try
         {
             if (value == null)
@@ -94,6 +95,7 @@ public class RawSerialize
         finally
         {
             bufWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -106,7 +108,8 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), state);
         try
         {
             if (value == null)
@@ -128,6 +131,7 @@ public class RawSerialize
         finally
         {
             bufWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -140,7 +144,8 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), state);
         try
         {
             if (value == null)
@@ -162,6 +167,7 @@ public class RawSerialize
         finally
         {
             bufWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -174,7 +180,8 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), state);
         try
         {
             if (value == null)
@@ -196,6 +203,7 @@ public class RawSerialize
         finally
         {
             bufWriter.Reset();
+            state.Reset();
         }
     }
 
@@ -208,7 +216,8 @@ public class RawSerialize
             bufWriter = staticWriter = new ReusableLinkedArrayBufferWriter(true, true);
         }
 
-        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufWriter, bufWriter.DangerousGetFirstBuffer(), state);
         try
         {
             if (value == null)
@@ -230,6 +239,7 @@ public class RawSerialize
         finally
         {
             bufWriter.Reset();
+            state.Reset();
         }
     }
 

@@ -18,7 +18,8 @@ public class ReaderTest
             new byte[] { 4, 5, 6, 7, 8 },
             new byte[] { 9, 10 });
 
-        var reader = new MemoryPackReader(seq);
+        using var state = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(seq, state);
 
 
         ref var spanRef = ref reader.GetSpanReference(2);
@@ -52,7 +53,8 @@ public class ReaderTest
     [Fact]
     public void ReadFromSpan()
     {
-        var reader = new MemoryPackReader(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+        using var state = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, state);
 
         ref var spanRef = ref reader.GetSpanReference(2);
         MemoryMarshal.CreateReadOnlySpan(ref spanRef, 2).ToArray().Should().Equal(1, 2);
@@ -85,7 +87,8 @@ public class ReaderTest
     [Fact]
     public void OverAdvance()
     {
-        var reader = new MemoryPackReader(new byte[] { 1, 2, 3 });
+        using var state = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(new byte[] { 1, 2, 3 }, state);
         reader.Advance(2); // ok
 
         bool error = false;
@@ -107,7 +110,8 @@ public class ReaderTest
         // 2(len), 99, 9999
         var bytes = MemoryPackSerializer.Serialize(new[] { 99, 9999 });
 
-        var reader = new MemoryPackReader(bytes);
+        using var state = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(bytes, state);
 
         reader.TryReadCollectionHeader(out var len).Should().BeTrue();
         len.Should().Be(2);
@@ -118,7 +122,8 @@ public class ReaderTest
 
         // inject invalid length
         BinaryPrimitives.WriteInt32LittleEndian(bytes, 1000); // 1000(len), 99, 9999
-        reader = new MemoryPackReader(bytes);
+        using var state2 = MemoryPackReaderOptionalStatePool.Rent(null);
+        reader = new MemoryPackReader(bytes, state2);
 
         try
         {
@@ -129,12 +134,14 @@ public class ReaderTest
 
         // just
         bytes = MemoryPackSerializer.Serialize(new byte[] { 99 });
-        reader = new MemoryPackReader(bytes);
+        using var state3 = MemoryPackReaderOptionalStatePool.Rent(null);
+        reader = new MemoryPackReader(bytes, state3);
         reader.TryReadCollectionHeader(out var len3);
         len3.Should().Be(1);
 
         BinaryPrimitives.WriteInt32LittleEndian(bytes, 2);
-        reader = new MemoryPackReader(bytes);
+        using var state4 = MemoryPackReaderOptionalStatePool.Rent(null);
+        reader = new MemoryPackReader(bytes, state4);
 
         try
         {

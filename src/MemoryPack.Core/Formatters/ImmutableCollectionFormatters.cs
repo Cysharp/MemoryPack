@@ -1,10 +1,7 @@
 ﻿using MemoryPack.Formatters;
 using MemoryPack.Internal;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 // Immutable Collections formatters
@@ -153,7 +150,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -245,7 +242,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -699,7 +696,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
@@ -791,7 +788,7 @@ namespace MemoryPack.Formatters
             var tempBuffer = ReusableLinkedArrayBufferWriterPool.Rent();
             try
             {
-                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.Options);
+                var tempWriter = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState);
 
                 var count = 0;
                 var formatter = writer.GetFormatter<T?>();
