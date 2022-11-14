@@ -272,17 +272,9 @@ namespace MemoryPack.Formatters
     }
 
     [Preserve]
-    public sealed class InterfaceDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IDictionary<TKey, TValue>>
+    public sealed class InterfaceDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IDictionary<TKey, TValue?>>
         where TKey : notnull
     {
-        static InterfaceDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? equalityComparer;
 
         public InterfaceDictionaryFormatter()
@@ -297,7 +289,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IDictionary<TKey, TValue>? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -305,17 +297,18 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
+
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
         [Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref IDictionary<TKey, TValue>? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref IDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
             {
@@ -323,14 +316,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var dict = new Dictionary<TKey, TValue>(equalityComparer);
+            var dict = new Dictionary<TKey, TValue?>(equalityComparer);
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue> item = default;
-                formatter.Deserialize(ref reader, ref item);
-                dict.Add(item.Key, item.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                dict.Add(k!, v);
             }
 
             value = dict;
@@ -338,17 +331,9 @@ namespace MemoryPack.Formatters
     }
 
     [Preserve]
-    public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IReadOnlyDictionary<TKey, TValue>>
+    public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IReadOnlyDictionary<TKey, TValue?>>
         where TKey : notnull
     {
-        static InterfaceReadOnlyDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? equalityComparer;
 
         public InterfaceReadOnlyDictionaryFormatter()
@@ -363,7 +348,7 @@ namespace MemoryPack.Formatters
         }
 
         [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IReadOnlyDictionary<TKey, TValue>? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IReadOnlyDictionary<TKey, TValue?>? value)
         {
             if (value == null)
             {
@@ -371,17 +356,18 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
+
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
         [Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyDictionary<TKey, TValue>? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref IReadOnlyDictionary<TKey, TValue?>? value)
         {
             if (!reader.TryReadCollectionHeader(out var length))
             {
@@ -389,14 +375,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var dict = new Dictionary<TKey, TValue>(equalityComparer);
+            var dict = new Dictionary<TKey, TValue?>(equalityComparer);
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue> item = default;
-                formatter.Deserialize(ref reader, ref item);
-                dict.Add(item.Key, item.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                dict.Add(k!, v);
             }
 
             value = dict;

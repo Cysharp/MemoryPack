@@ -322,14 +322,6 @@ namespace MemoryPack.Formatters
     public sealed class ImmutableDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ImmutableDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
-        static ImmutableDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? keyEqualityComparer;
         readonly IEqualityComparer<TValue?>? valueEqualityComparer;
 
@@ -354,12 +346,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
+            
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -382,14 +375,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
 
             var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>(keyEqualityComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                builder.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                builder.Add(k!, v);
             }
 
             value = builder.ToImmutable();
@@ -474,14 +467,6 @@ namespace MemoryPack.Formatters
     public sealed class ImmutableSortedDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ImmutableSortedDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
-        static ImmutableSortedDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IComparer<TKey>? keyComparer;
         readonly IEqualityComparer<TValue?>? valueEqualityComparer;
 
@@ -506,12 +491,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
+
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -534,14 +520,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
 
             var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue?>(keyComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                builder.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                builder.Add(k!, v);
             }
 
             value = builder.ToImmutable();
@@ -867,14 +853,6 @@ namespace MemoryPack.Formatters
     public sealed class InterfaceImmutableDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<IImmutableDictionary<TKey, TValue?>?>
         where TKey : notnull
     {
-        static InterfaceImmutableDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? keyEqualityComparer;
         readonly IEqualityComparer<TValue?>? valueEqualityComparer;
 
@@ -899,12 +877,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
+            
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -930,14 +909,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
 
             var builder = ImmutableDictionary.CreateBuilder<TKey, TValue?>(keyEqualityComparer, valueEqualityComparer);
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                builder.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                builder.Add(k!, v);
             }
 
             value = builder.ToImmutable();

@@ -737,14 +737,6 @@ namespace MemoryPack.Formatters
     public sealed class DictionaryFormatter<TKey, TValue> : MemoryPackFormatter<Dictionary<TKey, TValue?>>
         where TKey : notnull
     {
-        static DictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? equalityComparer;
 
         public DictionaryFormatter()
@@ -767,13 +759,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
 
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -795,12 +787,12 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                value.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                value.Add(k!, v);
             }
         }
     }
@@ -809,14 +801,6 @@ namespace MemoryPack.Formatters
     public sealed class SortedDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<SortedDictionary<TKey, TValue?>>
         where TKey : notnull
     {
-        static SortedDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IComparer<TKey>? comparer;
 
         public SortedDictionaryFormatter()
@@ -839,13 +823,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
 
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -867,12 +851,12 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                value.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                value.Add(k!, v);
             }
         }
     }
@@ -881,14 +865,6 @@ namespace MemoryPack.Formatters
     public sealed class SortedListFormatter<TKey, TValue> : MemoryPackFormatter<SortedList<TKey, TValue?>>
         where TKey : notnull
     {
-        static SortedListFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IComparer<TKey>? comparer;
 
         public SortedListFormatter()
@@ -911,13 +887,13 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
 
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
         }
 
@@ -939,12 +915,12 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                value.Add(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                value.Add(k!, v);
             }
         }
     }
@@ -953,14 +929,6 @@ namespace MemoryPack.Formatters
     public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : MemoryPackFormatter<ConcurrentDictionary<TKey, TValue?>>
         where TKey : notnull
     {
-        static ConcurrentDictionaryFormatter()
-        {
-            if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-            {
-                MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-            }
-        }
-
         readonly IEqualityComparer<TKey>? equalityComparer;
 
         public ConcurrentDictionaryFormatter()
@@ -983,7 +951,8 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-            var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = writer.GetFormatter<TKey>();
+            var valueFormatter = writer.GetFormatter<TValue>();
 
             var count = value.Count;
             writer.WriteCollectionHeader(count);
@@ -991,8 +960,7 @@ namespace MemoryPack.Formatters
             foreach (var item in value)
             {
                 i++;
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
             }
 
             if (i != count) MemoryPackSerializationException.ThrowInvalidConcurrrentCollectionOperation();
@@ -1016,12 +984,12 @@ namespace MemoryPack.Formatters
                 value.Clear();
             }
 
-            var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+            var keyFormatter = reader.GetFormatter<TKey>();
+            var valueFormatter = reader.GetFormatter<TValue>();
             for (int i = 0; i < length; i++)
             {
-                KeyValuePair<TKey, TValue?> v = default;
-                formatter.Deserialize(ref reader, ref v);
-                value.TryAdd(v.Key, v.Value);
+                KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+                value.TryAdd(k!, v);
             }
         }
     }

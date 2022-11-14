@@ -47,6 +47,7 @@ var config = ManualConfig.CreateMinimumViable()
 
 
 
+
 //BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
 
 //BenchmarkRunner.Run<SerializeTest<NeuralNetworkLayerModel>>(config, args);
@@ -54,7 +55,8 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
 
 
-BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
+//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<Vector3[]>>(config, args);
@@ -78,6 +80,14 @@ BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 #endif
 
 #if DEBUG
+
+var c = new StaticDictionaryFormatterCheck();
+c.DeserializeCurrent();
+c.DeserializeImprovement();
+
+c.DeserializeCurrent();
+c.DeserializeImprovement();
+
 
 var model = new JsonResponseModel(true);
 var model2 = Enumerable.Repeat(new Vector3 { X = 10.3f, Y = 40.5f, Z = 13411.3f }, 1000).ToArray();
