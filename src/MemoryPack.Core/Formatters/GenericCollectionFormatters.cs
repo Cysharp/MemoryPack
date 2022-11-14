@@ -1,4 +1,5 @@
 ﻿using MemoryPack.Internal;
+using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
@@ -112,14 +113,6 @@ public abstract class GenericDictionaryFormatterBase<TDictionary, TKey, TValue> 
     where TKey : notnull
     where TDictionary : IDictionary<TKey, TValue?>
 {
-    static GenericDictionaryFormatterBase()
-    {
-        if (!MemoryPackFormatterProvider.IsRegistered<KeyValuePair<TKey, TValue?>>())
-        {
-            MemoryPackFormatterProvider.Register(new KeyValuePairFormatter<TKey, TValue?>());
-        }
-    }
-
     [Preserve]
     protected abstract TDictionary CreateDictionary();
 
@@ -132,13 +125,13 @@ public abstract class GenericDictionaryFormatterBase<TDictionary, TKey, TValue> 
             return;
         }
 
-        var formatter = writer.GetFormatter<KeyValuePair<TKey, TValue?>>();
+        var keyFormatter = writer.GetFormatter<TKey>();
+        var valueFormatter = writer.GetFormatter<TValue>();
 
         writer.WriteCollectionHeader(value.Count);
         foreach (var item in value)
         {
-            var v = item;
-            formatter.Serialize(ref writer, ref v);
+            KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item!);
         }
     }
 
@@ -151,17 +144,17 @@ public abstract class GenericDictionaryFormatterBase<TDictionary, TKey, TValue> 
             return;
         }
 
-        var formatter = reader.GetFormatter<KeyValuePair<TKey, TValue?>>();
+        var keyFormatter = reader.GetFormatter<TKey>();
+        var valueFormatter = reader.GetFormatter<TValue>();
 
-        var collection = CreateDictionary();
+        var dict = CreateDictionary();
         for (int i = 0; i < length; i++)
         {
-            KeyValuePair<TKey, TValue?> v = default;
-            formatter.Deserialize(ref reader, ref v);
-            collection.Add(v);
+            KeyValuePairFormatter.Deserialize(keyFormatter, valueFormatter, ref reader, out var k, out var v);
+            dict.Add(k!, v);
         }
 
-        value = collection;
+        value = dict;
     }
 }
 

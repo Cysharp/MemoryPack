@@ -528,20 +528,6 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             sb.AppendLine($"{indent}{{");
             sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new {formatter}());");
             sb.AppendLine($"{indent}}}");
-
-            // try check IsDictionary
-            foreach (var item in symbol.AllInterfaces)
-            {
-                if (item.EqualsUnconstructedGenericType(reference.KnownTypes.System_Collections_Generic_IDictionary_T))
-                {
-                    var kv = string.Join(", ", item.TypeArguments.Select(x => x.FullyQualifiedToString()));
-                    sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<System.Collections.Generic.KeyValuePair<{kv}>>())");
-                    sb.AppendLine($"{indent}{{");
-                    sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.KeyValuePairFormatter<{kv}>());");
-                    sb.AppendLine($"{indent}}}");
-                    break;
-                }
-            }
         }
 
         return sb.ToString();
@@ -659,10 +645,6 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
             return sb.ToString();
         }
-
-        var newTempWriter = isForUnity
-            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
-            : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
 
         var checkCircularReference = "";
         if (GenerateType == GenerateType.CircularReference)
