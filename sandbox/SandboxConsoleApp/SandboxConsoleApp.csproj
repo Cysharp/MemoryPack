@@ -36,6 +36,7 @@
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
+        <ProjectReference Include="..\..\src\MemoryPack.Streaming\MemoryPack.Streaming.csproj" />
     </ItemGroup>
 
 </Project>

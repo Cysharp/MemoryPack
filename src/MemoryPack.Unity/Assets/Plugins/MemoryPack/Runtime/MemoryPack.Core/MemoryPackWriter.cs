@@ -198,7 +198,7 @@ public ref partial struct MemoryPackWriter
         }
         else
         {
-            return (value.Length * 2) + 4;
+            return checked(value.Length * 2) + 4;
         }
     }
 
@@ -307,7 +307,7 @@ public ref partial struct MemoryPackWriter
             return;
         }
 
-        var copyByteCount = value.Length * 2;
+        var copyByteCount = checked(value.Length * 2);
 
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);
@@ -331,7 +331,7 @@ public ref partial struct MemoryPackWriter
             return;
         }
 
-        var copyByteCount = value.Length * 2;
+        var copyByteCount = checked(value.Length * 2);
 
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);

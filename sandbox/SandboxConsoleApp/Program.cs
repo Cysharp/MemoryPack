@@ -4,6 +4,7 @@
 using MemoryPack;
 using MemoryPack.Compression;
 using MemoryPack.Formatters;
+using MemoryPack.Streaming;
 using Samples;
 using SandboxConsoleApp;
 using System;
@@ -25,32 +26,7 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var v = new TakoyakiY
-{
-    Foo = 1999,
-    Bar = "hogemogehugahuga"
-};
-
-
-var bin = MemoryPackSerializer.Serialize(v);
-
-var v2 = MemoryPackSerializer.Deserialize<TakoyakiY>(bin);
-
-Console.WriteLine(bin);
-
-
-
-
-[MemoryPackable]
-public partial class Subset
-{
-    public bool MyBool { get; set; }
-    public byte MyByte { get; set; }
-    public sbyte MySByte { get; set; }
-    public short MyShort { get; set; }
-}
-
-
+Console.WriteLine("---");
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
 //var takotako = MemoryPackSerializer.Deserialize<string>(bin);
 

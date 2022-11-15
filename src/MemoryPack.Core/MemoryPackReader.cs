@@ -272,7 +272,7 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     string ReadUtf16(int length)
     {
-        var byteCount = length * 2;
+        var byteCount = checked(length * 2);
         ref var src = ref GetSpanReference(byteCount);
 
         var str = new string(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref src), length));

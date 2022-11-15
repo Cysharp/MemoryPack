@@ -35,7 +35,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 
             foreach (var chunk in value.GetChunks())
             {
-                ref var p = ref writer.GetSpanReference(chunk.Length * 2);
+                ref var p = ref writer.GetSpanReference(checked(chunk.Length * 2));
                 ref var src = ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(chunk.Span));
                 Unsafe.CopyBlockUnaligned(ref p, ref src, (uint)chunk.Length * 2);
 
@@ -71,7 +71,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
 
         // note: require to check is Utf8
         // note: to improvement append as chunk(per 64K?)
-        var size = length * 2;
+        var size = checked(length * 2);
         ref var p = ref reader.GetSpanReference(size);
         var src = MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref p), length);
         value.Append(src);

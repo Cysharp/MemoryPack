@@ -107,7 +107,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
         if (sizeHint <= nextBufferSize)
         {
             next = new BufferSegment(nextBufferSize);
-            nextBufferSize *= 2;
+            nextBufferSize = MathEx.NewArrayCapacity(nextBufferSize);
         }
         else
         {
