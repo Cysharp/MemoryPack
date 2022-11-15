@@ -83,7 +83,7 @@ public static partial class MemoryPackSerializer
         {
             var buffer = bufferWriter.GetSpan(Unsafe.SizeOf<T>());
             Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
-            bufferWriter.Advance(buffer.Length);
+            bufferWriter.Advance(Unsafe.SizeOf<T>());
             return;
         }
 #if NET7_0_OR_GREATER
