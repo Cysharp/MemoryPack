@@ -47,14 +47,18 @@ public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter<T>, IMemoryP
     [Preserve]
     void IMemoryPackFormatter.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
     {
-        var v = (T?)value;
+        var v = (value == null)
+            ? default(T?)
+            : (T?)value;
         Serialize(ref writer, ref v);
     }
 
     [Preserve]
     void IMemoryPackFormatter.Deserialize(ref MemoryPackReader reader, scoped ref object? value)
     {
-        var v = (T?)value;
+        var v = (value == null)
+            ? default(T?)
+            : (T?)value;
         Deserialize(ref reader, ref v);
         value = v;
     }
