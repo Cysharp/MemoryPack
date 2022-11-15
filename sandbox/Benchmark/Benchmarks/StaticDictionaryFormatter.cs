@@ -190,7 +190,7 @@ sealed class DictionaryFormatter2<TKey, TValue> : MemoryPackFormatter<Dictionary
         writer.WriteCollectionHeader(value.Count);
         foreach (var item in value)
         {
-            KeyValuePairFormatter.Serialize(keyFormatter, valueFormatter, ref writer, item);
+            KeyValuePairFormatter.Serialize(keyFormatter!, valueFormatter!, ref writer, item!);
         }
     }
 
