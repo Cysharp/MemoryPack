@@ -32,7 +32,7 @@ This library is distributed via NuGet. For best performance, recommend to use `.
 
 > PM> Install-Package [MemoryPack](https://www.nuget.org/packages/MemoryPack)
 
-And also editor requires Roslyn 4.3.0 support, for example Visual Studio 2022 version 17.3. For details, see [Roslyn Version Support](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support) document.
+And also editor requires Roslyn 4.3.1 support, for example Visual Studio 2022 version 17.3. For details, see [Roslyn Version Support](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support) document.
 
 For Unity, the requirements and installation process are completely different. See the [Unity](#unity) section for details.
 
@@ -910,7 +910,7 @@ Install via UPM git URL package or asset package(MemoryPack.*.*.*.unitypackage) 
 
 * https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack
 
-If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.6.0. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.6.0`.
+If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.7.5. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.7.5`.
 
 Supporting minimum Unity version is `2021.3`. The dependency managed DLL `System.Runtime.CompilerServices.Unsafe/6.0.0` is included with unitypackage. For git references, you will need to add them in another way as they are not included to avoid unnecessary dependencies; either extract the dll from unitypackage or download it from the [NuGet page](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/6.0.0).
 
