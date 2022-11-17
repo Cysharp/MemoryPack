@@ -1,6 +1,7 @@
 ﻿using MemoryPack;
 using MemoryPack.Formatters;
 using MemoryPack.Internal;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -11,6 +12,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SandboxConsoleApp;
+
+
+[MemoryPackable]
+public partial class Mop
+{
+    public NoGen? MyProperty { get; set; }
+    public LisList? MyLisList { get; set; }
+    public List<Suage>? SuageMan { get; set; }
+}
 
 
 [MemoryPackable]
@@ -52,4 +62,17 @@ public partial class Suage
     //    this.Prop1 = prop1;
     //    this.Prop2 = prop2;
     //}
+}
+
+
+
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial class NoGen
+{
+}
+
+[MemoryPackable(GenerateType.Collection)]
+public partial class LisList : List<int>
+{
+
 }

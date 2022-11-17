@@ -16,9 +16,11 @@
 
     <ItemGroup>
         <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
+        <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptImportExtension" />
     </ItemGroup>
     <PropertyGroup>
         <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
+        <MemoryPackGenerator_TypeScriptImportExtension>.js</MemoryPackGenerator_TypeScriptImportExtension>
     </PropertyGroup>
 
     <ItemGroup>

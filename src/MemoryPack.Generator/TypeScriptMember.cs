@@ -164,7 +164,7 @@ public class TypeScriptMember
                 break;
         }
 
-        if (symbol.IsWillImplementIMemoryPackable(references) || symbol.IsWillImplementMemoryPackUnion(references))
+        if (symbol.TryGetMemoryPackableType(references, out _, out _) || symbol.IsWillImplementMemoryPackUnion(references))
         {
             return new TypeScriptType
             {

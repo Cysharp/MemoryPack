@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MemoryPack.Generator;
 
@@ -61,10 +62,46 @@ internal static class Extensions
         }
     }
 
-    public static bool IsWillImplementIMemoryPackable(this ITypeSymbol symbol, ReferenceSymbols references)
+    public static bool TryGetMemoryPackableType(this ITypeSymbol symbol, ReferenceSymbols references, out GenerateType generateType, out SerializeLayout serializeLayout)
     {
-        // [MemoryPackable] and not interface/abstract, generator will implmement IMemoryPackable<T>
-        return !symbol.IsAbstract && symbol.ContainsAttribute(references.MemoryPackableAttribute);
+        var packableCtorArgs = symbol.GetAttribute(references.MemoryPackableAttribute)?.ConstructorArguments;
+        generateType = GenerateType.Object;
+        serializeLayout = SerializeLayout.Sequential;
+        if (packableCtorArgs == null)
+        {
+            generateType = GenerateType.NoGenerate;
+            serializeLayout = SerializeLayout.Sequential;
+            return false;
+        }
+        else if (packableCtorArgs.Value.Length != 0)
+        {
+            // MemoryPackable has two attribtue
+            if (packableCtorArgs.Value.Length == 1)
+            {
+                // (SerializeLayout serializeLayout)
+                var ctorValue = packableCtorArgs.Value[0];
+                serializeLayout = (SerializeLayout)(ctorValue.Value ?? SerializeLayout.Sequential);
+                generateType = GenerateType.Object;
+            }
+            else
+            {
+                // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
+                generateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
+                serializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
+                if (generateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
+                {
+                    serializeLayout = SerializeLayout.Explicit; // version-torelant, always explicit.
+                }
+            }
+        }
+
+        if (symbol.IsStatic || symbol.IsAbstract)
+        {
+            // static or abstract class is Union
+            return false;
+        }
+
+        return true;
     }
 
     public static bool IsWillImplementMemoryPackUnion(this ITypeSymbol symbol, ReferenceSymbols references)

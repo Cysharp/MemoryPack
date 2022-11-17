@@ -854,6 +854,22 @@ There are a few restrictions on the types that can be generated. Among the primi
 
 `[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
 
+### Configure import file extension
+
+In default, MemoryPack generates file extension as `.js` like `import { MemoryPackWriter } from "./MemoryPackWriter.js";`. If you want to change other extension or empty, use `MemoryPackGenerator_TypeScriptImportExtension` to configure it.
+
+```xml
+<ItemGroup>
+    <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
+    <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptImportExtension" />
+</ItemGroup>
+<PropertyGroup>
+    <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
+    <!-- allows empty -->
+    <MemoryPackGenerator_TypeScriptImportExtension></MemoryPackGenerator_TypeScriptImportExtension>
+</PropertyGroup>
+```
+
 Streaming Serialization
 ---
 `MemoryPack.Streaming` provides additional `MemoryPackStreamingSerializer`, it serialize/deserialize collection data streamingly.

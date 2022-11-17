@@ -45,7 +45,7 @@ var config = ManualConfig.CreateMinimumViable()
 
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
-
+BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
 
 
 //BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
@@ -55,7 +55,7 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
 
 
-BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
+//BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
 //BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);

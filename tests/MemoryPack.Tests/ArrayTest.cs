@@ -28,4 +28,27 @@ public class ArrayTest
         v2!.Array3.Should().Equal(checker.Array3);
         v2!.Array4.Should().Equal(checker.Array4);
     }
+
+    [Fact]
+    public void Check2()
+    {
+        var checker = new ArrayOptimizeCheck()
+        {
+            Array1 = new[] { new StandardTypeTwo { One = 9, Two = 2 }, new StandardTypeTwo { One = 999, Two = 444 } },
+            List1 = new List<StandardTypeTwo?> { new StandardTypeTwo { One = 93, Two = 12 }, new StandardTypeTwo { One = 9499, Two = 45344 } }
+        };
+
+        var bin = MemoryPackSerializer.Serialize(checker);
+        var v2 = MemoryPackSerializer.Deserialize<ArrayOptimizeCheck>(bin);
+#pragma warning disable CS8602
+        v2!.Array1[0].One.Should().Be(checker.Array1[0].One);
+        v2!.Array1[0].Two.Should().Be(checker.Array1[0].Two);
+        v2!.Array1[1].One.Should().Be(checker.Array1[1].One);
+        v2!.Array1[1].Two.Should().Be(checker.Array1[1].Two);
+
+        v2!.List1[0].One.Should().Be(checker.List1[0].One);
+        v2!.List1[0].Two.Should().Be(checker.List1[0].Two);
+        v2!.List1[1].One.Should().Be(checker.List1[1].One);
+        v2!.List1[1].Two.Should().Be(checker.List1[1].Two);
+    }
 }
