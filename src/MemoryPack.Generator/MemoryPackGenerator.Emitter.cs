@@ -548,7 +548,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
-            if (this.Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.UnmanagedArray or MemberKind.Blank))
+            if (this.Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.Enum or MemberKind.UnmanagedArray or MemberKind.UnmanagedNullable or MemberKind.Blank))
             {
                 return EmitVersionTorelantSerializeBodyOptimized(isForUnity);
             }
@@ -689,7 +689,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (members[i].Kind != MemberKind.Unmanaged || toTempWriter)
+            if (!(members[i].Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable) || toTempWriter)
             {
                 sb.Append(indent);
                 if (i == 0 && writeObjectHeader)
@@ -714,10 +714,15 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             var optimizeFrom = i;
             var optimizeTo = i;
             var limit = Math.Min(members.Length, i + 15);
+            var dangerous = "";
             for (int j = i; j < limit; j++)
             {
-                if (members[j].Kind == MemberKind.Unmanaged)
+                if (members[j].Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable)
                 {
+                    if (members[j].Kind is MemberKind.UnmanagedNullable)
+                    {
+                        dangerous = "Dangerous";
+                    }
                     optimizeTo = j;
                     continue;
                 }
@@ -731,13 +736,13 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             sb.Append(indent);
             if (optimizeFrom == 0 && writeObjectHeader)
             {
-                sb.Append($"{writer}.WriteUnmanagedWithObjectHeader(");
+                sb.Append($"{writer}.{dangerous}WriteUnmanagedWithObjectHeader(");
                 sb.Append(members.Length);
                 sb.Append(", ");
             }
             else
             {
-                sb.Append($"{writer}.WriteUnmanaged(");
+                sb.Append($"{writer}.{dangerous}WriteUnmanaged(");
             }
 
             for (int index = optimizeFrom; index <= optimizeTo; index++)
@@ -773,7 +778,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         for (int i = 0; i < members.Length; i++)
         {
-            if (members[i].Kind != MemberKind.Unmanaged || (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference))
+            if (!(members[i].Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable) || (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference))
             {
                 sb.Append(indent);
                 sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference));
@@ -784,10 +789,15 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             var optimizeFrom = i;
             var optimizeTo = i;
             var limit = Math.Min(members.Length, i + 15);
+            var dangerous = "";
             for (int j = i; j < limit; j++)
             {
-                if (members[j].Kind == MemberKind.Unmanaged)
+                if (members[j].Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable)
                 {
+                    if (members[j].Kind is MemberKind.UnmanagedNullable)
+                    {
+                        dangerous = "Dangerous";
+                    }
                     optimizeTo = j;
                     continue;
                 }
@@ -799,7 +809,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
             // write read method
             sb.Append(indent);
-            sb.Append("reader.ReadUnmanaged(");
+            sb.Append($"reader.{dangerous}ReadUnmanaged(");
 
             for (int index = optimizeFrom; index <= optimizeTo; index++)
             {
@@ -1094,7 +1104,10 @@ public partial class MemberMeta
             case MemberKind.MemoryPackable:
                 return $"{writer}.WritePackable(value.{Name});";
             case MemberKind.Unmanaged:
+            case MemberKind.Enum:
                 return $"{writer}.WriteUnmanaged(value.{Name});";
+            case MemberKind.UnmanagedNullable:
+                return $"{writer}.DangerousWriteUnmanaged(value.{Name});";
             case MemberKind.String:
                 return $"{writer}.WriteString(value.{Name});";
             case MemberKind.UnmanagedArray:
@@ -1115,6 +1128,8 @@ public partial class MemberMeta
         switch (Kind)
         {
             case MemberKind.Unmanaged:
+            case MemberKind.Enum:
+            case MemberKind.UnmanagedNullable:
                 return $"writer.WriteVarInt(System.Runtime.CompilerServices.Unsafe.SizeOf<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>());";
             case MemberKind.String:
                 return $"writer.WriteVarInt(writer.GetStringWriteLength(value.{Name}));";
@@ -1142,7 +1157,10 @@ public partial class MemberMeta
             case MemberKind.MemoryPackable:
                 return $"{pre}__{Name} = reader.ReadPackable<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Unmanaged:
+            case MemberKind.Enum:
                 return $"{pre}reader.ReadUnmanaged(out __{Name});";
+            case MemberKind.UnmanagedNullable:
+                return $"{pre}reader.DangerousReadUnmanaged(out __{Name});";
             case MemberKind.String:
                 return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
@@ -1172,7 +1190,10 @@ public partial class MemberMeta
             case MemberKind.MemoryPackable:
                 return $"{pre}reader.ReadPackable(ref __{Name});";
             case MemberKind.Unmanaged:
+            case MemberKind.Enum:
                 return $"{pre}reader.ReadUnmanaged(out __{Name});";
+            case MemberKind.UnmanagedNullable:
+                return $"{pre}reader.DangerousReadUnmanaged(out __{Name});";
             case MemberKind.String:
                 return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:

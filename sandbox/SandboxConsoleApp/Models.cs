@@ -12,6 +12,12 @@ using System.Threading.Tasks;
 
 namespace SandboxConsoleApp;
 
+[MemoryPackable]
+public partial class NotNotOmu
+{
+    public Guid? GUIDNULLABLE { get; set; }
+}
+
 
 [MemoryPackable]
 public partial class NotSample

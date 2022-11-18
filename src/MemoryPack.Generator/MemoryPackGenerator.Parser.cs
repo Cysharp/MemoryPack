@@ -16,7 +16,8 @@ public enum MemberKind
 {
     MemoryPackable, // IMemoryPackable<> or [MemoryPackable]
     Unmanaged,
-    Nullable, // Nullable<int> is like unmanage but can not write to unmanaged constraint
+    Nullable,
+    UnmanagedNullable,
     KnownType,
     String,
     Array,
@@ -602,7 +603,14 @@ partial class MemberMeta
                 if (unmanagedNts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
                 {
                     // unamanged nullable<T> can not pass to where T:unmanaged constraint
-                    return MemberKind.Nullable;
+                    if (unmanagedNts.TypeArguments[0].IsUnmanagedType)
+                    {
+                        return MemberKind.UnmanagedNullable;
+                    }
+                    else
+                    {
+                        return MemberKind.Nullable;
+                    }
                 }
             }
 

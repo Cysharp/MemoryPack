@@ -28,7 +28,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args, config);
 
 
-//BenchmarkRunner.Run<Utf8Decoding>(config, args);
+BenchmarkRunner.Run<Hyper>(config, args);
 
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).RunAllJoined(config);
 
@@ -55,7 +55,7 @@ var config = ManualConfig.CreateMinimumViable()
 // BenchmarkRunner.Run<DeserializeTest<NeuralNetworkLayerModel>>(config, args);
 
 
-BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
+//BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
 //BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);

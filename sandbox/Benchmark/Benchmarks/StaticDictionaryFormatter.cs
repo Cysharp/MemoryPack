@@ -183,7 +183,7 @@ sealed class DictionaryFormatter2<TKey, TValue> : MemoryPackFormatter<Dictionary
             writer.WriteNullCollectionHeader();
             return;
         }
-
+        
         var keyFormatter = writer.GetFormatter<TKey>();
         var valueFormatter = writer.GetFormatter<TValue>();
 
@@ -202,7 +202,7 @@ sealed class DictionaryFormatter2<TKey, TValue> : MemoryPackFormatter<Dictionary
             value = null;
             return;
         }
-
+        
         if (value == null)
         {
             value = new Dictionary<TKey, TValue?>(length, equalityComparer);

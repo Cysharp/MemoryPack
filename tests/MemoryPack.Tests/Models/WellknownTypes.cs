@@ -85,6 +85,11 @@ public partial class HogeHoge
     public IReadOnlySet<int> P59;
 #endif
     public SortedSet<int> P60;
+    public Nullable<MyStruct> P61;
+    public KnownFruits P62;
+    public Nullable<KnownFruits> P63;
+    public string SEPARATOR1;
+    public Nullable<int> P64;
 
     // tuples
     public Tuple<int, string, int> T3;
@@ -115,4 +120,9 @@ public partial interface IUnionType
 public partial class AUnion : IUnionType
 {
 
+}
+
+public enum KnownFruits
+{
+    Orange, Grape
 }
