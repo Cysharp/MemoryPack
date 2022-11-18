@@ -429,6 +429,7 @@ public ref partial struct MemoryPackReader
 
     #region ReadArray/Span
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T?[]? ReadArray<T>()
     {
         T?[]? value = default;
@@ -436,6 +437,7 @@ public ref partial struct MemoryPackReader
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadArray<T>(ref T?[]? value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
@@ -469,6 +471,7 @@ public ref partial struct MemoryPackReader
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadSpan<T>(ref Span<T?> value)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
@@ -501,22 +504,111 @@ public ref partial struct MemoryPackReader
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T?[]? ReadPackableArray<T>()
+        where T : IMemoryPackable<T>
+    {
+        T?[]? value = default;
+        ReadPackableArray(ref value);
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackableArray<T>(ref T?[]? value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        ReadArray(ref value);
+        return;
+#else
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousReadUnmanagedArray(ref value);
+            return;
+        }
+
+        if (!TryReadCollectionHeader(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        // T[] support overwrite
+        if (value == null || value.Length != length)
+        {
+            value = new T[length];
+        }
+
+        for (int i = 0; i < length; i++)
+        {
+            T.Deserialize(ref this, ref value[i]);
+        }
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackableSpan<T>(ref Span<T?> value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        ReadSpan(ref value);
+        return;
+#else
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousReadUnmanagedSpan(ref value);
+            return;
+        }
+
+        if (!TryReadCollectionHeader(out var length))
+        {
+            value = default;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        if (value.Length != length)
+        {
+            value = new T[length];
+        }
+
+        for (int i = 0; i < length; i++)
+        {
+            T.Deserialize(ref this, ref value[i]);
+        }
+#endif
+    }
+
     #endregion
 
     #region UnmanagedArray/Span
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[]? ReadUnmanagedArray<T>()
         where T : unmanaged
     {
         return DangerousReadUnmanagedArray<T>();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadUnmanagedArray<T>(ref T[]? value)
         where T : unmanaged
     {
         DangerousReadUnmanagedArray<T>(ref value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadUnmanagedSpan<T>(ref Span<T> value)
         where T : unmanaged
     {
@@ -524,6 +616,7 @@ public ref partial struct MemoryPackReader
     }
 
     // T: should be unamanged type
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {
         if (!TryReadCollectionHeader(out var length))
@@ -542,6 +635,7 @@ public ref partial struct MemoryPackReader
         return dest;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe void DangerousReadUnmanagedArray<T>(ref T[]? value)
     {
         if (!TryReadCollectionHeader(out var length))
@@ -570,6 +664,7 @@ public ref partial struct MemoryPackReader
         Advance(byteCount);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe void DangerousReadUnmanagedSpan<T>(ref Span<T> value)
     {
         if (!TryReadCollectionHeader(out var length))
@@ -600,6 +695,7 @@ public ref partial struct MemoryPackReader
 
     #endregion
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadSpanWithoutReadLengthHeader<T>(int length, ref Span<T?> value)
     {
         if (length == 0)
@@ -635,6 +731,49 @@ public ref partial struct MemoryPackReader
                 formatter.Deserialize(ref this, ref value[i]);
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadPackableSpanWithoutReadLengthHeader<T>(int length, ref Span<T?> value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        ReadSpanWithoutReadLengthHeader(length, ref value);
+        return;
+#else
+        if (length == 0)
+        {
+            value = Array.Empty<T>();
+            return;
+        }
+
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            if (value.Length != length)
+            {
+                value = AllocateUninitializedArray<T>(length);
+            }
+
+            var byteCount = length * Unsafe.SizeOf<T>();
+            ref var src = ref GetSpanReference(byteCount);
+            ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
+            Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
+
+            Advance(byteCount);
+        }
+        else
+        {
+            if (value.Length != length)
+            {
+                value = new T[length];
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                T.Deserialize(ref this, ref value[i]);
+            }
+        }
+#endif
     }
 }
 

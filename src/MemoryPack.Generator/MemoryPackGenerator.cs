@@ -100,12 +100,18 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         var typeScriptEnabled = context.AnalyzerConfigOptionsProvider
             .Select((configOptions, token) =>
             {
-                if (configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptOutputDirectory", out var path))
+                string? path;
+                if (!configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptOutputDirectory", out path))
                 {
-                    return path;
+                    path = null;
+                }
+                string ext;
+                if (!configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptImportExtension", out ext!))
+                {
+                    ext = ".js";
                 }
 
-                return (string?)null;
+                return (path, ext);
             });
 
         var typeScriptDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -125,7 +131,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             .Combine(context.CompilationProvider)
             .WithComparer(Comparer.Instance)
             .Combine(typeScriptEnabled)
-            .Where(x => x.Right != null) // filter, exists TypeScriptOutputDirectory
+            .Where(x => x.Right.path != null) // filter, exists TypeScriptOutputDirectory
             .Collect();
 
         context.RegisterSourceOutput(typeScriptGenerateSource, static (context, source) =>
@@ -166,14 +172,15 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             {
                 var typeDeclaration = item.Left.Item1;
                 var compilation = item.Left.Item2;
-                var path = generatePath = item.Right!;
+                var path = generatePath = item.Right.path!;
+                var importExt = item.Right.ext;
 
                 if (reference == null)
                 {
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                var meta = GenerateTypeScript(typeDeclaration, compilation, path, context, reference, unionMap);
+                var meta = GenerateTypeScript(typeDeclaration, compilation, path, importExt, context, reference, unionMap);
                 if (meta != null)
                 {
                     collector.Visit(meta, false);

@@ -980,7 +980,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         var writeBody = UnionTags
             .Select(x =>
             {
-                var method = x.Type.IsWillImplementIMemoryPackable(reference)
+                var method = (x.Type.TryGetMemoryPackableType(reference, out var genType, out _) && genType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
                     ? "WritePackable"
                     : "WriteValue";
                 return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{TypeName}?, {ToUnionTagTypeFullyQualifiedToString(x.Type)}>(ref value)); break;";
@@ -1017,7 +1017,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
     {
         var readBody = UnionTags.Select(x =>
         {
-            var method = x.Type.IsWillImplementIMemoryPackable(reference)
+            var method = (x.Type.TryGetMemoryPackableType(reference, out var genType, out _) && genType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
                 ? "ReadPackable"
                 : "ReadValue";
             return $$"""
@@ -1134,6 +1134,10 @@ public partial class MemberMeta
                 return $"{writer}.WriteString(value.{Name});";
             case MemberKind.UnmanagedArray:
                 return $"{writer}.WriteUnmanagedArray(value.{Name});";
+            case MemberKind.MemoryPackableArray:
+                return $"{writer}.WritePackableArray(value.{Name});";
+            case MemberKind.MemoryPackableList:
+                return $"MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.{Name}));";
             case MemberKind.Array:
                 return $"{writer}.WriteArray(value.{Name});";
             case MemberKind.Blank:
@@ -1187,6 +1191,10 @@ public partial class MemberMeta
                 return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
                 return $"{pre}__{Name} = reader.ReadUnmanagedArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+            case MemberKind.MemoryPackableArray:
+                return $"{pre}__{Name} = reader.ReadPackableArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+            case MemberKind.MemoryPackableList:
+                return $"{pre}__{Name} = MemoryPack.Formatters.ListFormatter.DeserializePackable<{(MemberType as INamedTypeSymbol)!.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(ref reader);";
             case MemberKind.Array:
                 return $"{pre}__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Blank:
@@ -1220,6 +1228,10 @@ public partial class MemberMeta
                 return $"{pre}__{Name} = reader.ReadString();";
             case MemberKind.UnmanagedArray:
                 return $"{pre}reader.ReadUnmanagedArray(ref __{Name});";
+            case MemberKind.MemoryPackableArray:
+                return $"{pre}reader.ReadPackableArray(ref __{Name});";
+            case MemberKind.MemoryPackableList:
+                return $"{pre}MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});";
             case MemberKind.Array:
                 return $"{pre}reader.ReadArray(ref __{Name});";
             case MemberKind.Blank:

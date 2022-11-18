@@ -22,6 +22,10 @@ public enum MemberKind
     String,
     Array,
     UnmanagedArray,
+    MemoryPackableArray, // T[] where T: IMemoryPackable<T>
+    MemoryPackableList, // List<T> where T: IMemoryPackable<T>
+    MemoryPackableCollection, // GenerateType.Collection
+    MemoryPackableNoGenerate, // GenerateType.NoGenerate
     Enum,
 
     // from attribute
@@ -63,34 +67,9 @@ partial class TypeMeta
         this.reference = reference;
         this.Symbol = symbol;
 
-        var packableCtorArgs = symbol.GetAttribute(reference.MemoryPackableAttribute)?.ConstructorArguments;
-        this.GenerateType = GenerateType.Object;
-        if (packableCtorArgs == null)
-        {
-            this.GenerateType = GenerateType.NoGenerate;
-            this.SerializeLayout = SerializeLayout.Sequential;
-        }
-        else if (packableCtorArgs.Value.Length != 0)
-        {
-            // MemoryPackable has two attribtue
-            if (packableCtorArgs.Value.Length == 1)
-            {
-                // (SerializeLayout serializeLayout)
-                var ctorValue = packableCtorArgs.Value[0];
-                this.SerializeLayout = (SerializeLayout)(ctorValue.Value ?? SerializeLayout.Sequential);
-                this.GenerateType = GenerateType.Object;
-            }
-            else
-            {
-                // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
-                this.GenerateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
-                this.SerializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
-                if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
-                {
-                    this.SerializeLayout = SerializeLayout.Explicit; // version-torelant, always explicit.
-                }
-            }
-        }
+        symbol.TryGetMemoryPackableType(reference, out var generateType, out var serializeLayout);
+        this.GenerateType = generateType;
+        this.SerializeLayout = serializeLayout;
 
         this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         this.Constructor = ChooseConstructor(symbol, reference);
@@ -624,9 +603,20 @@ partial class MemberMeta
         {
             return MemberKind.MemoryPackable;
         }
-        else if (memberType.IsWillImplementIMemoryPackable(references))
+        else if (memberType.TryGetMemoryPackableType(references, out var generateType, out var serializeLayout))
         {
-            return MemberKind.MemoryPackable;
+            switch (generateType)
+            {
+                case GenerateType.Object:
+                case GenerateType.VersionTolerant:
+                case GenerateType.CircularReference:
+                    return MemberKind.MemoryPackable;
+                case GenerateType.Collection:
+                    return MemberKind.MemoryPackableCollection;
+                case GenerateType.NoGenerate:
+                default:
+                    return MemberKind.MemoryPackableNoGenerate;
+            }
         }
         else if (memberType.IsWillImplementMemoryPackUnion(references))
         {
@@ -653,6 +643,11 @@ partial class MemberMeta
                     }
                     else
                     {
+                        if (elemType.TryGetMemoryPackableType(references, out var elemGenerateType, out _) && elemGenerateType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
+                        {
+                            return MemberKind.MemoryPackableArray;
+                        }
+
                         return MemberKind.Array;
                     }
                 }
@@ -684,6 +679,15 @@ partial class MemberMeta
                 if (nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
                 {
                     return MemberKind.Nullable;
+                }
+
+                if (nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Collections_Generic_List_T))
+                {
+                    if (nts.TypeArguments[0].TryGetMemoryPackableType(references, out var elemGenerateType, out _) && elemGenerateType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
+                    {
+                        return MemberKind.MemoryPackableList;
+                    }
+                    return MemberKind.KnownType;
                 }
             }
 

@@ -496,9 +496,82 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
     }
 
-    #endregion
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackableArray<T>(T?[]? value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        WriteArray(value);
+        return;
+#else
 
-    #region WriteUnmanagedArray/Span
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedArray(value);
+            return;
+        }
+
+        if (value == null)
+        {
+            WriteNullCollectionHeader();
+            return;
+        }
+
+        WriteCollectionHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            T.Serialize(ref this, ref value[i]);
+        }
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackableSpan<T>(scoped Span<T?> value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        WriteSpan(value);
+        return;
+#else
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedSpan(value);
+            return;
+        }
+
+        WriteCollectionHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            T.Serialize(ref this, ref value[i]);
+        }
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackableSpan<T>(scoped ReadOnlySpan<T?> value)
+        where T : IMemoryPackable<T>
+    {
+#if !NET7_0_OR_GREATER
+        WriteSpan(value);
+        return;
+#else
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            DangerousWriteUnmanagedSpan(value);
+            return;
+        }
+        
+        WriteCollectionHeader(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            T.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+        }
+#endif
+    }
+
+#endregion
+
+#region WriteUnmanagedArray/Span
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUnmanagedArray<T>(T[]? value)
@@ -589,7 +662,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(allocSize);
     }
 
-    #endregion
+#endregion
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

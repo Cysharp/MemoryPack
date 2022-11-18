@@ -12,7 +12,6 @@ using MemoryPack.Internal;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -58,6 +57,87 @@ namespace MemoryPack
 
 namespace MemoryPack.Formatters
 {
+    [Preserve]
+    public static class ListFormatter
+    {
+        [Preserve]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SerializePackable<T>(ref MemoryPackWriter writer, ref List<T?>? value)
+            where T : IMemoryPackable<T>
+#if NET7_0_OR_GREATER
+            
+#else
+            
+#endif
+        {
+            if (value == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+#if NET7_0_OR_GREATER
+            writer.WritePackableSpan(CollectionsMarshal.AsSpan(value));
+#else
+            var formatter = writer.GetFormatter<T?>();
+            writer.WriteCollectionHeader(value.Count);
+            foreach (var item in value)
+            {
+                var v = item;
+                formatter.Serialize(ref writer, ref v);
+            }
+#endif
+        }
+
+        [Preserve]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<T?>? DeserializePackable<T>(ref MemoryPackReader reader)
+            where T : IMemoryPackable<T>
+        {
+            List<T?>? value = default;
+            DeserializePackable<T>(ref reader, ref value);
+            return value;
+        }
+
+        [Preserve]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void DeserializePackable<T>(ref MemoryPackReader reader, ref List<T?>? value)
+            where T : IMemoryPackable<T>
+        {
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            if (value == null)
+            {
+                value = new List<T?>(length);
+            }
+#if NET7_0_OR_GREATER
+            else if (value.Count == length)
+            {
+                value.Clear();
+            }
+
+            var span = CollectionsMarshalEx.CreateSpan(value, length);
+            reader.ReadPackableSpanWithoutReadLengthHeader(length, ref span);
+#else
+            else
+            {
+                value.Clear();
+            }
+            var formatter = reader.GetFormatter<T?>();
+            for (var i = 0; i < length; i++)
+            {
+                T? v = default;
+                formatter.Deserialize(ref reader, ref v);
+                value.Add(v);
+            }
+#endif
+        }
+    }
+
     [Preserve]
     public sealed class ListFormatter<T> : MemoryPackFormatter<List<T?>>
     {

@@ -11,7 +11,7 @@ namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath, in SourceProductionContext context,
+    static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath,string importExt, in SourceProductionContext context,
         ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
@@ -44,9 +44,9 @@ partial class MemoryPackGenerator
 
         var sb = new StringBuilder();
 
-        sb.AppendLine("""
-import { MemoryPackWriter } from "./MemoryPackWriter.js";
-import { MemoryPackReader } from "./MemoryPackReader.js";
+        sb.AppendLine($$"""
+import { MemoryPackWriter } from "./MemoryPackWriter{{importExt}}";
+import { MemoryPackReader } from "./MemoryPackReader{{importExt}}";
 """);
 
         var collector = new TypeCollector();
@@ -68,17 +68,17 @@ import { MemoryPackReader } from "./MemoryPackReader.js";
         // add import(enum, union, memorypackable)
         foreach (var item in collector.GetEnums())
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}.js\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{importExt}\"; ");
         }
         foreach (var item in collector.GetMemoryPackableTypes(reference).Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol)))
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}.js\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{importExt}\"; ");
         }
         sb.AppendLine();
 
         try
         {
-            typeMeta.EmitTypescript(sb, unionMap);
+            typeMeta.EmitTypescript(sb, unionMap, importExt);
         }
         catch (NotSupportedTypeException ex)
         {
@@ -165,11 +165,11 @@ export const enum {{typeSymbol.Name}} {
 
 public partial class TypeMeta
 {
-    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
+    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, string importExt)
     {
         if (IsUnion)
         {
-            EmitTypeScriptUnion(sb);
+            EmitTypeScriptUnion(sb, importExt);
             return;
         }
 
@@ -249,7 +249,7 @@ export class {{TypeName}} {{impl}}{
         sb.AppendLine(code);
     }
 
-    public void EmitTypeScriptUnion(StringBuilder sb)
+    public void EmitTypeScriptUnion(StringBuilder sb, string importExt)
     {
         string EmitUnionSerialize()
         {
@@ -282,7 +282,7 @@ export class {{TypeName}} {{impl}}{
 
         foreach (var item in UnionTags)
         {
-            sb.AppendLine($"import {{ {item.Type.Name} }} from \"./{item.Type.Name}.js\"; ");
+            sb.AppendLine($"import {{ {item.Type.Name} }} from \"./{item.Type.Name}{importExt}\"; ");
         }
         sb.AppendLine();
 

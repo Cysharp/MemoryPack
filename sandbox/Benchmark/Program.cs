@@ -45,7 +45,7 @@ BenchmarkRunner.Run<Hyper>(config, args);
 
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
-
+BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
 
 
 //BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
