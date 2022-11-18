@@ -920,6 +920,20 @@ The created formatter is registered with `MemoryPackFormatterProvider`.
 MemoryPackFormatterProvider.Register(new SkeltonFormatter());
 ```
 
+Target framework dependency
+---
+MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatibility. For example, MemoryPackable types under `netstandard2.1` project and use it from `net7.0` project, throws runtime exception like this
+
+> Unhandled exception. System.TypeLoadException: Virtual static method 'Serialize' is not implemented on type '*' from assembly '*'.
+
+Since net7.0 uses static abstract members (netstandard2.1 is not supported), this behavior is a specification.
+
+For library developer if depend MemoryPack, you need to configure dual target framework.
+
+```xml
+<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+```
+
 Unity
 ---
 Install via UPM git URL package or asset package(MemoryPack.*.*.*.unitypackage) available in [MemoryPack/releases](https://github.com/Cysharp/MemoryPack/releases) page.
