@@ -81,6 +81,8 @@ BenchmarkRunner.Run<Hyper>(config, args);
 
 #if DEBUG
 
+new Hyper().Serialize();
+
 var c = new StaticDictionaryFormatterCheck();
 c.DeserializeCurrent();
 c.DeserializeImprovement();

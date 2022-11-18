@@ -266,6 +266,8 @@ public partial class TypeMeta
         var nullable = IsValueType ? "" : "?";
 
         string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef, constraint, registerBody, registerT;
+        var fixedSizeInterface = "";
+        var fixedSizeMethod = "";
         if (!context.IsNet7OrGreater)
         {
             staticRegisterFormatterMethod = "public static void ";
@@ -283,13 +285,33 @@ public partial class TypeMeta
             constraint = "";
             registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
             registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
+
+            // similar as VersionTolerantOptimized but not includes String, Array
+            var fixedSize = false;
+            if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable or MemberKind.Blank))
+            {
+                fixedSize = true;
+            }
+
+            if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType)
+            {
+                var sizeOf = string.Join(" + ", Members.Select(x => $"System.Runtime.CompilerServices.Unsafe.SizeOf<{x.MemberType.FullyQualifiedToString()}>()"));
+                var headerPlus = (Members.Length == 0) ? "1" : "1 + ";
+                fixedSizeInterface = ", MemoryPack.IFixedSizeMemoryPackable";
+                fixedSizeMethod = $$"""
+
+    [global::MemoryPack.Internal.Preserve]
+    static int MemoryPack.IFixedSizeMemoryPackable.Size => {{headerPlus}}{{sizeOf}};
+
+""";
+            }
         }
         var serializeMethodSignarture = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
         writer.AppendLine($$"""
-partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
+partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{fixedSizeInterface}}
 {
 {{EmitCustomFormatters()}}
 
@@ -297,7 +319,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>
     {
         {{registerT}}
     }
-
+{{fixedSizeMethod}}
     [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
@@ -548,7 +570,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
-            if (this.Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.Enum or MemberKind.UnmanagedArray or MemberKind.UnmanagedNullable or MemberKind.Blank))
+            if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.Enum or MemberKind.UnmanagedArray or MemberKind.UnmanagedNullable or MemberKind.Blank))
             {
                 return EmitVersionTorelantSerializeBodyOptimized(isForUnity);
             }

@@ -24,19 +24,24 @@ internal static class TypeHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGetUnmanagedSZArrayElementSize<T>(out int size)
+    public static TypeKind TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out int size)
     {
-        var x = Cache<T>.UnmanagedSZArrayElementSize;
-        if (x.HasValue)
+        if (Cache<T>.IsUnmanagedSZArray)
         {
-            size = x.Value;
-            return true;
+            size = Cache<T>.UnmanagedSZArrayElementSize;
+            return TypeKind.UnmanagedSZArray;
         }
         else
         {
-            size = 0;
-            return false;
+            if (Cache<T>.IsFixedSizeMemoryPackable)
+            {
+                size = Cache<T>.MemoryPackableFixedSize;
+                return TypeKind.FixedSizeMemoryPackable;
+            }
         }
+
+        size = 0;
+        return TypeKind.None;
     }
 
     public static bool IsAnonymous(Type type)
@@ -52,7 +57,10 @@ internal static class TypeHelpers
     static class Cache<T>
     {
         public static bool IsReferenceOrNullable;
-        public static int? UnmanagedSZArrayElementSize;
+        public static bool IsUnmanagedSZArray;
+        public static int UnmanagedSZArrayElementSize;
+        public static bool IsFixedSizeMemoryPackable;
+        public static int MemoryPackableFixedSize;
 
         static Cache()
         {
@@ -67,15 +75,38 @@ internal static class TypeHelpers
                     bool containsReference = (bool)(isReferenceOrContainsReferences.MakeGenericMethod(elementType!).Invoke(null, null)!);
                     if (!containsReference)
                     {
+                        IsUnmanagedSZArray = true;
                         UnmanagedSZArrayElementSize = Marshal.SizeOf(elementType!);
                     }
                 }
+#if NET7_0_OR_GREATER
+                else
+                {
+                    if (typeof(IFixedSizeMemoryPackable).IsAssignableFrom(type))
+                    {
+                        var prop = type.GetProperty("MemoryPack.IFixedSizeMemoryPackable.Size", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                        if (prop != null)
+                        {
+                            IsFixedSizeMemoryPackable = true;
+                            MemoryPackableFixedSize = (int)prop.GetValue(null)!;
+                        }
+                    }
+                }
+#endif
             }
             catch
             {
-                UnmanagedSZArrayElementSize = null;
+                IsUnmanagedSZArray = false;
+                IsFixedSizeMemoryPackable = false;
             }
         }
+    }
+
+    internal enum TypeKind : byte
+    {
+        None,
+        UnmanagedSZArray,
+        FixedSizeMemoryPackable
     }
 }
 

@@ -28,7 +28,8 @@ public static partial class MemoryPackSerializer
             return array;
         }
 #if NET7_0_OR_GREATER
-        if (TypeHelpers.TryGetUnmanagedSZArrayElementSize<T>(out var elementSize))
+        var typeKind = TypeHelpers.TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out var elementSize);
+        if (typeKind == TypeHelpers.TypeKind.UnmanagedSZArray)
         {
             if (value == null)
             {
@@ -50,6 +51,14 @@ public static partial class MemoryPackSerializer
             Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
 
             return destArray;
+        }
+        else if (typeKind == TypeHelpers.TypeKind.FixedSizeMemoryPackable)
+        {
+            var buffer = new byte[(value == null) ? 1 : elementSize];
+            var bufferWriter = new FixedArrayBufferWriter(buffer);
+            var writer = new MemoryPackWriter<FixedArrayBufferWriter>(ref bufferWriter, buffer, MemoryPackWriterOptionalState.NullState);
+            Serialize(ref writer, value);
+            return bufferWriter.GetFilledBuffer();
         }
 #endif
 
@@ -87,7 +96,8 @@ public static partial class MemoryPackSerializer
             return;
         }
 #if NET7_0_OR_GREATER
-        if (TypeHelpers.TryGetUnmanagedSZArrayElementSize<T>(out var elementSize))
+        var typeKind = TypeHelpers.TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out var elementSize);
+        if (typeKind == TypeHelpers.TypeKind.UnmanagedSZArray)
         {
             if (value == null)
             {

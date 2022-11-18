@@ -2,6 +2,15 @@
 
 namespace MemoryPack;
 
+#if NET7_0_OR_GREATER
+
+public interface IFixedSizeMemoryPackable
+{
+    static abstract int Size { get; }
+}
+
+#endif
+
 public interface IMemoryPackFormatterRegister
 {
 #if NET7_0_OR_GREATER

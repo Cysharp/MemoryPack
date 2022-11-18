@@ -29,6 +29,8 @@ public static class MemoryPackWriterOptionalStatePool
 
 public sealed class MemoryPackWriterOptionalState : IDisposable
 {
+    internal static readonly MemoryPackWriterOptionalState NullState = new MemoryPackWriterOptionalState(true);
+
     uint nextId;
     readonly Dictionary<object, uint> objectToRef;
 
@@ -38,6 +40,13 @@ public sealed class MemoryPackWriterOptionalState : IDisposable
     {
         objectToRef = new Dictionary<object, uint>(ReferenceEqualityComparer.Instance);
         Options = null!;
+        nextId = 0;
+    }
+
+    MemoryPackWriterOptionalState(bool _)
+    {
+        objectToRef = null!;
+        Options = MemoryPackSerializeOptions.Default;
         nextId = 0;
     }
 
