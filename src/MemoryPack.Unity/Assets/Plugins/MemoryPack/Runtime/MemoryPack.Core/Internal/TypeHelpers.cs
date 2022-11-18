@@ -59,8 +59,8 @@ internal static class TypeHelpers
         public static bool IsReferenceOrNullable;
         public static bool IsUnmanagedSZArray;
         public static int UnmanagedSZArrayElementSize;
-        public static bool IsFixedSizeMemoryPackable;
-        public static int MemoryPackableFixedSize;
+        public static bool IsFixedSizeMemoryPackable = false;
+        public static int MemoryPackableFixedSize = 0;
 
         static Cache()
         {

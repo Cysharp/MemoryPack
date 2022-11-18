@@ -268,11 +268,13 @@ public partial class TypeMeta
         string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef, constraint, registerBody, registerT;
         var fixedSizeInterface = "";
         var fixedSizeMethod = "";
+        scopedRef = (context.IsCSharp11OrGreater())
+            ? "scoped ref"
+            : "ref";
         if (!context.IsNet7OrGreater)
         {
             staticRegisterFormatterMethod = "public static void ";
             staticMemoryPackableMethod = "public static void ";
-            scopedRef = "ref";
             constraint = context.IsForUnity ? "" : "where TBufferWriter : class, System.Buffers.IBufferWriter<byte>";
             registerBody = $"MemoryPackFormatterProvider.Register(new {Symbol.Name}Formatter());";
             registerT = "RegisterFormatter();";
@@ -281,7 +283,6 @@ public partial class TypeMeta
         {
             staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
             staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
-            scopedRef = "scoped ref";
             constraint = "";
             registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
             registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
@@ -373,7 +374,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 
         [global::MemoryPack.Internal.Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, ref {{TypeName}} value)
+        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}} value)
         {
             {{TypeName}}.Deserialize(ref reader, ref value);
         }
