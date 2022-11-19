@@ -6,6 +6,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Running;
 using BinaryPack.Models;
 using MemoryPack;
@@ -34,6 +35,7 @@ namespace Benchmark.Benchmarks;
 [CategoriesColumn]
 [PayloadColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+[Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class SerializeTest<T> : SerializerTestBase<T>
 {
     ArrayBufferWriter<byte> writer;
@@ -126,7 +128,7 @@ public class SerializeTest<T> : SerializerTestBase<T>
     [Benchmark(Baseline = true), BenchmarkCategory(Categories.BufferWriter)]
     public void MemoryPackBufferWriter()
     {
-        MemoryPackSerializer.Serialize(writer, value);
+        MemoryPackSerializer.Serialize(writer, value, MemoryPackSerializerOptions.Default);
         writer.Clear();
     }
 

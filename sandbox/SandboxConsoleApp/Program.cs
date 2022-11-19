@@ -35,6 +35,13 @@ Console.WriteLine("---");
 // ---
 
 
+[MemoryPackable]
+public partial class IntClass2
+{
+    public int Value { get; set; }
+}
+
+
 
 
 //var arrayBufferWriter = new ArrayBufferWriter<byte>();

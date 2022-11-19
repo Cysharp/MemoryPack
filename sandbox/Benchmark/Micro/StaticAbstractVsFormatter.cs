@@ -79,3 +79,9 @@ public partial class IntClass
 }
 
 
+[MemoryPackable]
+public partial class IntClass2
+{
+    public int Value { get; set; }
+}
+

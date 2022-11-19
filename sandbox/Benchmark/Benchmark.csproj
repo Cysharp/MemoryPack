@@ -26,6 +26,10 @@
         <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
         <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.16" />
         <PackageReference Include="MessagePack" Version="2.4.35" />
+        <PackageReference Include="MessagePackAnalyzer" Version="2.4.35">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
         <PackageReference Include="Microsoft.Orleans.CodeGenerator" Version="7.0.0">
             <PrivateAssets>all</PrivateAssets>

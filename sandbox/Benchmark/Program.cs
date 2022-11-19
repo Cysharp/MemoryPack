@@ -21,7 +21,7 @@ using System.Reflection;
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
     // .AddColumn(StatisticColumn.OperationsPerSecond)
-    .AddExporter(DefaultExporters.Plain)
+    //.AddExporter(DefaultExporters.Plain)
     .AddExporter(MarkdownExporter.Default)
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1)); // .AddJob(Job.ShortRun);
 
@@ -56,7 +56,7 @@ var config = ManualConfig.CreateMinimumViable()
 
 
 //BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
-BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<Vector3[]>>(config, args);
@@ -72,9 +72,12 @@ BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 
 //BenchmarkRunner.Run<VersionTolerant>(config, args);
 
+BenchmarkRunner.Run(typeof(JilBenchmark<>), config, args);
+
 //BenchmarkSwitcher.FromTypes(new[]{
 //    typeof(SerializeTest<>),
-//    typeof(DeserializeTest<>) })
+//    typeof(DeserializeTest<>),
+//})
 //    .RunAllJoined(config);
 
 #endif
@@ -84,6 +87,12 @@ BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //MessagePack.MessagePackSerializerOptions
 //MemoryPack.MemoryPackSerializerOptions
 //System.Text.Json.JsonSerializerOptions
+
+//new JilBenchmark<Question>().OrleansDeserializeStream();
+var jil = new JilBenchmark<Question>();
+var bin = jil.MemoryPackSerializeUtf16();
+var q2 = MemoryPackSerializer.Deserialize<Question>(bin);
+
 
 new Hyper().Serialize();
 
