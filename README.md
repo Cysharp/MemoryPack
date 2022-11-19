@@ -369,9 +369,9 @@ Deserialize has `ReadOnlySpan<byte>` and `ReadOnlySequence<byte>`, `Stream` over
 
 ```csharp
 T? Deserialize<T>(ReadOnlySpan<byte> buffer)
-void Deserialize<T>(ReadOnlySpan<byte> buffer, ref T? value)
+int Deserialize<T>(ReadOnlySpan<byte> buffer, ref T? value)
 T? Deserialize<T>(in ReadOnlySequence<byte> buffer)
-void Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value)
+int Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value)
 async ValueTask<T?> DeserializeAsync<T>(Stream stream)
 ```
 
