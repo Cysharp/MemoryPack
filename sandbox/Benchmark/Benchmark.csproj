@@ -32,7 +32,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Orleans.Serialization" Version="7.0.0" />
-        <PackageReference Include="protobuf-net" Version="3.1.22" />
+        <PackageReference Include="protobuf-net" Version="3.1.25" />
         <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
     </ItemGroup>

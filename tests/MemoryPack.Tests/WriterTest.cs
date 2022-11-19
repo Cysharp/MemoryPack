@@ -10,7 +10,7 @@ public class WriterTest
     {
         var buffer = new SpanControlWriter();
 
-        var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+        var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Default);
         try
         {
             var writer = new MemoryPackWriter<SpanControlWriter>(ref buffer, state);
@@ -58,7 +58,7 @@ public class WriterTest
         var buffer = new ArrayBufferWriter<byte>();
 
         {
-            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Default);
             var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
 
             writer.WriteNullObjectHeader();
@@ -70,7 +70,7 @@ public class WriterTest
         }
         for (var i = 0; i < 250; i++)
         {
-            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Default);
             var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
             writer.WriteObjectHeader((byte)i);
             writer.Flush();
@@ -83,7 +83,7 @@ public class WriterTest
         for (byte i = MemoryPackCode.Reserved1; i <= MemoryPackCode.NullObject; i++)
         {
             if (i == 0) break;
-            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializeOptions.Default);
+            var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Default);
             var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
             var error = false;
             try

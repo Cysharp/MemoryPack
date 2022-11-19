@@ -10,7 +10,7 @@ public class StringTest
     {
         var text = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほわをん";
 
-        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializeOptions.Utf16);
+        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializerOptions.Utf16);
         var newText = MemoryPackSerializer.Deserialize<string>(bin);
 
         text.Should().Be(newText);
@@ -21,7 +21,7 @@ public class StringTest
     {
         var text = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほわをん";
 
-        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializeOptions.Utf8);
+        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializerOptions.Utf8);
         var newText = MemoryPackSerializer.Deserialize<string>(bin);
 
         text.Should().Be(newText);
@@ -32,7 +32,7 @@ public class StringTest
     {
         var text = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほわをん";
 
-        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializeOptions.Utf8);
+        var bin = MemoryPackSerializer.Serialize(text, MemoryPackSerializerOptions.Utf8);
 
         ref var head = ref MemoryMarshal.GetArrayDataReference(bin);
 

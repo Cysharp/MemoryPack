@@ -15,7 +15,7 @@ public static class MemoryPackReaderOptionalStatePool
 {
     static readonly ConcurrentQueue<MemoryPackReaderOptionalState> queue = new ConcurrentQueue<MemoryPackReaderOptionalState>();
 
-    public static MemoryPackReaderOptionalState Rent(MemoryPackSerializeOptions? options)
+    public static MemoryPackReaderOptionalState Rent(MemoryPackSerializerOptions? options)
     {
         if (!queue.TryDequeue(out var state))
         {
@@ -36,7 +36,7 @@ public static class MemoryPackReaderOptionalStatePool
 public sealed class MemoryPackReaderOptionalState : IDisposable
 {
     readonly Dictionary<uint, object> refToObject;
-    public MemoryPackSerializeOptions Options { get; private set; }
+    public MemoryPackSerializerOptions Options { get; private set; }
 
     internal MemoryPackReaderOptionalState()
     {
@@ -44,9 +44,9 @@ public sealed class MemoryPackReaderOptionalState : IDisposable
         Options = null!;
     }
 
-    internal void Init(MemoryPackSerializeOptions? options)
+    internal void Init(MemoryPackSerializerOptions? options)
     {
-        Options = options ?? MemoryPackSerializeOptions.Default;
+        Options = options ?? MemoryPackSerializerOptions.Default;
     }
 
     public object GetObjectReference(uint id)

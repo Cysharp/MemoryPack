@@ -25,8 +25,8 @@ public class CustomFormatterTest
         };
 
 
-        var bin1 = MemoryPackSerializer.Serialize(value, MemoryPackSerializeOptions.Utf8);
-        var bin2 = MemoryPackSerializer.Serialize(value, MemoryPackSerializeOptions.Utf16);
+        var bin1 = MemoryPackSerializer.Serialize(value, MemoryPackSerializerOptions.Utf8);
+        var bin2 = MemoryPackSerializer.Serialize(value, MemoryPackSerializerOptions.Utf16);
 
         var v1 = MemoryPackSerializer.Deserialize<CustomFormatterCheck>(bin1);
         var v2 = MemoryPackSerializer.Deserialize<CustomFormatterCheck>(bin2);

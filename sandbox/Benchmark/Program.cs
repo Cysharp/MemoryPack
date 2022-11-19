@@ -28,7 +28,7 @@ var config = ManualConfig.CreateMinimumViable()
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args, config);
 
 
-BenchmarkRunner.Run<Hyper>(config, args);
+//BenchmarkRunner.Run<Hyper>(config, args);
 
 //BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).RunAllJoined(config);
 
@@ -45,7 +45,7 @@ BenchmarkRunner.Run<Hyper>(config, args);
 
 // BenchmarkRunner.Run<ConcurrentQueueVsStack>(config, args);
 
-BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
+//BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
 
 
 //BenchmarkRunner.Run<Utf16VsUtf8>(config, args);
@@ -56,7 +56,7 @@ BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
 
 
 //BenchmarkRunner.Run<StaticDictionaryFormatterCheck>(config, args);
-//BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
+BenchmarkRunner.Run<SerializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<JsonResponseModel>>(config, args);
 //BenchmarkRunner.Run<SerializeTest<Vector3[]>>(config, args);
 //BenchmarkRunner.Run<DeserializeTest<Vector3[]>>(config, args);
@@ -80,6 +80,10 @@ BenchmarkRunner.Run<ListFormatterVsDirect>(config, args);
 #endif
 
 #if DEBUG
+
+//MessagePack.MessagePackSerializerOptions
+//MemoryPack.MemoryPackSerializerOptions
+//System.Text.Json.JsonSerializerOptions
 
 new Hyper().Serialize();
 

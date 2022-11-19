@@ -23,50 +23,50 @@ public class Utf16VsUtf8
     {
         this.japanese = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
         this.ascii = "abcedfghijklmnopqrstuvwxyz0123456789";
-        this.utf16Jpn = MemoryPackSerializer.Serialize(japanese, MemoryPackSerializeOptions.Utf16);
-        this.utf8Jpn = MemoryPackSerializer.Serialize(japanese, MemoryPackSerializeOptions.Utf8);
-        this.utf16Ascii = MemoryPackSerializer.Serialize(ascii, MemoryPackSerializeOptions.Utf16);
-        this.utf8Ascii = MemoryPackSerializer.Serialize(ascii, MemoryPackSerializeOptions.Utf8);
+        this.utf16Jpn = MemoryPackSerializer.Serialize(japanese, MemoryPackSerializerOptions.Utf16);
+        this.utf8Jpn = MemoryPackSerializer.Serialize(japanese, MemoryPackSerializerOptions.Utf8);
+        this.utf16Ascii = MemoryPackSerializer.Serialize(ascii, MemoryPackSerializerOptions.Utf16);
+        this.utf8Ascii = MemoryPackSerializer.Serialize(ascii, MemoryPackSerializerOptions.Utf8);
 
         this.largeAscii = RandomProvider.NextString(600);
-        this.utf16LargeAscii = MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializeOptions.Utf16);
-        this.utf8LargeAscii = MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializeOptions.Utf8);
+        this.utf16LargeAscii = MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializerOptions.Utf16);
+        this.utf8LargeAscii = MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializerOptions.Utf8);
     }
 
     [Benchmark]
     public byte[] SerializeUtf16Ascii()
     {
-        return MemoryPackSerializer.Serialize(ascii, MemoryPackSerializeOptions.Utf16);
+        return MemoryPackSerializer.Serialize(ascii, MemoryPackSerializerOptions.Utf16);
     }
 
     [Benchmark]
     public byte[] SerializeUtf16Japanese()
     {
-        return MemoryPackSerializer.Serialize(japanese, MemoryPackSerializeOptions.Utf16);
+        return MemoryPackSerializer.Serialize(japanese, MemoryPackSerializerOptions.Utf16);
     }
 
     [Benchmark]
     public byte[] SerializeUtf8Ascii()
     {
-        return MemoryPackSerializer.Serialize(ascii, MemoryPackSerializeOptions.Utf8);
+        return MemoryPackSerializer.Serialize(ascii, MemoryPackSerializerOptions.Utf8);
     }
 
     [Benchmark]
     public byte[] SerializeUtf8Japanese()
     {
-        return MemoryPackSerializer.Serialize(japanese, MemoryPackSerializeOptions.Utf8);
+        return MemoryPackSerializer.Serialize(japanese, MemoryPackSerializerOptions.Utf8);
     }
 
     [Benchmark]
     public byte[] SerializeUtf16LargeAscii()
     {
-        return MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializeOptions.Utf16);
+        return MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializerOptions.Utf16);
     }
 
     [Benchmark]
     public byte[] SerializeUtf8LargeAscii()
     {
-        return MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializeOptions.Utf8);
+        return MemoryPackSerializer.Serialize(largeAscii, MemoryPackSerializerOptions.Utf8);
     }
 
     [Benchmark]

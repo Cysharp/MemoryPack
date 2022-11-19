@@ -5,7 +5,7 @@ namespace MemoryPack.AspNetCoreMvcFormatter;
 public class MemoryPackOutputFormatter : OutputFormatter
 {
     const string ContentType = "application/x-memorypack";
-    readonly MemoryPackSerializeOptions? options;
+    readonly MemoryPackSerializerOptions? options;
     readonly bool checkContentType = false;
 
     public MemoryPackOutputFormatter(bool checkContentType = false)
@@ -14,7 +14,7 @@ public class MemoryPackOutputFormatter : OutputFormatter
         this.checkContentType = checkContentType;
     }
 
-    public MemoryPackOutputFormatter(MemoryPackSerializeOptions options)
+    public MemoryPackOutputFormatter(MemoryPackSerializerOptions options)
     {
         this.options = options;
         SupportedMediaTypes.Add(ContentType);

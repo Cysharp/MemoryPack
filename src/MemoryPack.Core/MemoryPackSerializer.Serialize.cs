@@ -19,7 +19,7 @@ public static partial class MemoryPackSerializer
     [ThreadStatic]
     static MemoryPackWriterOptionalState? threadStaticWriterOptionalState;
 
-    public static byte[] Serialize<T>(in T? value, MemoryPackSerializeOptions? options = default)
+    public static byte[] Serialize<T>(in T? value, MemoryPackSerializerOptions? options = default)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -81,7 +81,7 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static unsafe void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
+    public static unsafe void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializerOptions? options = default)
 #if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
@@ -158,7 +158,7 @@ public static partial class MemoryPackSerializer
         writer.Flush();
     }
 
-    public static async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
@@ -184,7 +184,7 @@ public static partial class MemoryPackSerializer
             OptionalState = new MemoryPackWriterOptionalState();
         }
 
-        public void Init(MemoryPackSerializeOptions? options)
+        public void Init(MemoryPackSerializerOptions? options)
         {
             OptionalState.Init(options);
         }

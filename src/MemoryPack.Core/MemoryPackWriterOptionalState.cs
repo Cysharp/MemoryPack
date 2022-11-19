@@ -9,7 +9,7 @@ public static class MemoryPackWriterOptionalStatePool
 {
     static readonly ConcurrentQueue<MemoryPackWriterOptionalState> queue = new ConcurrentQueue<MemoryPackWriterOptionalState>();
 
-    public static MemoryPackWriterOptionalState Rent(MemoryPackSerializeOptions? options)
+    public static MemoryPackWriterOptionalState Rent(MemoryPackSerializerOptions? options)
     {
         if (!queue.TryDequeue(out var state))
         {
@@ -34,7 +34,7 @@ public sealed class MemoryPackWriterOptionalState : IDisposable
     uint nextId;
     readonly Dictionary<object, uint> objectToRef;
 
-    public MemoryPackSerializeOptions Options { get; private set; }
+    public MemoryPackSerializerOptions Options { get; private set; }
 
     internal MemoryPackWriterOptionalState()
     {
@@ -46,13 +46,13 @@ public sealed class MemoryPackWriterOptionalState : IDisposable
     MemoryPackWriterOptionalState(bool _)
     {
         objectToRef = null!;
-        Options = MemoryPackSerializeOptions.Default;
+        Options = MemoryPackSerializerOptions.Default;
         nextId = 0;
     }
 
-    internal void Init(MemoryPackSerializeOptions? options)
+    internal void Init(MemoryPackSerializerOptions? options)
     {
-        Options = options ?? MemoryPackSerializeOptions.Default;
+        Options = options ?? MemoryPackSerializerOptions.Default;
     }
 
     public void Reset()

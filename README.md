@@ -340,9 +340,9 @@ Serialize has three overloads.
 
 ```csharp
 // Non generic API also available, these version is first argument is Type and value is object?
-byte[] Serialize<T>(in T? value, MemoryPackSerializeOptions? options = default)
-void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializeOptions? options = default)
-async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+byte[] Serialize<T>(in T? value, MemoryPackSerializerOptions? options = default)
+void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializerOptions? options = default)
+async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
 ```
 
 The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
@@ -353,9 +353,9 @@ Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it seria
 
 If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
 
-### MemoryPackSerializeOptions
+### MemoryPackSerializerOptions
 
-`MemoryPackSerializeOptions` configures how serialize string as Utf16 or Utf8. If passing null then uses `MemoryPackSerializeOptions.Default`, it is same as `MemoryPackSerializeOptions.Utf8`, in other words, serialize the string as Utf8. If you want to serialize with Utf16, you can use `MemoryPackSerializeOptions.Utf16`.
+`MemoryPackSerializerOptions` configures how serialize string as Utf16 or Utf8. If passing null then uses `MemoryPackSerializerOptions.Default`, it is same as `MemoryPackSerializerOptions.Utf8`, in other words, serialize the string as Utf8. If you want to serialize with Utf16, you can use `MemoryPackSerializerOptions.Utf16`.
 
 Since C#'s internal string representation is UTF16, UTF16 performs better. However, the payload tends to be larger; in UTF8, an ASCII string is one byte, while in UTF16 it is two bytes. Because the difference in size of this payload is so large, UTF8 is set by default.
 
@@ -924,11 +924,11 @@ Target framework dependency
 ---
 MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatibility. For example, MemoryPackable types under `netstandard2.1` project and use it from `net7.0` project, throws runtime exception like this
 
-> Unhandled exception. System.TypeLoadException: Virtual static method 'Serialize' is not implemented on type '*' from assembly '*'.
+> Unhandled exception. System.TypeLoadException: Virtual static method '*' is not implemented on type '*' from assembly '*'.
 
-Since net7.0 uses static abstract members (netstandard2.1 is not supported), this behavior is a specification.
+Since net7.0 uses static abstract members(`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
 
-For library developer if depend MemoryPack, you need to configure dual target framework.
+.NET 7 project can't refere netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
 
 ```xml
 <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -940,7 +940,7 @@ Install via UPM git URL package or asset package(MemoryPack.*.*.*.unitypackage) 
 
 * https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack
 
-If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.7.5. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.7.5`.
+If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.8.0. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.8.0`.
 
 Supporting minimum Unity version is `2021.3`. The dependency managed DLL `System.Runtime.CompilerServices.Unsafe/6.0.0` is included with unitypackage. For git references, you will need to add them in another way as they are not included to avoid unnecessary dependencies; either extract the dll from unitypackage or download it from the [NuGet page](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/6.0.0).
 

@@ -7,7 +7,7 @@ namespace MemoryPack.Streaming;
 
 public static class MemoryPackStreamingSerializer
 {
-    public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(PipeWriter pipeWriter, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         static void WriteCollectionHeader(PipeWriter pipeWriter, int count, MemoryPackWriterOptionalState state)
         {
@@ -47,7 +47,7 @@ public static class MemoryPackStreamingSerializer
         await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync<T>(Stream stream, int count, IEnumerable<T> source, int flushRate = 4096, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         static void WriteCollectionHeader(ReusableLinkedArrayBufferWriter bufferWriter, int count, MemoryPackWriterOptionalState state)
         {
@@ -94,7 +94,7 @@ public static class MemoryPackStreamingSerializer
         }
     }
 
-    public static async IAsyncEnumerable<T?> DeserializeAsync<T>(PipeReader pipeReader, int bufferAtLeast = 4096, int readMinimumSize = 8192, MemoryPackSerializeOptions? options = default, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public static async IAsyncEnumerable<T?> DeserializeAsync<T>(PipeReader pipeReader, int bufferAtLeast = 4096, int readMinimumSize = 8192, MemoryPackSerializerOptions? options = default, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         static bool ReadCollectionHeader(in ReadOnlySequence<byte> buffer, MemoryPackReaderOptionalState state, out int length)
         {
@@ -192,7 +192,7 @@ public static class MemoryPackStreamingSerializer
         }
     }
 
-    public static IAsyncEnumerable<T?> DeserializeAsync<T>(Stream stream, int bufferAtLeast = 4096, int readMinimumSize = 8192, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static IAsyncEnumerable<T?> DeserializeAsync<T>(Stream stream, int bufferAtLeast = 4096, int readMinimumSize = 8192, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         return DeserializeAsync<T>(PipeReader.Create(stream), bufferAtLeast, readMinimumSize, options, cancellationToken);
     }

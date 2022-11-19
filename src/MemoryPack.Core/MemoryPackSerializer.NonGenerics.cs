@@ -10,7 +10,7 @@ public static partial class MemoryPackSerializer
     // Serialize
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] Serialize(Type type, object? value, MemoryPackSerializeOptions? options = default)
+    public static byte[] Serialize(Type type, object? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticState;
         if (state == null)
@@ -31,7 +31,7 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value, MemoryPackSerializeOptions? options = default)
+    public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value, MemoryPackSerializerOptions? options = default)
 #if NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
@@ -68,7 +68,7 @@ public static partial class MemoryPackSerializer
         writer.Flush();
     }
 
-    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask SerializeAsync(Type type, Stream stream, object? value, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
@@ -84,14 +84,14 @@ public static partial class MemoryPackSerializer
 
     // Deserialize
 
-    public static object? Deserialize(Type type, ReadOnlySpan<byte> buffer, MemoryPackSerializeOptions? options = default)
+    public static object? Deserialize(Type type, ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         object? value = default;
         Deserialize(type, buffer, ref value, options);
         return value;
     }
 
-    public static void Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value, MemoryPackSerializeOptions? options = default)
+    public static void Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticReaderOptionalState;
         if (state == null)
@@ -112,14 +112,14 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static object? Deserialize(Type type, in ReadOnlySequence<byte> buffer, MemoryPackSerializeOptions? options = default)
+    public static object? Deserialize(Type type, in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         object? value = default;
         Deserialize(type, buffer, ref value, options);
         return value;
     }
 
-    public static void Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value, MemoryPackSerializeOptions? options = default)
+    public static void Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticReaderOptionalState;
         if (state == null)
@@ -140,7 +140,7 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         var builder = ReusableReadOnlySequenceBuilderPool.Rent();
         try

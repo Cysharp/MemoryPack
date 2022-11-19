@@ -11,14 +11,14 @@ public static partial class MemoryPackSerializer
     [ThreadStatic]
     static MemoryPackReaderOptionalState? threadStaticReaderOptionalState;
 
-    public static T? Deserialize<T>(ReadOnlySpan<byte> buffer, MemoryPackSerializeOptions? options = default)
+    public static T? Deserialize<T>(ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         T? value = default;
         Deserialize(buffer, ref value, options);
         return value;
     }
 
-    public static void Deserialize<T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializeOptions? options = default)
+    public static void Deserialize<T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -49,14 +49,14 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static T? Deserialize<T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializeOptions? options = default)
+    public static T? Deserialize<T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         T? value = default;
         Deserialize<T>(buffer, ref value);
         return value;
     }
 
-    public static void Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializeOptions? options = default)
+    public static void Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticReaderOptionalState;
         if (state == null)
@@ -77,7 +77,7 @@ public static partial class MemoryPackSerializer
         }
     }
 
-    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, MemoryPackSerializeOptions? options = default, CancellationToken cancellationToken = default)
+    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         var builder = ReusableReadOnlySequenceBuilderPool.Rent();
         try
