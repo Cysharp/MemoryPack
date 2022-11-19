@@ -91,7 +91,7 @@ public static partial class MemoryPackSerializer
         return value;
     }
 
-    public static void Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
+    public static int Deserialize(Type type, ReadOnlySpan<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticReaderOptionalState;
         if (state == null)
@@ -104,6 +104,7 @@ public static partial class MemoryPackSerializer
         try
         {
             reader.GetFormatter(type).Deserialize(ref reader, ref value);
+            return reader.Consumed;
         }
         finally
         {
@@ -119,7 +120,7 @@ public static partial class MemoryPackSerializer
         return value;
     }
 
-    public static void Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
+    public static int Deserialize(Type type, in ReadOnlySequence<byte> buffer, ref object? value, MemoryPackSerializerOptions? options = default)
     {
         var state = threadStaticReaderOptionalState;
         if (state == null)
@@ -132,6 +133,7 @@ public static partial class MemoryPackSerializer
         try
         {
             reader.GetFormatter(type).Deserialize(ref reader, ref value);
+            return reader.Consumed;
         }
         finally
         {
@@ -142,6 +144,18 @@ public static partial class MemoryPackSerializer
 
     public static async ValueTask<object?> DeserializeAsync(Type type, Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
+        if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            object? value = default;
+            var bytesRead = Deserialize(type, streamBuffer.AsSpan(checked((int)ms.Position)), ref value, options);
+
+            // Emulate that we had actually "read" from the stream.
+            ms.Seek(bytesRead, SeekOrigin.Current);
+
+            return value;
+        }
+
         var builder = ReusableReadOnlySequenceBuilderPool.Rent();
         try
         {

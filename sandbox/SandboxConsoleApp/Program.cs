@@ -25,6 +25,15 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
+var range = Enumerable.Range(1, 200).Select(x => (byte)x).ToArray();
+var hoge = new MemoryStream(range, 10, range.Length - 10, false, true);
+hoge.Position = 49;
+
+if (hoge.TryGetBuffer(out var buffer))
+{
+    Console.WriteLine(buffer);
+}
+
 
 Console.WriteLine("---");
 //var bin = MemoryPackSerializer.Serialize("hogehoge");
