@@ -69,7 +69,7 @@ Built-in supported types
 These types can serialize by default:
 
 * .NET primitives (`byte`, `int`, `bool`, `char`, `double`, etc...)
-* Unmanaged types(Any `enum`, Any user-defined `strcut` that no contains reference type)
+* Unmanaged types(Any `enum`, Any user-defined `struct` that no contains reference type)
 * `string`, `decimal`, `Half`, `Int128`, `UInt128`, `Guid`, `Rune`, `BigInteger`
 * `TimeSpan`,  `DateTime`, `DateTimeOffset`, `TimeOnly`, `DateOnly`, `TimeZoneInfo`
 * `Complex`, `Plane`, `Quaternion` `Matrix3x2`, `Matrix4x4`, `Vector2`, `Vector3`, `Vector4`
