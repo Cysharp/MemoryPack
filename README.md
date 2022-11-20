@@ -987,7 +987,7 @@ Version Tolerant Object is similar as Object but has byte length of values in he
 
 ### Circular Reference Object
 
-`(byte memberCount, [varint byte-length-of-values...], varint referenceId, [values...])`
+`(byte memberCount, [varint byte-length-of-values...], varint referenceId, [values...])`  
 `(250, varint referenceId)`
 
 Circular Reference Object is similar as Version Tolerant Object but if memberCount is 250, next varint(unsigned-int32) is referenceId. If not, after byte-length-of-values, varint referenceId is written.
