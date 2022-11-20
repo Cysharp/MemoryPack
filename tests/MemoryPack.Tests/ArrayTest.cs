@@ -1,6 +1,7 @@
 ﻿using MemoryPack.Tests.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,4 +52,46 @@ public class ArrayTest
         v2!.List1[1].One.Should().Be(checker.List1[1].One);
         v2!.List1[1].Two.Should().Be(checker.List1[1].Two);
     }
+
+    [Fact]
+    public void BoolArray()
+    {
+        var rand = new Random();
+        for (int i = 0; i < 1000; i++)
+        {
+            var data = Enumerable.Range(0, i).Select(_ => rand.Next(0, 2) == 0).ToArray();
+            var value = new BitPackSingleData { Data = data };
+
+            var bin = MemoryPackSerializer.Serialize(value);
+            var value2 = MemoryPackSerializer.Deserialize<BitPackSingleData>(bin);
+
+            value2.Data.Should().Equal(data);
+        }
+        for (int i = 0; i < 1000; i++)
+        {
+            var data = Enumerable.Range(0, i).Select(_ => rand.Next(0, 2) == 0).ToArray();
+            var value = new BitPackData { Data = data, AAA = i };
+
+            var bin = MemoryPackSerializer.Serialize(value);
+            var value2 = MemoryPackSerializer.Deserialize<BitPackData>(bin);
+
+            value2.Data.Should().Equal(data);
+            value2.AAA.Should().Be(i);
+        }
+    }
+}
+
+[MemoryPackable]
+public partial class BitPackData
+{
+    [BitPackFormatter]
+    public bool[]? Data { get; set; }
+    public int AAA { get; set; }
+}
+
+[MemoryPackable]
+public partial class BitPackSingleData
+{
+    [BitPackFormatter]
+    public bool[]? Data { get; set; }
 }

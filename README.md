@@ -583,7 +583,7 @@ public partial class Employee
 
 CustomFormatter
 ---
-If implements `MemoryPackCustomFormatterAttribute<T>`, you can configure to use custom formatter to MemoryPackObject's member.
+If implements `MemoryPackCustomFormatterAttribute<T>` or `MemoryPackCustomFormatterAttribute<TFormatter, T>`(more performant but complex), you can configure to use custom formatter to MemoryPackObject's member.
 
 ```csharp
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -593,17 +593,23 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatter<TValue>` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue` exsits.
 
 ```csharp
 [MemoryPackable]
 public partial class Sample
 {
+    // serialize this member as UTF16 String, it is performant than UTF8 but in ASCII, size is larger(but non ASCII, sometimes smaller).
     [Utf16StringFormatter]
     public string? Text { get; set; }
 
+    // In deserialize, Dictionary is initialized with StringComparer.OrdinalIgnoreCase.
     [OrdinalIgnoreCaseStringDictionaryFormatter<int>]
     public Dictionary<string, int>? Ids { get; set; }
+    
+    // In deserialize time, all string is interned(see: String.Intern). If similar values come repeatedly, it saves memory.
+    [InternStringFormatter]
+    public string? Flag { get; set; }
 }
 ```
 
@@ -618,6 +624,19 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
     {
         return formatter;
     }
+}
+```
+
+`BitPackFormatter` is for `bool[]`, same serialzied result as `BitArray`. In other words, bool is normally 1byte, but since it is treated as 1bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    public int Id { get; set; }
+
+    [BitPackFormatter]
+    public bool[]? Data { get; set; }
 }
 ```
 

@@ -1,4 +1,5 @@
-﻿using MemoryPack.Formatters;
+﻿using MemoryPack.Compression;
+using MemoryPack.Formatters;
 
 namespace MemoryPack;
 
@@ -35,6 +36,14 @@ public sealed class InternStringFormatterAttribute : MemoryPackCustomFormatterAt
     public override InternStringFormatter GetFormatter()
     {
         return InternStringFormatter.Default;
+    }
+}
+
+public sealed class BitPackFormatterAttribute : MemoryPackCustomFormatterAttribute<BitPackFormatter, bool[]>
+{
+    public override BitPackFormatter GetFormatter()
+    {
+        return BitPackFormatter.Default;
     }
 }
 
