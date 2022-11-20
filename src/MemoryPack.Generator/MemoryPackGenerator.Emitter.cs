@@ -562,7 +562,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         foreach (var item in Members.Where(x => x.Kind == MemberKind.CustomFormatter))
         {
             var fieldOrProp = item.IsField ? "Field" : "Property";
-            sb.AppendLine($"    static readonly IMemoryPackFormatter<{item.MemberType.FullyQualifiedToString()}> __{item.Name}Formatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<{item.CustomFormatter!.FullyQualifiedToString()}>(typeof({this.Symbol.FullyQualifiedToString()}).Get{fieldOrProp}(\"{item.Name}\", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();");
+
+            sb.AppendLine($"    static readonly {item.CustomFormatterName} __{item.Name}Formatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<{item.CustomFormatter!.FullyQualifiedToString()}>(typeof({this.Symbol.FullyQualifiedToString()}).Get{fieldOrProp}(\"{item.Name}\", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();");
         }
         return sb.ToString();
     }
@@ -1203,7 +1204,7 @@ public partial class MemberMeta
             case MemberKind.CustomFormatter:
                 {
                     var mt = MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    return $"{pre}__{Name} = reader.ReadValueWithFormatter<IMemoryPackFormatter<{mt}>, {mt}>(__{Name}Formatter);";
+                    return $"{pre}__{Name} = reader.ReadValueWithFormatter<{CustomFormatterName}, {mt}>(__{Name}Formatter);";
                 }
             default:
                 return $"{pre}__{Name} = reader.ReadValue<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
