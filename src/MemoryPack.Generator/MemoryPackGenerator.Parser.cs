@@ -461,7 +461,8 @@ partial class MemberMeta
     public ISymbol Symbol { get; }
     public string Name { get; }
     public ITypeSymbol MemberType { get; }
-    public INamedTypeSymbol? CustomFormatter { get; set; }
+    public INamedTypeSymbol? CustomFormatter { get; }
+    public string? CustomFormatterName { get; }
     public bool IsField { get; }
     public bool IsProperty { get; }
     public bool IsSettable { get; }
@@ -538,11 +539,30 @@ partial class MemberMeta
 
         if (references.MemoryPackCustomFormatterAttribute != null)
         {
+            var genericFormatter = false;
             var customFormatterAttr = symbol.GetImplAttribute(references.MemoryPackCustomFormatterAttribute);
+            if (customFormatterAttr == null && references.MemoryPackCustomFormatter2Attribute != null)
+            {
+                customFormatterAttr = symbol.GetImplAttribute(references.MemoryPackCustomFormatter2Attribute);
+                genericFormatter = true;
+            }
+
             if (customFormatterAttr != null)
             {
-                CustomFormatter = customFormatterAttr.AttributeClass;
+                CustomFormatter = customFormatterAttr.AttributeClass!;
                 Kind = MemberKind.CustomFormatter;
+
+                string formatterName;
+                if (genericFormatter)
+                {
+                    formatterName = CustomFormatter.GetAllBaseTypes().First(x => x.EqualsUnconstructedGenericType(references.MemoryPackCustomFormatter2Attribute!))
+                        .TypeArguments[0].FullyQualifiedToString();
+                }
+                else
+                {
+                    formatterName = $"IMemoryPackFormatter<{MemberType.FullyQualifiedToString()}>";
+                }
+                CustomFormatterName = formatterName;
                 return;
             }
         }

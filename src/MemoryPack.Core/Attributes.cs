@@ -77,6 +77,13 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
     public abstract IMemoryPackFormatter<T> GetFormatter();
 }
 
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public abstract class MemoryPackCustomFormatterAttribute<TFormatter, T> : Attribute
+    where TFormatter : IMemoryPackFormatter<T>
+{
+    public abstract TFormatter GetFormatter();
+}
+
 #endif
 
 // similar naming as System.Text.Json attribtues
