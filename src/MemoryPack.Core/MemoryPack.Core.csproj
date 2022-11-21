@@ -74,9 +74,6 @@
     <ItemGroup>
         <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;**\CompressedArray.cs;**\CollectionsMarshalEx.cs;**\ImmutableCollectionFormatters.cs" />
     </ItemGroup>
-    <ItemGroup>
-      <TargetFiles1 Remove="BitPackFormatter.cs" />
-    </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net7.0'">
         <Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />

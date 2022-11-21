@@ -69,6 +69,36 @@ public class CompressionTest
         }
     }
 
+    [Fact]
+    public void AttributeCompression()
+    {
+
+        // pattern1, huge compression
+        var pattern1 = Enumerable.Range(1, 1000).Select(_ => string.Concat(Enumerable.Repeat("http://", 1000)))
+            .Prepend("hogehogehugahugahugahugahogehoge!")
+            .ToArray();
+
+        // pattern2, small compression
+        var pattern2 = new string[] { "a", "b", "c" };
+
+        foreach (var pattern in new[] { pattern1, pattern2 })
+        {
+            var data = new CompressionAttrData()
+            {
+                Id1 = 14141,
+                Data = Encoding.UTF8.GetBytes(string.Concat(pattern)),
+                Id2 = 99999
+            };
+
+            var bin = MemoryPackSerializer.Serialize(data);
+            var v2 = MemoryPackSerializer.Deserialize<CompressionAttrData>(bin)!;
+
+            v2.Id1.Should().Be(data.Id1);
+            v2.Id2.Should().Be(data.Id2);
+            v2.Data.Should().Equal(data.Data);
+        }
+    }
+
     byte[] ReferenceDecompress(byte[] bytes)
     {
         using (var ms = new MemoryStream(bytes))
@@ -79,4 +109,16 @@ public class CompressionTest
             return dest.ToArray();
         }
     }
+}
+
+
+[MemoryPackable]
+public partial class CompressionAttrData
+{
+    public int Id1 { get; set; }
+
+    [BrotliFormatter]
+    public byte[] Data { get; set; } = default!;
+
+    public int Id2 { get; set; }
 }

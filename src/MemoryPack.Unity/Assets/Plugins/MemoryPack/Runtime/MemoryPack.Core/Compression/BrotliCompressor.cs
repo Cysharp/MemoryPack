@@ -11,6 +11,8 @@ using MemoryPack.Internal;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace MemoryPack.Compression {
 
@@ -115,7 +117,7 @@ public
         }
     }
 
-    public void CopyTo(IBufferWriter<byte> destBufferWriter)
+    public void CopyTo(in IBufferWriter<byte> destBufferWriter)
         
     {
         ThrowIfDisposed();
@@ -126,12 +128,12 @@ public
             var writtenNotAdvanced = 0;
             foreach (var item in bufferWriter)
             {
-                writtenNotAdvanced = CompressCore(ref encoder, item.Span, destBufferWriter, initialLength: null, isFinalBlock: false);
+                writtenNotAdvanced = CompressCore(ref encoder, item.Span, ref Unsafe.AsRef(destBufferWriter), initialLength: null, isFinalBlock: false);
             }
 
             // call BrotliEncoderOperation.Finish
             var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
-            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, destBufferWriter, initialLength: finalBlockLength, isFinalBlock: true);
+            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref Unsafe.AsRef(destBufferWriter), initialLength: finalBlockLength, isFinalBlock: true);
         }
         finally
         {
@@ -139,7 +141,35 @@ public
         }
     }
 
-    static int CompressCore(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, IBufferWriter<byte> destBufferWriter, int? initialLength, bool isFinalBlock)
+    public void CopyTo(ref MemoryPackWriter memoryPackWriter)
+#if NET7_0_OR_GREATER
+        
+#else
+        
+#endif
+    {
+        ThrowIfDisposed();
+
+        var encoder = new BrotliEncoder(quality, window);
+        try
+        {
+            var writtenNotAdvanced = 0;
+            foreach (var item in bufferWriter)
+            {
+                writtenNotAdvanced = CompressCore(ref encoder, item.Span, ref memoryPackWriter, initialLength: null, isFinalBlock: false);
+            }
+
+            // call BrotliEncoderOperation.Finish
+            var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
+            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref memoryPackWriter, initialLength: finalBlockLength, isFinalBlock: true);
+        }
+        finally
+        {
+            encoder.Dispose();
+        }
+    }
+
+    static int CompressCore(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, ref IBufferWriter<byte> destBufferWriter, int? initialLength, bool isFinalBlock)
         
     {
         var writtenNotAdvanced = 0;
@@ -148,6 +178,39 @@ public
         while (lastResult == OperationStatus.DestinationTooSmall)
         {
             var dest = destBufferWriter.GetSpan(initialLength ?? source.Length);
+
+            lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
+            writtenNotAdvanced += bytesConsumed;
+
+            if (lastResult == OperationStatus.InvalidData) MemoryPackSerializationException.ThrowCompressionFailed();
+            if (bytesWritten > 0)
+            {
+                destBufferWriter.Advance(bytesWritten);
+                writtenNotAdvanced = 0;
+            }
+            if (bytesConsumed > 0)
+            {
+                source = source.Slice(bytesConsumed);
+            }
+        }
+
+        return writtenNotAdvanced;
+    }
+
+    static int CompressCore(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, ref MemoryPackWriter destBufferWriter, int? initialLength, bool isFinalBlock)
+#if NET7_0_OR_GREATER
+        
+#else
+        
+#endif
+    {
+        var writtenNotAdvanced = 0;
+
+        var lastResult = OperationStatus.DestinationTooSmall;
+        while (lastResult == OperationStatus.DestinationTooSmall)
+        {
+            ref var spanRef = ref destBufferWriter.GetSpanReference(initialLength ?? source.Length);
+            var dest = MemoryMarshal.CreateSpan(ref spanRef, destBufferWriter.BufferLength);
 
             lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
             writtenNotAdvanced += bytesConsumed;

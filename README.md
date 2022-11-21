@@ -593,7 +593,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter` exsits.
 
 ```csharp
 [MemoryPackable]
@@ -637,6 +637,19 @@ public partial class Sample
 
     [BitPackFormatter]
     public bool[]? Data { get; set; }
+}
+```
+
+`BrotliFormatter` is for `byte[]`, for example you can compress large payload by Brotli.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    public int Id { get; set; }
+
+    [BrotliFormatter]
+    public byte[]? Payload { get; set; }
 }
 ```
 
@@ -693,6 +706,19 @@ Compression level is very important. The default is set to quality-1 (Compressio
 Fastest (quality-1) will be close to the speed of [LZ4](https://github.com/lz4/lz4), but 4 is much slower. This was determined to be critical in the serializer use scenario. Be careful when using the standard `BrotliStream`(quality-4 is the default). In any case, compression/decompression speeds and sizes will result in very different results for different data. Please prepare the data to be handled by your application and test it yourself.
 
 Note that there is a several-fold speed penalty between MemoryPack's uncompressed and Brotli's added compression.
+
+Brotli support also exists in custom formatter. `BrotliFormatter` can compress specify member.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    public int Id { get; set; }
+
+    [BrotliFormatter]
+    public byte[]? Payload { get; set; }
+}
+```
 
 Packages
 ---

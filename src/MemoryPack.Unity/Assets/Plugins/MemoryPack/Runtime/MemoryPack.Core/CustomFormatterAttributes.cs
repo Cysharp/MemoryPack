@@ -56,6 +56,21 @@ public sealed class BitPackFormatterAttribute : MemoryPackCustomFormatterAttribu
     }
 }
 
+public sealed class BrotliFormatterAttribute : MemoryPackCustomFormatterAttribute<BrotliFormatter, byte[]>
+{
+    public System.IO.Compression.CompressionLevel CompressionLevel { get; }
+
+    public BrotliFormatterAttribute(System.IO.Compression.CompressionLevel compressionLevel = System.IO.Compression.CompressionLevel.Fastest)
+    {
+        this.CompressionLevel = compressionLevel;
+    }
+
+    public override BrotliFormatter GetFormatter()
+    {
+        return new BrotliFormatter(CompressionLevel);
+    }
+}
+
 #endif
 
 }

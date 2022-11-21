@@ -39,6 +39,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     readonly MemoryPackWriterOptionalState optionalState;
 
     public int WrittenCount => writtenCount;
+    public int BufferLength => bufferLength;
     public MemoryPackWriterOptionalState OptionalState => optionalState;
 
     public MemoryPackWriter(ref TBufferWriter writer, MemoryPackWriterOptionalState optionalState)
@@ -569,9 +570,9 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 #endif
     }
 
-#endregion
+    #endregion
 
-#region WriteUnmanagedArray/Span
+    #region WriteUnmanagedArray/Span
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUnmanagedArray<T>(T[]? value)
@@ -662,7 +663,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(allocSize);
     }
 
-#endregion
+    #endregion
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

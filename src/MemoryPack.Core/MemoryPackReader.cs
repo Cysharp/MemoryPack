@@ -766,4 +766,31 @@ public ref partial struct MemoryPackReader
         }
 #endif
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void DangerousReadUnmanagedSpanView<T>(out bool isNull, out ReadOnlySpan<byte> view)
+    {
+        if (!TryReadCollectionHeader(out var length))
+        {
+            isNull = true;
+            view = default;
+            return;
+        }
+
+        isNull = false;
+
+        if (length == 0)
+        {
+            view = Array.Empty<byte>();
+            return;
+        }
+
+        var byteCount = length * Unsafe.SizeOf<T>();
+        ref var src = ref GetSpanReference(byteCount);
+
+        var span = MemoryMarshal.CreateReadOnlySpan(ref src, byteCount);
+
+        Advance(byteCount);
+        view = span; // safe until call next GetSpanReference
+    }
 }
