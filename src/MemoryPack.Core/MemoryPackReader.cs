@@ -168,6 +168,40 @@ public ref partial struct MemoryPackReader
         consumed += count;
     }
 
+    public void GetRemainingSource(out ReadOnlySpan<byte> singleSource, out ReadOnlySequence<byte> remainingSource)
+    {
+        if (bufferSource.IsEmpty)
+        {
+            remainingSource = ReadOnlySequence<byte>.Empty;
+#if NET7_0_OR_GREATER
+            singleSource = MemoryMarshal.CreateReadOnlySpan(ref bufferReference, bufferLength);
+#else
+            singleSource = bufferReference;
+#endif
+            return;
+        }
+        else
+        {
+            if (bufferSource.IsSingleSegment)
+            {
+                remainingSource = ReadOnlySequence<byte>.Empty;
+                singleSource = bufferSource.FirstSpan.Slice(advancedCount);
+                return;
+            }
+
+            singleSource = default;
+            remainingSource = bufferSource.Slice(advancedCount);
+            if (remainingSource.IsSingleSegment)
+            {
+                singleSource = remainingSource.FirstSpan;
+                remainingSource = ReadOnlySequence<byte>.Empty;
+                return;
+            }
+            return;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Dispose()
     {
         if (rentBuffer != null)

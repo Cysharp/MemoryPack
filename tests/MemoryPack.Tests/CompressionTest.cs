@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -87,6 +88,7 @@ public class CompressionTest
             {
                 Id1 = 14141,
                 Data = Encoding.UTF8.GetBytes(string.Concat(pattern)),
+                String = string.Concat(pattern),
                 Id2 = 99999
             };
 
@@ -96,6 +98,7 @@ public class CompressionTest
             v2.Id1.Should().Be(data.Id1);
             v2.Id2.Should().Be(data.Id2);
             v2.Data.Should().Equal(data.Data);
+            v2.String.Should().Be(data.String);
         }
     }
 
@@ -119,6 +122,9 @@ public partial class CompressionAttrData
 
     [BrotliFormatter]
     public byte[] Data { get; set; } = default!;
+
+    [BrotliStringFormatter]
+    public string String { get; set; } = default!;
 
     public int Id2 { get; set; }
 }

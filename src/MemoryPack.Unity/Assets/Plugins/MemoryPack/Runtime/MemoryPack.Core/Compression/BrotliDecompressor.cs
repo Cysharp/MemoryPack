@@ -20,6 +20,11 @@ public struct BrotliDecompressor : IDisposable
 
     public ReadOnlySequence<byte> Decompress(ReadOnlySpan<byte> compressedSpan)
     {
+        return Decompress(compressedSpan, out _);
+    }
+
+    public ReadOnlySequence<byte> Decompress(ReadOnlySpan<byte> compressedSpan, out int consumed)
+    {
         if (sequenceBuilder != null)
         {
             MemoryPackSerializationException.ThrowAlreadyDecompressed();
@@ -30,7 +35,7 @@ public struct BrotliDecompressor : IDisposable
         try
         {
             var status = OperationStatus.DestinationTooSmall;
-            DecompressCore(ref status, ref decoder, compressedSpan);
+            DecompressCore(ref status, ref decoder, compressedSpan, out consumed);
             if (status == OperationStatus.NeedMoreData)
             {
                 MemoryPackSerializationException.ThrowCompressionFailed(status);
@@ -46,6 +51,11 @@ public struct BrotliDecompressor : IDisposable
 
     public ReadOnlySequence<byte> Decompress(ReadOnlySequence<byte> compressedSequence)
     {
+        return Decompress(compressedSequence, out _);
+    }
+
+    public ReadOnlySequence<byte> Decompress(ReadOnlySequence<byte> compressedSequence, out int consumed)
+    {
         if (sequenceBuilder != null)
         {
             MemoryPackSerializationException.ThrowAlreadyDecompressed();
@@ -56,9 +66,11 @@ public struct BrotliDecompressor : IDisposable
         try
         {
             var status = OperationStatus.DestinationTooSmall;
+            consumed = 0;
             foreach (var item in compressedSequence)
             {
-                DecompressCore(ref status, ref decoder, item.Span);
+                DecompressCore(ref status, ref decoder, item.Span, out var bytesConsumed);
+                consumed += bytesConsumed;
             }
 
             if (status == OperationStatus.NeedMoreData)
@@ -74,9 +86,10 @@ public struct BrotliDecompressor : IDisposable
         return sequenceBuilder.Build();
     }
 
-    void DecompressCore(ref OperationStatus status, ref BrotliDecoder decoder, ReadOnlySpan<byte> source)
+    void DecompressCore(ref OperationStatus status, ref BrotliDecoder decoder, ReadOnlySpan<byte> source, out int consumed)
     {
         Debug.Assert(sequenceBuilder != null);
+        consumed = 0;
 
         byte[]? buffer = null;
         status = OperationStatus.DestinationTooSmall;
@@ -90,6 +103,7 @@ public struct BrotliDecompressor : IDisposable
             }
 
             status = decoder.Decompress(source, buffer, out var bytesConsumed, out var bytesWritten);
+            consumed += bytesConsumed;
 
             if (status == OperationStatus.InvalidData)
             {

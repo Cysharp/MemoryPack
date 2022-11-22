@@ -128,4 +128,10 @@ public class MemoryPackSerializationException : Exception
     {
         throw new MemoryPackSerializationException($"BrotliDecompressor can not invoke Decompress twice, already invoked.");
     }
+
+    [DoesNotReturn]
+    public static void ThrowDecompressionSizeLimitExceeded(int limit, int size)
+    {
+        throw new MemoryPackSerializationException($"In decompress process, limit is {limit} but target size is {size}.");
+    }
 }

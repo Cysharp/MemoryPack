@@ -25,24 +25,54 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
-var range = Enumerable.Range(1, 200).Select(x => (byte)x).ToArray();
-var hoge = new MemoryStream(range, 10, range.Length - 10, false, true);
-hoge.Position = 49;
 
-if (hoge.TryGetBuffer(out var buffer))
+var str1 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia.html");
+var str2 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia_JPN.html");
+var str3 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia _JPN_TextOnly.txt");
+
+
+foreach (var item in new[] { str1, str2, str3 })
 {
-    Console.WriteLine(buffer);
+    if (item == str1) Console.WriteLine("English");
+    if (item == str2) Console.WriteLine("Japanese");
+    if (item == str3) Console.WriteLine("Jpn Text Only");
+
+    var utf16 = MemoryMarshal.AsBytes(item.AsSpan()).ToArray();
+    var utf8 = Encoding.UTF8.GetBytes(item);
+
+    Console.WriteLine($"UTF16:          {HumanReadable(utf16.Length)}");
+    Console.WriteLine($"UTF8:           {HumanReadable(utf8.Length)}");
+    Console.WriteLine($"Compress UTF16: {HumanReadable(Compress(utf16).Length)}");
+    Console.WriteLine($"Compress UTF8:  {HumanReadable(Compress(utf8).Length)}");
 }
 
 
-Console.WriteLine("---");
-//var bin = MemoryPackSerializer.Serialize("hogehoge");
-//var takotako = MemoryPackSerializer.Deserialize<string>(bin);
 
-//Console.WriteLine(takotako);
+
+
 
 // ---
 
+static byte[] Compress(ReadOnlySpan<byte> source)
+{
+    using var encoder = new BrotliEncoder(1, 22);
+    var maxLength = BrotliEncoder.GetMaxCompressedLength(source.Length);
+    var dest = new byte[maxLength];
+    var status = encoder.Compress(source, dest, out var consumed, out var written, true);
+    if (status != OperationStatus.Done)
+    {
+        throw new Exception("DAME");
+    }
+    return dest.AsSpan(written).ToArray();
+}
+
+string HumanReadable(int length)
+{
+    if (length < 1024) return $"{length} bytes";
+    if (length < 1024 * 1024) return $"{length / 1024} KB";
+    if (length < 1024 * 1024 * 1024) return $"{length / 1024 / 1024} MB";
+    return $"{length / 1024 / 1024 / 1024} GB";
+}
 
 [MemoryPackable]
 public partial class IntClass2

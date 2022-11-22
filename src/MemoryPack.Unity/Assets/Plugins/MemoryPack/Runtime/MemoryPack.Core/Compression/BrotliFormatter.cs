@@ -10,15 +10,23 @@ using System.Threading.Tasks;
 using MemoryPack.Internal;
 using System.Buffers;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace MemoryPack.Compression {
+
+// serialize as (uncompressedLength, compressedLength, values...)
 
 [Preserve]
 public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
 {
+    internal const int DefaultDecompssionSizeLimit = 1024 * 1024 * 128; // 128MB
+
     public static readonly BrotliFormatter Default = new BrotliFormatter();
 
     readonly System.IO.Compression.CompressionLevel compressionLevel;
+    readonly int window;
+    readonly int decompressionSizeLimit;
 
     public BrotliFormatter()
         : this(System.IO.Compression.CompressionLevel.Fastest)
@@ -27,8 +35,21 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
     }
 
     public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel)
+        : this(compressionLevel, BrotliUtils.WindowBits_Default)
     {
         this.compressionLevel = compressionLevel;
+    }
+
+    public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window)
+        : this(compressionLevel, window, DefaultDecompssionSizeLimit)
+    {
+    }
+
+    public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window, int decompressionSizeLimit)
+    {
+        this.compressionLevel = compressionLevel;
+        this.window = window;
+        this.decompressionSizeLimit = decompressionSizeLimit;
     }
 
     [Preserve]
@@ -47,50 +68,37 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
         }
 
         var quality = BrotliUtils.GetQualityFromCompressionLevel(compressionLevel);
-        var window = BrotliUtils.WindowBits_Default;
 
         using var encoder = new BrotliEncoder(quality, window);
 
         var maxLength = BrotliEncoder.GetMaxCompressedLength(value.Length);
-        var finalBuffer = ArrayPool<byte>.Shared.Rent(maxLength);
-        try
+
+        ref var head = ref writer.GetSpanReference(maxLength + 8);
+
+        var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref head, 8), maxLength);
+        var status = encoder.Compress(value.AsSpan(), dest, out var bytesConsumed, out var bytesWritten, isFinalBlock: true);
+        if (status != OperationStatus.Done)
         {
-            var writtenCount = 0;
-            var destination = finalBuffer.AsSpan(0, maxLength);
-
-            var status = encoder.Compress(value.AsSpan(), destination, out var bytesConsumed, out var bytesWritten, isFinalBlock: false);
-            if (status != OperationStatus.Done)
-            {
-                MemoryPackSerializationException.ThrowCompressionFailed(status);
-            }
-
-            if (bytesConsumed != value.Length)
-            {
-                MemoryPackSerializationException.ThrowCompressionFailed();
-            }
-
-            if (bytesWritten > 0)
-            {
-                destination = destination.Slice(bytesWritten);
-                writtenCount += bytesWritten;
-            }
-
-            // call BrotliEncoderOperation.Finish
-            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, destination, out var consumed, out var written, isFinalBlock: true);
-            writtenCount += written;
-
-            // write to MemoryPackWriter
-            writer.WriteUnmanagedSpan(finalBuffer.AsSpan(0, writtenCount));
+            MemoryPackSerializationException.ThrowCompressionFailed(status);
         }
-        finally
+
+        if (bytesConsumed != value.Length)
         {
-            ArrayPool<byte>.Shared.Return(finalBuffer);
+            MemoryPackSerializationException.ThrowCompressionFailed();
         }
+
+        // write to buffer header (uncompressedLength, compressedLength, values...)
+        Unsafe.WriteUnaligned(ref head, value.Length);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref head, 4), bytesWritten);
+
+        writer.Advance(bytesWritten + 8);
     }
 
     [Preserve]
     public override void Deserialize(ref MemoryPackReader reader, ref byte[]? value)
     {
+        var uncompressedLength = reader.ReadUnmanaged<int>();
+
         reader.DangerousReadUnmanagedSpanView<byte>(out var isNull, out var compressedBuffer);
 
         if (isNull)
@@ -105,17 +113,29 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
             return;
         }
 
-        using var decompressor = new BrotliDecompressor();
-
-        var decompressedBuffer = decompressor.Decompress(compressedBuffer);
-        var length = decompressedBuffer.Length;
-
-        if (value == null || value.Length != length)
+        // security, require to check length
+        if (decompressionSizeLimit < uncompressedLength)
         {
-            value = new byte[length];
+            MemoryPackSerializationException.ThrowDecompressionSizeLimitExceeded(decompressionSizeLimit, uncompressedLength);
         }
 
-        decompressedBuffer.CopyTo(value);
+        if (value == null || value.Length != uncompressedLength)
+        {
+            value = new byte[uncompressedLength];
+        }
+
+        using var decoder = new BrotliDecoder();
+
+        var status = decoder.Decompress(compressedBuffer, value, out var bytesConsumed, out var bytesWritten);
+        if (status != OperationStatus.Done)
+        {
+            MemoryPackSerializationException.ThrowCompressionFailed(status);
+        }
+
+        if (bytesConsumed != compressedBuffer.Length || bytesWritten != value.Length)
+        {
+            MemoryPackSerializationException.ThrowCompressionFailed();
+        }
     }
 }
 

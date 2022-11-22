@@ -7,8 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
+using MemoryPack.Compression;
 using MemoryPack.Internal;
+using System.Buffers;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace MemoryPack.Formatters {
 
@@ -96,5 +100,153 @@ public sealed class InternStringFormatter : MemoryPackFormatter<string>
         value = string.Intern(str);
     }
 }
+
+[Preserve]
+public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
+{
+    internal const int DefaultDecompssionSizeLimit = 1024 * 1024 * 128; // 128MB
+
+    public static readonly BrotliStringFormatter Default = new BrotliStringFormatter();
+
+    readonly System.IO.Compression.CompressionLevel compressionLevel;
+    readonly int window;
+    readonly int decompressionSizeLimit;
+
+    public BrotliStringFormatter()
+        : this(System.IO.Compression.CompressionLevel.Fastest)
+    {
+
+    }
+
+    public BrotliStringFormatter(System.IO.Compression.CompressionLevel compressionLevel)
+        : this(compressionLevel, BrotliUtils.WindowBits_Default)
+    {
+        this.compressionLevel = compressionLevel;
+    }
+
+    public BrotliStringFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window)
+        : this(compressionLevel, window, DefaultDecompssionSizeLimit)
+    {
+    }
+
+    public BrotliStringFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window, int decompressionSizeLimit)
+    {
+        this.compressionLevel = compressionLevel;
+        this.window = window;
+        this.decompressionSizeLimit = decompressionSizeLimit;
+    }
+
+    [Preserve]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override void Serialize(ref MemoryPackWriter writer, ref string? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNullCollectionHeader();
+            return;
+        }
+
+        if (value.Length == 0)
+        {
+            writer.WriteCollectionHeader(0);
+            return;
+        }
+
+        var quality = BrotliUtils.GetQualityFromCompressionLevel(compressionLevel);
+        using var encoder = new BrotliEncoder(quality, window);
+
+        var srcLength = value.Length * 2;
+        var maxLength = BrotliEncoder.GetMaxCompressedLength(srcLength);
+
+        ref var spanRef = ref writer.GetSpanReference(maxLength + 4);
+        var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), maxLength);
+
+        var status = encoder.Compress(MemoryMarshal.AsBytes(value.AsSpan()), dest, out var bytesConsumed, out var bytesWritten, isFinalBlock: true);
+        if (status != OperationStatus.Done)
+        {
+            MemoryPackSerializationException.ThrowCompressionFailed(status);
+        }
+
+        if (bytesConsumed != srcLength)
+        {
+            MemoryPackSerializationException.ThrowCompressionFailed();
+        }
+
+        Unsafe.WriteUnaligned(ref spanRef, value.Length);
+        writer.Advance(bytesWritten + 4);
+    }
+
+    [Preserve]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override void Deserialize(ref MemoryPackReader reader, ref string? value)
+    {
+        if (!reader.DangerousTryReadCollectionHeader(out var length))
+        {
+            value = null;
+            return;
+        }
+
+        if (length == 0)
+        {
+            value = "";
+            return;
+        }
+
+        var byteLength = length * 2;
+
+        // security, require to check length
+        if (decompressionSizeLimit < byteLength)
+        {
+            MemoryPackSerializationException.ThrowDecompressionSizeLimitExceeded(decompressionSizeLimit, byteLength);
+        }
+
+        reader.GetRemainingSource(out var singleSource, out var remainingSource);
+
+        var destBuffer = ArrayPool<byte>.Shared.Rent(byteLength);
+        try
+        {
+            using var decoder = new BrotliDecoder();
+
+            var destination = destBuffer.AsSpan();
+            var consumed = 0;
+            if (singleSource.Length != 0)
+            {
+                var status = decoder.Decompress(singleSource, destination, out var bytesConsumed, out var bytesWritten);
+                consumed += bytesConsumed;
+                if (bytesWritten != byteLength)
+                {
+                    MemoryPackSerializationException.ThrowCompressionFailed();
+                }
+            }
+            else
+            {
+                OperationStatus status = OperationStatus.DestinationTooSmall;
+                foreach (var item in remainingSource)
+                {
+                    status = decoder.Decompress(item.Span, destination, out var bytesConsumed, out var bytesWritten);
+                    consumed += bytesConsumed;
+
+                    destination = destination.Slice(bytesWritten);
+                    if (status == OperationStatus.Done)
+                    {
+                        break;
+                    }
+                }
+                if (status != OperationStatus.Done)
+                {
+                    MemoryPackSerializationException.ThrowCompressionFailed(status);
+                }
+            }
+
+            value = new string(MemoryMarshal.Cast<byte, char>(destBuffer.AsSpan(0, byteLength)));
+            reader.Advance(consumed);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(destBuffer);
+        }
+    }
+}
+
 
 }

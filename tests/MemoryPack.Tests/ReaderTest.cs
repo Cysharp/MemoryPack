@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -21,22 +22,37 @@ public class ReaderTest
         using var state = MemoryPackReaderOptionalStatePool.Rent(null);
         var reader = new MemoryPackReader(seq, state);
 
+        reader.GetRemainingSource(out var single, out var multi);
+        single.Length.Should().Be(0);
+        multi.ToArray().Should().Equal(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         ref var spanRef = ref reader.GetSpanReference(2);
         MemoryMarshal.CreateReadOnlySpan(ref spanRef, 2).ToArray().Should().Equal(1, 2);
         reader.Advance(2);
+        reader.GetRemainingSource(out single, out multi);
+        single.Length.Should().Be(0);
+        multi.ToArray().Should().Equal(3, 4, 5, 6, 7, 8, 9, 10);
 
         spanRef = ref reader.GetSpanReference(4);
         MemoryMarshal.CreateReadOnlySpan(ref spanRef, 4).ToArray().Should().Equal(3, 4, 5, 6);
         reader.Advance(4);
+        reader.GetRemainingSource(out single, out multi);
+        single.Length.Should().Be(0);
+        multi.ToArray().Should().Equal(7, 8, 9, 10);
 
         spanRef = ref reader.GetSpanReference(2);
         MemoryMarshal.CreateReadOnlySpan(ref spanRef, 2).ToArray().Should().Equal(7, 8);
         reader.Advance(2);
+        reader.GetRemainingSource(out single, out multi);
+        single.Length.Should().Be(2);
+        single.ToArray().Should().Equal(9, 10);
 
         spanRef = ref reader.GetSpanReference(2);
         MemoryMarshal.CreateReadOnlySpan(ref spanRef, 2).ToArray().Should().Equal(9, 10);
         reader.Advance(2); // end
+        reader.GetRemainingSource(out single, out multi);
+        single.Length.Should().Be(0);
+        multi.Length.Should().Be(0);
 
         bool error = false;
         try

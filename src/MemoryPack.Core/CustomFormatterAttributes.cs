@@ -50,15 +50,38 @@ public sealed class BitPackFormatterAttribute : MemoryPackCustomFormatterAttribu
 public sealed class BrotliFormatterAttribute : MemoryPackCustomFormatterAttribute<BrotliFormatter, byte[]>
 {
     public System.IO.Compression.CompressionLevel CompressionLevel { get; }
+    public int Window { get; }
+    public int DecompressionSizeLimit { get; }
 
-    public BrotliFormatterAttribute(System.IO.Compression.CompressionLevel compressionLevel = System.IO.Compression.CompressionLevel.Fastest)
+    public BrotliFormatterAttribute(System.IO.Compression.CompressionLevel compressionLevel = System.IO.Compression.CompressionLevel.Fastest, int window = BrotliUtils.WindowBits_Default, int decompressionSizeLimit = BrotliFormatter.DefaultDecompssionSizeLimit)
     {
         this.CompressionLevel = compressionLevel;
+        this.Window = window;
+        this.DecompressionSizeLimit = decompressionSizeLimit;
     }
 
     public override BrotliFormatter GetFormatter()
     {
-        return new BrotliFormatter(CompressionLevel);
+        return new BrotliFormatter(CompressionLevel, Window, DecompressionSizeLimit);
+    }
+}
+
+public sealed class BrotliStringFormatterAttribute : MemoryPackCustomFormatterAttribute<BrotliStringFormatter, string>
+{
+    public System.IO.Compression.CompressionLevel CompressionLevel { get; }
+    public int Window { get; }
+    public int DecompressionSizeLimit { get; }
+
+    public BrotliStringFormatterAttribute(System.IO.Compression.CompressionLevel compressionLevel = System.IO.Compression.CompressionLevel.Fastest, int window = BrotliUtils.WindowBits_Default, int decompressionSizeLimit = BrotliFormatter.DefaultDecompssionSizeLimit)
+    {
+        this.CompressionLevel = compressionLevel;
+        this.Window = window;
+        this.DecompressionSizeLimit = decompressionSizeLimit;
+    }
+
+    public override BrotliStringFormatter GetFormatter()
+    {
+        return new BrotliStringFormatter(CompressionLevel, Window, DecompressionSizeLimit);
     }
 }
 
