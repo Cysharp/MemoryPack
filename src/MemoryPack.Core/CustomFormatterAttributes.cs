@@ -66,6 +66,23 @@ public sealed class BrotliFormatterAttribute : MemoryPackCustomFormatterAttribut
     }
 }
 
+public sealed class BrotliFormatterAttribute<T> : MemoryPackCustomFormatterAttribute<BrotliFormatter<T>, T>
+{
+    public System.IO.Compression.CompressionLevel CompressionLevel { get; }
+    public int Window { get; }
+
+    public BrotliFormatterAttribute(System.IO.Compression.CompressionLevel compressionLevel = System.IO.Compression.CompressionLevel.Fastest, int window = BrotliUtils.WindowBits_Default)
+    {
+        this.CompressionLevel = compressionLevel;
+        this.Window = window;
+    }
+
+    public override BrotliFormatter<T> GetFormatter()
+    {
+        return new BrotliFormatter<T>(CompressionLevel, Window);
+    }
+}
+
 public sealed class BrotliStringFormatterAttribute : MemoryPackCustomFormatterAttribute<BrotliStringFormatter, string>
 {
     public System.IO.Compression.CompressionLevel CompressionLevel { get; }

@@ -37,7 +37,6 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
     public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel)
         : this(compressionLevel, BrotliUtils.WindowBits_Default)
     {
-        this.compressionLevel = compressionLevel;
     }
 
     public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window)
@@ -136,6 +135,78 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
         {
             MemoryPackSerializationException.ThrowCompressionFailed();
         }
+    }
+}
+
+
+[Preserve]
+public sealed class BrotliFormatter<T> : MemoryPackFormatter<T>
+{
+    internal const int DefaultDecompssionSizeLimit = 1024 * 1024 * 128; // 128MB
+
+    public static readonly BrotliFormatter Default = new BrotliFormatter();
+
+    readonly System.IO.Compression.CompressionLevel compressionLevel;
+    readonly int window;
+
+    public BrotliFormatter()
+        : this(System.IO.Compression.CompressionLevel.Fastest)
+    {
+
+    }
+
+    public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel)
+        : this(compressionLevel, BrotliUtils.WindowBits_Default)
+    {
+    }
+
+    public BrotliFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window)
+    {
+        this.compressionLevel = compressionLevel;
+        this.window = window;
+    }
+
+    [Preserve]
+    public override void Serialize(ref MemoryPackWriter writer, ref T? value)
+    {
+        var compressor = new BrotliCompressor();
+        try
+        {
+            var coWriter = new MemoryPackWriter(ref Unsafe.As<BrotliCompressor, IBufferWriter<byte>>(ref compressor), writer.OptionalState);
+
+            coWriter.WriteValue(value);
+            coWriter.Flush();
+
+            compressor.CopyTo(ref writer);
+        }
+        finally
+        {
+            compressor.Dispose();
+        }
+    }
+
+    [Preserve]
+    public override void Deserialize(ref MemoryPackReader reader, ref T? value)
+    {
+        using var decompressor = new BrotliDecompressor();
+
+        reader.GetRemainingSource(out var singleSource, out var remainingSource);
+
+        int consumed;
+        ReadOnlySequence<byte> decompressedSource;
+        if (singleSource.Length != 0)
+        {
+            decompressedSource = decompressor.Decompress(singleSource, out consumed);
+        }
+        else
+        {
+            decompressedSource = decompressor.Decompress(remainingSource, out consumed);
+        }
+
+        using var coReader = new MemoryPackReader(decompressedSource, reader.OptionalState);
+        coReader.ReadValue(ref value);
+
+        reader.Advance(consumed);
     }
 }
 

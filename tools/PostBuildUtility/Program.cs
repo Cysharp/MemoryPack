@@ -31,6 +31,7 @@ public class Runner : ConsoleAppBase
             {"new MemoryPackWriter(ref bufferWriter", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter)" },
             {"new MemoryPackWriter(ref tempBuffer", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref tempBuffer)" },
             {"new MemoryPackWriter(ref state.BufferWriter", "new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref state.BufferWriter)" },
+            {"new MemoryPackWriter<BrotliCompressor>(ref compressor", "new MemoryPackWriter(ref Unsafe.As<BrotliCompressor, IBufferWriter<byte>>(ref compressor)" },
         };
 
         System.Console.WriteLine("Start to modify code.");
