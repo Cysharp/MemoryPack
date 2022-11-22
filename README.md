@@ -593,7 +593,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter` exsits.
 
 ```csharp
 [MemoryPackable]
@@ -650,6 +650,19 @@ public partial class Sample
 
     [BrotliFormatter]
     public byte[]? Payload { get; set; }
+}
+```
+
+`BrotliStringFormatter` is for `string`, serialize compressed string(UTF16) by Brotli.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    public int Id { get; set; }
+
+    [BrotliStringFormatter]
+    public string? LargeText { get; set; }
 }
 ```
 
