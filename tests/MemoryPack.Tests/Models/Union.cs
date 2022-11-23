@@ -75,3 +75,73 @@ public partial class ImplA2 : UnionAbstractClass
     public override int MyProperty { get; set; }
     public string? Bar { get; set; }
 }
+
+
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial interface IForExternalUnion
+{
+    public int BaseValue { get; set; }
+}
+
+[MemoryPackable]
+public partial class AForOne : IForExternalUnion
+{
+    public int BaseValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class AForTwo : IForExternalUnion
+{
+    public int BaseValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackUnionFormatter(typeof(IForExternalUnion))]
+[MemoryPackUnion(0, typeof(AForOne))]
+[MemoryPackUnion(1, typeof(AForTwo))]
+public partial class ForExternalUnionFormatter
+{
+}
+
+
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial interface IGenericsUnion<T>
+{
+    public T? NoValue { get; set; }
+}
+
+[MemoryPackable]
+public partial class BForOne <T> : IGenericsUnion<T>
+{
+    public T? NoValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class BForTwo<T> : IGenericsUnion<T>
+{
+    public T? NoValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackUnionFormatter(typeof(IGenericsUnion<>))]
+[MemoryPackUnion(0, typeof(BForOne<>))]
+[MemoryPackUnion(1, typeof(BForTwo<>))]
+public partial class ForExternalUnionFormatter2<T>
+{
+}
+
+[MemoryPackUnionFormatter(typeof(IGenericsUnion<string>))]
+[MemoryPackUnion(0, typeof(BForOne<string>))]
+[MemoryPackUnion(1, typeof(BForTwo<string>))]
+public partial class ForExternalUnionFormatter3
+{
+}
+
+
+[MemoryPackable]
+public partial class NoraType
+{
+    public IForExternalUnion? ExtUnion { get; set; }
+}

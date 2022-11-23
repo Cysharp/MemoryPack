@@ -31,7 +31,7 @@ partial class MemoryPackGenerator
 
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
-        if (typeMeta.GenerateType != GenerateType.Object)
+        if (typeMeta.GenerateType != GenerateType.Object && !typeMeta.IsUnion)
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptOnlyAllowsGenerateTypeObject, syntax.Identifier.GetLocation(), typeSymbol.Name));
             return null;

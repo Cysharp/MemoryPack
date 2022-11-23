@@ -62,6 +62,17 @@ public sealed class MemoryPackUnionAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackUnionFormatterAttribute : Attribute
+{
+    public Type Type { get; }
+
+    public MemoryPackUnionFormatterAttribute(Type type)
+    {
+        this.Type = type;
+    }
+}
+
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackAllowSerializeAttribute : Attribute
 {

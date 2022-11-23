@@ -169,7 +169,7 @@ public sealed class BrotliFormatter<T> : MemoryPackFormatter<T>
     [Preserve]
     public override void Serialize(ref MemoryPackWriter writer, ref T? value)
     {
-        var compressor = new BrotliCompressor();
+        var compressor = new BrotliCompressor(compressionLevel, window);
         try
         {
             var coWriter = new MemoryPackWriter(ref Unsafe.As<BrotliCompressor, IBufferWriter<byte>>(ref compressor), writer.OptionalState);

@@ -160,7 +160,7 @@ public sealed class BrotliFormatter<T> : MemoryPackFormatter<T>
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {
-        var compressor = new BrotliCompressor();
+        var compressor = new BrotliCompressor(compressionLevel, window);
         try
         {
             var coWriter = new MemoryPackWriter<BrotliCompressor>(ref compressor, writer.OptionalState);

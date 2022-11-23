@@ -32,6 +32,7 @@ namespace MemoryPack.Generator;
 public partial class MemoryPackGenerator : IIncrementalGenerator
 {
     public const string MemoryPackableAttributeFullName = "MemoryPack.MemoryPackableAttribute";
+    public const string MemoryPackUnionFormatterAttributeFullName = "MemoryPack.MemoryPackUnionFormatterAttribute";
     public const string GenerateTypeScriptAttributeFullName = "MemoryPack.GenerateTypeScriptAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -71,6 +72,17 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     return (TypeDeclarationSyntax)context.TargetNode;
                 });
 
+        var typeDeclarations2 = context.SyntaxProvider.ForAttributeWithMetadataName(
+                MemoryPackUnionFormatterAttributeFullName,
+                predicate: static (node, token) =>
+                {
+                    return (node is ClassDeclarationSyntax);
+                },
+                transform: static (context, token) =>
+                {
+                    return (TypeDeclarationSyntax)context.TargetNode;
+                });
+
         var parseOptions = context.ParseOptionsProvider.Select((parseOptions, token) =>
         {
             var csOptions = (CSharpParseOptions)parseOptions;
@@ -79,20 +91,38 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             return (langVersion, net7);
         });
 
-        var source = typeDeclarations
-            .Combine(context.CompilationProvider)
-            .WithComparer(Comparer.Instance)
-            .Combine(logProvider)
-            .Combine(parseOptions);
-
-        context.RegisterSourceOutput(source, static (context, source) =>
         {
-            var (typeDeclaration, compilation) = source.Left.Item1;
-            var logPath = source.Left.Item2;
-            var (langVersion, net7) = source.Right;
+            var source = typeDeclarations
+                .Combine(context.CompilationProvider)
+                .WithComparer(Comparer.Instance)
+                .Combine(logProvider)
+                .Combine(parseOptions);
 
-            Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
-        });
+            context.RegisterSourceOutput(source, static (context, source) =>
+            {
+                var (typeDeclaration, compilation) = source.Left.Item1;
+                var logPath = source.Left.Item2;
+                var (langVersion, net7) = source.Right;
+
+                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+            });
+        }
+        {
+            var source = typeDeclarations2
+                .Combine(context.CompilationProvider)
+                .WithComparer(Comparer.Instance)
+                .Combine(logProvider)
+                .Combine(parseOptions);
+
+            context.RegisterSourceOutput(source, static (context, source) =>
+            {
+                var (typeDeclaration, compilation) = source.Left.Item1;
+                var logPath = source.Left.Item2;
+                var (langVersion, net7) = source.Right;
+
+                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+            });
+        }
     }
 
     void RegisterTypeScript(IncrementalGeneratorInitializationContext context)

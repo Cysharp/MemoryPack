@@ -72,7 +72,7 @@
         <DestinationRoot>$(MSBuildProjectDirectory)\..\MemoryPack.Unity\Assets\Plugins\MemoryPack\Runtime\MemoryPack.Core</DestinationRoot>
     </PropertyGroup>
     <ItemGroup>
-        <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;**\CompressedArray.cs;**\CollectionsMarshalEx.cs;**\ImmutableCollectionFormatters.cs" />
+        <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;**\CollectionsMarshalEx.cs;**\ImmutableCollectionFormatters.cs" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net7.0'">

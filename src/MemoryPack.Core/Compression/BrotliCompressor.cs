@@ -39,6 +39,12 @@ public
 
     }
 
+    public BrotliCompressor(CompressionLevel compressionLevel, int window)
+        : this(BrotliUtils.GetQualityFromCompressionLevel(compressionLevel), window)
+    {
+
+    }
+
     public BrotliCompressor(int quality = 1, int window = 22)
     {
         this.bufferWriter = ReusableLinkedArrayBufferWriterPool.Rent();

@@ -9,6 +9,7 @@ public class ReferenceSymbols
 
     public INamedTypeSymbol MemoryPackableAttribute { get; }
     public INamedTypeSymbol MemoryPackUnionAttribute { get; }
+    public INamedTypeSymbol MemoryPackUnionFormatterAttribute { get; }
     public INamedTypeSymbol MemoryPackConstructorAttribute { get; }
     public INamedTypeSymbol MemoryPackAllowSerializeAttribute { get; }
     public INamedTypeSymbol MemoryPackOrderAttribute { get; }
@@ -32,6 +33,7 @@ public class ReferenceSymbols
         // MemoryPack
         MemoryPackableAttribute = GetTypeByMetadataName(MemoryPackGenerator.MemoryPackableAttributeFullName);
         MemoryPackUnionAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackUnionAttribute");
+        MemoryPackUnionFormatterAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackUnionFormatterAttribute");
         MemoryPackConstructorAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackConstructorAttribute");
         MemoryPackAllowSerializeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackAllowSerializeAttribute");
         MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");

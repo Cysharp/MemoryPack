@@ -95,10 +95,11 @@ internal static class Extensions
             }
         }
 
-        if (symbol.IsStatic || symbol.IsAbstract)
+        if (generateType == GenerateType.Object && (symbol.IsStatic || symbol.IsAbstract))
         {
-            // static or abstract class is Union
-            return false;
+            // static or abstract class is Union, set as NoGenerate
+            generateType = GenerateType.Union;
+            serializeLayout = SerializeLayout.Sequential;
         }
 
         return true;

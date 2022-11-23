@@ -26,6 +26,7 @@ public enum MemberKind
     MemoryPackableList, // List<T> where T: IMemoryPackable<T>
     MemoryPackableCollection, // GenerateType.Collection
     MemoryPackableNoGenerate, // GenerateType.NoGenerate
+    MemoryPackableUnion,
     Enum,
 
     // from attribute
@@ -43,7 +44,7 @@ partial class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
     readonly ReferenceSymbols reference;
-    public INamedTypeSymbol Symbol { get; }
+    public INamedTypeSymbol Symbol { get; set; }
     public GenerateType GenerateType { get; }
     public SerializeLayout SerializeLayout { get; }
     /// <summary>MinimallyQualifiedFormat(include generics T)</summary>
@@ -212,8 +213,11 @@ partial class TypeMeta
         return (CollectionKind.None, null);
     }
 
-    public bool Validate(TypeDeclarationSyntax syntax, IGeneratorContext context)
+    public bool Validate(TypeDeclarationSyntax syntax, IGeneratorContext context, bool unionFormatter)
     {
+        var noError = true;
+        if (unionFormatter) goto UNION_VALIDATIONS;
+
         if (GenerateType == GenerateType.NoGenerate) return true;
         if (GenerateType is GenerateType.Collection)
         {
@@ -251,8 +255,6 @@ partial class TypeMeta
         }
 
         // GenerateType.Objector VersionTorelant validation
-
-        var noError = true;
 
         // ref strcut
         if (this.Symbol.IsRefLikeType)
@@ -387,7 +389,8 @@ partial class TypeMeta
             }
         }
 
-        // Union validations
+    // Union validations
+    UNION_VALIDATIONS:
         if (IsUnion)
         {
             if (Symbol.IsSealed)
@@ -633,6 +636,8 @@ partial class MemberMeta
                     return MemberKind.MemoryPackable;
                 case GenerateType.Collection:
                     return MemberKind.MemoryPackableCollection;
+                case GenerateType.Union:
+                    return MemberKind.MemoryPackableUnion;
                 case GenerateType.NoGenerate:
                 default:
                     return MemberKind.MemoryPackableNoGenerate;

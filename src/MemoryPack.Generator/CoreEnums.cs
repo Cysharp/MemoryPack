@@ -7,7 +7,10 @@ public enum GenerateType
     VersionTolerant,
     CircularReference,
     Collection,
-    NoGenerate
+    NoGenerate,
+
+    // only used in Generator
+    Union
 }
 
 public enum SerializeLayout

@@ -34,20 +34,36 @@ partial class MemoryPackGenerator
         }
 
         var reference = new ReferenceSymbols(compilation);
-        var typeMeta = new TypeMeta(typeSymbol, reference);
 
-        if (typeMeta.GenerateType == GenerateType.NoGenerate)
+        var unionSymbol = default(INamedTypeSymbol);
+        var unionFormatterAttr = typeSymbol.GetAttribute(reference.MemoryPackUnionFormatterAttribute);
+        if (unionFormatterAttr != null)
+        {
+            // change symbol
+            unionSymbol = unionFormatterAttr.ConstructorArguments[0].Value as INamedTypeSymbol;
+            if (unionSymbol == null) return;
+        }
+        var unionFormatter = (unionSymbol != null);
+
+        var typeMeta = new TypeMeta(typeSymbol, reference);
+        if (unionFormatter)
+        {
+            // replace original symbol
+            typeMeta.Symbol = unionSymbol!;
+        }
+
+        if (!unionFormatter && !typeMeta.IsUnion && typeMeta.GenerateType == GenerateType.NoGenerate)
         {
             return;
         }
 
         // ReportDiagnostic when validate failed.
-        if (!typeMeta.Validate(syntax, context))
+        if (!typeMeta.Validate(syntax, context, unionFormatter))
         {
             return;
         }
 
-        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+        var fullType = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
             .Replace("global::", "")
             .Replace("<", "_")
             .Replace(">", "_");
@@ -118,7 +134,14 @@ using MemoryPack;
         }
 
         // emit type info
-        typeMeta.Emit(sb, context);
+        if (unionFormatter)
+        {
+            typeMeta.EmitUnionFormatterTemplate(sb, context, typeSymbol);
+        }
+        else
+        {
+            typeMeta.Emit(sb, context);
+        }
 
         if (!ns.IsGlobalNamespace && !context.IsCSharp10OrGreater())
         {
@@ -126,7 +149,6 @@ using MemoryPack;
         }
 
         var code = sb.ToString();
-
         context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
     }
 
@@ -951,6 +973,73 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
         return code;
     }
 
+    public void EmitUnionFormatterTemplate(StringBuilder writer, IGeneratorContext context, INamedTypeSymbol formatterSymbol)
+    {
+        var scopedRef = context.IsCSharp11OrGreater()
+            ? "scoped ref"
+            : "ref";
+        string serializeMethodSignarture = context.IsForUnity
+            ? "Serialize(ref MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
+
+        var moduleInitializer = (!context.IsForUnity && context.IsCSharp10OrGreater()) ? "[System.Runtime.CompilerServices.ModuleInitializer]" : "";
+
+        string registerFormatterCode;
+        if (!Symbol.IsGenericType || !Symbol.IsUnboundGenericType)
+        {
+            registerFormatterCode = $$"""
+        if (!MemoryPackFormatterProvider.IsRegistered<{{Symbol.FullyQualifiedToString()}}>())
+        {
+            MemoryPackFormatterProvider.Register(new {{TypeName}}());
+        }
+""";
+        }
+        else
+        {
+            registerFormatterCode = $$"""
+        MemoryPackFormatterProvider.RegisterGenericType(typeof({{Symbol.ConstructUnboundGenericType().FullyQualifiedToString()}}), typeof({{formatterSymbol.ConstructUnboundGenericType().FullyQualifiedToString()}}));
+""";
+        }
+
+        var symbolFullQualified = ToUnionTagTypeFullyQualifiedToString(Symbol);
+        var initializerName = TypeName.Replace("global::", "").Replace("<", "_").Replace(">", "_") + "Initializer";
+
+        var code = $$"""
+[global::MemoryPack.Internal.Preserve]
+partial class {{TypeName}} : MemoryPackFormatter<{{symbolFullQualified}}>
+{
+{{EmitUnionTypeToTagField()}}
+
+        [global::MemoryPack.Internal.Preserve]
+        public override void {{serializeMethodSignarture}} writer, {{scopedRef}} {{symbolFullQualified}}? value)
+        {
+{{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
+{{EmitUnionSerializeBody()}}
+{{OnSerialized.Select(x => "            " + x.Emit()).NewLine()}}
+        }
+
+        [global::MemoryPack.Internal.Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{symbolFullQualified}}? value)
+        {
+{{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
+{{EmitUnionDeserializeBody()}}
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}            
+        }
+}
+
+internal static class {{initializerName}}
+{
+    {{moduleInitializer}}
+    public static void RegisterFormatter()
+    {
+{{registerFormatterCode}}
+    }    
+}
+""";
+
+        writer.AppendLine(code);
+    }
+
     string ToUnionTagTypeFullyQualifiedToString(INamedTypeSymbol type)
     {
         if (type.IsGenericType && this.Symbol.IsGenericType)
@@ -979,13 +1068,15 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
 
     string EmitUnionSerializeBody()
     {
+        var symbolFullQualified = ToUnionTagTypeFullyQualifiedToString(Symbol);
+
         var writeBody = UnionTags
             .Select(x =>
             {
                 var method = (x.Type.TryGetMemoryPackableType(reference, out var genType, out _) && genType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
                     ? "WritePackable"
                     : "WriteValue";
-                return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{TypeName}?, {ToUnionTagTypeFullyQualifiedToString(x.Type)}>(ref value)); break;";
+                return $"                    case {x.Tag}: writer.{method}(System.Runtime.CompilerServices.Unsafe.As<{symbolFullQualified}?, {ToUnionTagTypeFullyQualifiedToString(x.Type)}>(ref value)); break;";
             })
             .NewLine();
 
@@ -1010,13 +1101,15 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             }
             else
             {
-                MemoryPackSerializationException.ThrowNotFoundInUnionType(value.GetType(), typeof({{TypeName}}));
+                MemoryPackSerializationException.ThrowNotFoundInUnionType(value.GetType(), typeof({{symbolFullQualified}}));
             }
 """;
     }
 
     string EmitUnionDeserializeBody()
     {
+        var symbolFullQualified = ToUnionTagTypeFullyQualifiedToString(Symbol);
+
         var readBody = UnionTags.Select(x =>
         {
             var method = (x.Type.TryGetMemoryPackableType(reference, out var genType, out _) && genType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
@@ -1026,7 +1119,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
                 case {{x.Tag}}:
                     if (value is {{ToUnionTagTypeFullyQualifiedToString(x.Type)}})
                     {
-                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{TypeName}}?, {{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>(ref value));
+                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{symbolFullQualified}}?, {{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>(ref value));
                     }
                     else
                     {
@@ -1049,7 +1142,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             {
 {{readBody}}
                 default:
-                    MemoryPackSerializationException.ThrowInvalidTag(tag, typeof({{TypeName}}));
+                    MemoryPackSerializationException.ThrowInvalidTag(tag, typeof({{symbolFullQualified}}));
                     break;
             }
 """;
