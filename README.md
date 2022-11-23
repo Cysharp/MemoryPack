@@ -334,6 +334,26 @@ switch (reData)
 
 `tag` allows `0` ~ `65535`, it is especially efficient for less than `250`.
 
+If interface and derived type is in different assembly, you can use `MemoryPackUnionFormatterAttribute` instead.
+
+```csharp
+// AssemblyA
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial interface IUnionSample
+{
+}
+
+// AssemblyB define definition outsiede of target type
+[MemoryPackUnionFormatter(typeof(IUnionSample))]
+[MemoryPackUnion(0, typeof(FooClass))]
+[MemoryPackUnion(1, typeof(BarClass))]
+public partial class UnionSampleFormatter
+{
+}
+```
+
+> Formatter is register automatically via `ModuleInitializer` in C# 9.0. However ModuleInitializer is not supported in Unity, so if you use in Unity, invoke `***Initializer.RegisterFormatter()` manually in Startup. For example `UnionSampleFormatterInitializer.RegisterFormatter()`.
+
 Serialize API
 ---
 Serialize has three overloads.
@@ -593,7 +613,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>` exsits.
 
 ```csharp
 [MemoryPackable]
@@ -663,6 +683,19 @@ public partial class Sample
 
     [BrotliStringFormatter]
     public string? LargeText { get; set; }
+}
+```
+
+`BrotliFormatter<T>` is for any type, serialized data compressed by Brotli. If type is `byte[]` or `string`, should use `BrotliFormatter` or `BrotliStringFormatter` for performance.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    public int Id { get; set; }
+
+    [BrotliFormatter<ChildType>]
+    public ChildType? Child { get; set; }
 }
 ```
 
