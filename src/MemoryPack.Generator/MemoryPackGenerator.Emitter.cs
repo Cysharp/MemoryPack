@@ -982,7 +982,7 @@ partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
-        var moduleInitializer = (!context.IsForUnity && context.IsCSharp10OrGreater()) ? "[System.Runtime.CompilerServices.ModuleInitializer]" : "";
+        var moduleInitializer = (!context.IsForUnity && context.IsCSharp9OrGreater()) ? "[System.Runtime.CompilerServices.ModuleInitializer]" : "";
 
         string registerFormatterCode;
         if (!Symbol.IsGenericType || !Symbol.IsUnboundGenericType)
@@ -1027,7 +1027,7 @@ partial class {{TypeName}} : MemoryPackFormatter<{{symbolFullQualified}}>
         }
 }
 
-internal static class {{initializerName}}
+public static class {{initializerName}}
 {
     {{moduleInitializer}}
     public static void RegisterFormatter()

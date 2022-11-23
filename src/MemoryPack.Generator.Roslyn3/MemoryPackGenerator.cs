@@ -62,7 +62,13 @@ public partial class MemoryPackGenerator : ISourceGenerator
                 if (typeSyntax.AttributeLists.Count > 0)
                 {
                     var attr = typeSyntax.AttributeLists.SelectMany(x => x.Attributes)
-                        .FirstOrDefault(x => x.Name.ToString() is "MemoryPackable" or "MemoryPackableAttribute" or "MemoryPack.MemoryPackable" or "MemoryPack.MemoryPackableAttribute");
+                        .FirstOrDefault(x =>
+                        {
+                            var packable = x.Name.ToString() is "MemoryPackable" or "MemoryPackableAttribute" or "MemoryPack.MemoryPackable" or "MemoryPack.MemoryPackableAttribute";
+                            if (packable) return true;
+                            var formatter = x.Name.ToString() is "MemoryPackUnionFormatter" or "MemoryPackUnionFormatterAttribute" or "MemoryPack.MemoryPackUnionFormatter" or "MemoryPack.MemoryPackUnionFormatterAttribute";
+                            return formatter;
+                        });
                     if (attr != null)
                     {
                         ClassDeclarations.Add(typeSyntax);

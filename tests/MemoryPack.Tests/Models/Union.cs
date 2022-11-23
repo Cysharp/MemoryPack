@@ -112,7 +112,7 @@ public partial interface IGenericsUnion<T>
 }
 
 [MemoryPackable]
-public partial class BForOne <T> : IGenericsUnion<T>
+public partial class BForOne<T> : IGenericsUnion<T>
 {
     public T? NoValue { get; set; }
     public int MyProperty { get; set; }

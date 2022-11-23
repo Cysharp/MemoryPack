@@ -7,6 +7,35 @@ using System.Runtime.CompilerServices;
 // System.Buffers.IBufferWriter<byte>
 Console.WriteLine("Hello, World!");
 
+
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial interface IForExternalUnion
+{
+    public int BaseValue { get; set; }
+}
+
+[MemoryPackable]
+public partial class AForOne : IForExternalUnion
+{
+    public int BaseValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackable]
+public partial class AForTwo : IForExternalUnion
+{
+    public int BaseValue { get; set; }
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackUnionFormatter(typeof(IForExternalUnion))]
+[MemoryPackUnion(0, typeof(AForOne))]
+[MemoryPackUnion(1, typeof(AForTwo))]
+public partial class ForExternalUnionFormatter
+{
+}
+
+
 [MemoryPackable]
 public partial class HelloMemoryPackable
 {
