@@ -95,6 +95,9 @@ public sealed class InternStringFormatter : MemoryPackFormatter<string>
 [Preserve]
 public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
 {
+    [ThreadStatic]
+    static StrongBox<int>? threadStaticConsumedBox;
+
     internal const int DefaultDecompssionSizeLimit = 1024 * 1024 * 128; // 128MB
 
     public static readonly BrotliStringFormatter Default = new BrotliStringFormatter();
@@ -193,26 +196,55 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
 
         reader.GetRemainingSource(out var singleSource, out var remainingSource);
 
-        var destBuffer = ArrayPool<byte>.Shared.Rent(byteLength);
-        try
+        var consumedBox = threadStaticConsumedBox;
+        if (consumedBox == null)
         {
-            using var decoder = new BrotliDecoder();
+            consumedBox = threadStaticConsumedBox = new StrongBox<int>();
+        }
+        else
+        {
+            consumedBox.Value = 0;
+        }
 
-            var destination = destBuffer.AsSpan();
-            var consumed = 0;
-            if (singleSource.Length != 0)
+        if (singleSource.Length != 0)
+        {
+            unsafe
             {
-                var status = decoder.Decompress(singleSource, destination, out var bytesConsumed, out var bytesWritten);
-                consumed += bytesConsumed;
-                if (bytesWritten != byteLength)
+                fixed (byte* p = singleSource)
                 {
-                    MemoryPackSerializationException.ThrowCompressionFailed();
+                    value = string.Create(length, ((IntPtr)p, singleSource.Length, byteLength, consumedBox), static (stringSpan, state) =>
+                    {
+                        var src = MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>((byte*)state.Item1), state.Item2);
+                        var destination = MemoryMarshal.AsBytes(stringSpan);
+
+                        using var decoder = new BrotliDecoder();
+                        var status = decoder.Decompress(src, destination, out var bytesConsumed, out var bytesWritten);
+                        if (status != OperationStatus.Done)
+                        {
+                            MemoryPackSerializationException.ThrowCompressionFailed(status);
+                        }
+                        if (bytesWritten != state.byteLength)
+                        {
+                            MemoryPackSerializationException.ThrowCompressionFailed();
+                        }
+
+                        state.consumedBox.Value = bytesConsumed;
+                    });
+                    reader.Advance(consumedBox.Value);
                 }
             }
-            else
+        }
+        else
+        {
+            value = string.Create(length, (remainingSource, remainingSource.Length, byteLength, consumedBox), static (stringSpan, state) =>
             {
+                var destination = MemoryMarshal.AsBytes(stringSpan);
+
+                using var decoder = new BrotliDecoder();
+
+                var consumed = 0;
                 OperationStatus status = OperationStatus.DestinationTooSmall;
-                foreach (var item in remainingSource)
+                foreach (var item in state.remainingSource)
                 {
                     status = decoder.Decompress(item.Span, destination, out var bytesConsumed, out var bytesWritten);
                     consumed += bytesConsumed;
@@ -227,15 +259,10 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
                 {
                     MemoryPackSerializationException.ThrowCompressionFailed(status);
                 }
-            }
 
-            value = new string(MemoryMarshal.Cast<byte, char>(destBuffer.AsSpan(0, byteLength)));
-            reader.Advance(consumed);
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(destBuffer);
+                state.consumedBox.Value = consumed;
+            });
+            reader.Advance(consumedBox.Value);
         }
     }
 }
-
