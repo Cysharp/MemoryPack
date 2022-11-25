@@ -37,10 +37,12 @@ public class TypeScriptMember
     public string WriteMethodTemplate { get; }
     public string ReadMethodTemplate { get; }
 
-    public TypeScriptMember(MemberMeta member, ReferenceSymbols references)
+    public TypeScriptMember(MemberMeta member, ReferenceSymbols references, TypeScriptGenerateOptions options)
     {
         this.Member = member;
-        this.MemberName = Char.ToLowerInvariant(member.Name[0]) + member.Name.Substring(1);
+        this.MemberName = options.ConvertPropertyName
+            ? Char.ToLowerInvariant(member.Name[0]) + member.Name.Substring(1)
+            : member.Name;
 
         TypeScriptType tsType;
         try

@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO.Compression;
@@ -9,9 +10,16 @@ using System.Xml.Serialization;
 
 namespace MemoryPack.Generator;
 
+public record TypeScriptGenerateOptions
+{
+    public string OutputDirectory { get; set; } = default!;
+    public string ImportExtension { get; set; } = default!;
+    public bool ConvertPropertyName { get; set; } = true;
+}
+
 partial class MemoryPackGenerator
 {
-    static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, string typeScriptOutputDirectoryPath,string importExt, in SourceProductionContext context,
+    static TypeMeta? GenerateTypeScript(TypeDeclarationSyntax syntax, Compilation compilation, TypeScriptGenerateOptions typeScriptGenerateOptions, in SourceProductionContext context,
         ReferenceSymbols reference, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
@@ -31,7 +39,7 @@ partial class MemoryPackGenerator
 
         var typeMeta = new TypeMeta(typeSymbol, reference);
 
-        if (typeMeta.GenerateType != GenerateType.Object && !typeMeta.IsUnion)
+        if (typeMeta.GenerateType is not (GenerateType.Object or GenerateType.Union))
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeScriptOnlyAllowsGenerateTypeObject, syntax.Identifier.GetLocation(), typeSymbol.Name));
             return null;
@@ -45,8 +53,8 @@ partial class MemoryPackGenerator
         var sb = new StringBuilder();
 
         sb.AppendLine($$"""
-import { MemoryPackWriter } from "./MemoryPackWriter{{importExt}}";
-import { MemoryPackReader } from "./MemoryPackReader{{importExt}}";
+import { MemoryPackWriter } from "./MemoryPackWriter{{typeScriptGenerateOptions.ImportExtension}}";
+import { MemoryPackReader } from "./MemoryPackReader{{typeScriptGenerateOptions.ImportExtension}}";
 """);
 
         var collector = new TypeCollector();
@@ -68,17 +76,17 @@ import { MemoryPackReader } from "./MemoryPackReader{{importExt}}";
         // add import(enum, union, memorypackable)
         foreach (var item in collector.GetEnums())
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{importExt}\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\"; ");
         }
         foreach (var item in collector.GetMemoryPackableTypes(reference).Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol)))
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{importExt}\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\"; ");
         }
         sb.AppendLine();
 
         try
         {
-            typeMeta.EmitTypescript(sb, unionMap, importExt);
+            typeMeta.EmitTypescript(sb, unionMap, typeScriptGenerateOptions);
         }
         catch (NotSupportedTypeException ex)
         {
@@ -90,12 +98,12 @@ import { MemoryPackReader } from "./MemoryPackReader{{importExt}}";
         // save to file
         try
         {
-            if (!Directory.Exists(typeScriptOutputDirectoryPath))
+            if (!Directory.Exists(typeScriptGenerateOptions.OutputDirectory))
             {
-                Directory.CreateDirectory(typeScriptOutputDirectoryPath);
+                Directory.CreateDirectory(typeScriptGenerateOptions.OutputDirectory);
             }
 
-            File.WriteAllText(Path.Combine(typeScriptOutputDirectoryPath, $"{typeMeta.TypeName}.ts"), sb.ToString(), new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(typeScriptGenerateOptions.OutputDirectory, $"{typeMeta.TypeName}.ts"), sb.ToString(), new UTF8Encoding(false));
         }
         catch (Exception ex)
         {
@@ -165,8 +173,9 @@ export const enum {{typeSymbol.Name}} {
 
 public partial class TypeMeta
 {
-    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, string importExt)
+    public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, TypeScriptGenerateOptions options)
     {
+        string importExt = options.ImportExtension;
         if (IsUnion)
         {
             EmitTypeScriptUnion(sb, importExt);
@@ -178,7 +187,7 @@ public partial class TypeMeta
             union = null;
         }
 
-        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference)).ToArray();
+        var tsMembers = Members.Select(x => new TypeScriptMember(x, reference, options)).ToArray();
         var impl = (union != null) ? $"implements {union.Name} " : "";
 
         var code = $$"""

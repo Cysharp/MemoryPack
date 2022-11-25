@@ -141,7 +141,15 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     ext = ".js";
                 }
 
-                return (path, ext);
+                string convertProp;
+                if (!configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptConvertPropertyName", out convertProp!))
+                {
+                    convertProp = "true";
+                }
+                if (!bool.TryParse(convertProp, out var convert)) convert = true;
+
+                if (path == null) return null;
+                return new TypeScriptGenerateOptions { OutputDirectory = path, ImportExtension = ext, ConvertPropertyName = convert };
             });
 
         var typeScriptDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -161,7 +169,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             .Combine(context.CompilationProvider)
             .WithComparer(Comparer.Instance)
             .Combine(typeScriptEnabled)
-            .Where(x => x.Right.path != null) // filter, exists TypeScriptOutputDirectory
+            .Where(x => x.Right != null) // filter
             .Collect();
 
         context.RegisterSourceOutput(typeScriptGenerateSource, static (context, source) =>
@@ -202,15 +210,13 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             {
                 var typeDeclaration = item.Left.Item1;
                 var compilation = item.Left.Item2;
-                var path = generatePath = item.Right.path!;
-                var importExt = item.Right.ext;
 
                 if (reference == null)
                 {
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                var meta = GenerateTypeScript(typeDeclaration, compilation, path, importExt, context, reference, unionMap);
+                var meta = GenerateTypeScript(typeDeclaration, compilation, item.Right!, context, reference, unionMap);
                 if (meta != null)
                 {
                     collector.Visit(meta, false);
