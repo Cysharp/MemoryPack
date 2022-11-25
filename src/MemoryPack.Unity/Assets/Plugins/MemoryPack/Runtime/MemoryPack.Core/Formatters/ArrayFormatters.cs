@@ -27,14 +27,14 @@ namespace MemoryPack
 {
     public static partial class MemoryPackFormatterProvider
     {
-        static readonly Dictionary<Type, Type> ArrayLikeFormatters = new Dictionary<Type, Type>(4)
+        static readonly Dictionary<Type, Type> ArrayLikeFormatters = new Dictionary<Type, Type>(5)
         {
             // If T[], choose UnmanagedArrayFormatter or DangerousUnmanagedTypeArrayFormatter or ArrayFormatter
             { typeof(ArraySegment<>), typeof(ArraySegmentFormatter<>) },
             { typeof(Memory<>), typeof(MemoryFormatter<>) },
             { typeof(ReadOnlyMemory<>), typeof(ReadOnlyMemoryFormatter<>) },
             { typeof(ReadOnlySequence<>), typeof(ReadOnlySequenceFormatter<>) },
-            { typeof(IMemoryOwner<>), typeof(IMemoryOwnerFormatter<>) },
+            { typeof(IMemoryOwner<>), typeof(InterfaceMemoryOwnerFormatter<>) },
         };
     }
 }
@@ -167,7 +167,7 @@ namespace MemoryPack.Formatters
     }
 
     [Preserve]
-    public sealed class IMemoryOwnerFormatter<T> : MemoryPackFormatter<IMemoryOwner<T?>?>
+    public sealed class InterfaceMemoryOwnerFormatter<T> : MemoryPackFormatter<IMemoryOwner<T?>?>
     {
         [Preserve]
         public override void Serialize(ref MemoryPackWriter writer, ref IMemoryOwner<T?>? value)

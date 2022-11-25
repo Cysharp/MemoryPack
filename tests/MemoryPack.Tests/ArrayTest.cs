@@ -1,5 +1,7 @@
 ﻿using MemoryPack.Tests.Models;
+using Newtonsoft.Json;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -79,7 +81,25 @@ public class ArrayTest
             value2.AAA.Should().Be(i);
         }
     }
+
+    [Fact]
+    public void MemoryOwnerTest()
+    {
+        var memow = MemoryPool<byte>.Shared.Rent(100);
+
+
+
+        var bin = MemoryPackSerializer.Serialize(memow);
+        var value2 = MemoryPackSerializer.Deserialize<IMemoryOwner<byte>>(bin);
+
+
+
+    }
 }
+
+
+
+
 
 [MemoryPackable]
 public partial class BitPackData

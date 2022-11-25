@@ -99,6 +99,10 @@ public partial class HogeHoge
     public KeyValuePair<string, string> N2;
 
     public IUnionType? U1;
+
+    // more array
+    public IMemoryOwner<byte> MO1;
+    public IMemoryOwner<string> MO2;
 }
 
 

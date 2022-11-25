@@ -25,7 +25,7 @@ namespace MemoryPack {
 public static partial class MemoryPackFormatterProvider
 {
     // for nongenerics methods
-    static readonly ConcurrentDictionary<Type, IMemoryPackFormatter> formatters = new ConcurrentDictionary<Type, IMemoryPackFormatter>();
+    static readonly ConcurrentDictionary<Type, IMemoryPackFormatter> formatters = new ConcurrentDictionary<Type, IMemoryPackFormatter>(Environment.ProcessorCount, 150);
 
     // custom generic formatters
     static readonly ConcurrentDictionary<Type, Type> genericFormatterFactory = new ConcurrentDictionary<Type, Type>();
@@ -34,7 +34,7 @@ public static partial class MemoryPackFormatterProvider
     static readonly ConcurrentDictionary<Type, Type> genericCollectionFormatterFactory = new ConcurrentDictionary<Type, Type>();
 
     // generics known types
-    static readonly Dictionary<Type, Type> KnownGenericTypeFormatters = new Dictionary<Type, Type>()
+    static readonly Dictionary<Type, Type> KnownGenericTypeFormatters = new Dictionary<Type, Type>(3)
     {
         { typeof(KeyValuePair<,>), typeof(KeyValuePairFormatter<,>) },
         { typeof(Lazy<>), typeof(LazyFormatter<>) },

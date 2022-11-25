@@ -92,6 +92,7 @@ public class ReferenceSymbols
         const string System_Memory_T = "global::System.Memory<>";
         const string System_ReadOnlyMemory_T = "global::System.ReadOnlyMemory<>";
         const string System_Buffers_ReadOnlySequence_T = "global::System.Buffers.ReadOnlySequence<>";
+        const string System_Buffers_IMemoryOwner_T = "global::System.Buffers.IMemoryOwner<>";
         const string System_Collections_Generic_PriorityQueue_T = "global::System.Collections.Generic.PriorityQueue<,>";
 
         readonly HashSet<ITypeSymbol> knownTypes;
@@ -103,6 +104,7 @@ public class ReferenceSymbols
             { "System.Memory<>", "global::MemoryPack.Formatters.MemoryFormatter<TREPLACE>" },
             { "System.ReadOnlyMemory<>", "global::MemoryPack.Formatters.ReadOnlyMemoryFormatter<TREPLACE>" },
             { "System.Buffers.ReadOnlySequence<>", "global::MemoryPack.Formatters.ReadOnlySequenceFormatter<TREPLACE>" },
+            { "System.Buffers.IMemoryOwner<>", "global::MemoryPack.Formatters.InterfaceMemoryOwnerFormatter<TREPLACE>" },
 
             // CollectionFormatters
             { "System.Collections.Generic.List<>", "global::MemoryPack.Formatters.ListFormatter<TREPLACE>" },
@@ -234,7 +236,7 @@ public class ReferenceSymbols
             if (contains1) return true;
 
             var fullyQualifiedString = symbol.FullyQualifiedToString();
-            if (fullyQualifiedString is System_Memory_T or System_ReadOnlyMemory_T or System_Buffers_ReadOnlySequence_T or System_Collections_Generic_PriorityQueue_T)
+            if (fullyQualifiedString is System_Memory_T or System_ReadOnlyMemory_T or System_Buffers_ReadOnlySequence_T or System_Buffers_IMemoryOwner_T or System_Collections_Generic_PriorityQueue_T)
             {
                 return true;
             }
