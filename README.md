@@ -939,25 +939,29 @@ There are a few restrictions on the types that can be generated. Among the primi
 | `byte[]` | `Uint8Array \| null` |
 | `: ICollection<T>` | `T[] \| null` | Supports all `ICollection<T>` implemented type like `List<T>`
 | `: ISet<T>` | `Set<T> \| null` | Supports all `ISet<T>` implemented type like `HashSet<T>`
-| `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`. If both `K` and `V` are unmanaged type, must be `KeyValuePair<K, V>` is non-padding data
+| `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`.
 | `[MemoryPackable]` | `class` | Supports class only
 | `[MemoryPackUnion]` | `abstract class` |
 
 `[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
 
-### Configure import file extension
+### Configure import file extension and member name casing
 
 In default, MemoryPack generates file extension as `.js` like `import { MemoryPackWriter } from "./MemoryPackWriter.js";`. If you want to change other extension or empty, use `MemoryPackGenerator_TypeScriptImportExtension` to configure it.
+Also member name is automatically convert to lowerCase. If you want to use original name, use `MemoryPackGenerator_TypeScriptConvertPropertyName` to `false`.
 
 ```xml
 <ItemGroup>
     <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
     <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptImportExtension" />
+    <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptConvertPropertyName" />
 </ItemGroup>
 <PropertyGroup>
     <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
     <!-- allows empty -->
     <MemoryPackGenerator_TypeScriptImportExtension></MemoryPackGenerator_TypeScriptImportExtension>
+    <!-- default is true -->
+    <MemoryPackGenerator_TypeScriptConvertPropertyName>false</MemoryPackGenerator_TypeScriptConvertPropertyName>
 </PropertyGroup>
 ```
 
