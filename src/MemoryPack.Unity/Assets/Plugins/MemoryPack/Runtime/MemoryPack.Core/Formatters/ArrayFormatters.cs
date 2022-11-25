@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 // ReadOnlyMemory
 // ArraySegment
 // ReadOnlySequence
+// IMemoryOwner
 
 namespace MemoryPack
 {
@@ -33,6 +34,7 @@ namespace MemoryPack
             { typeof(Memory<>), typeof(MemoryFormatter<>) },
             { typeof(ReadOnlyMemory<>), typeof(ReadOnlyMemoryFormatter<>) },
             { typeof(ReadOnlySequence<>), typeof(ReadOnlySequenceFormatter<>) },
+            { typeof(IMemoryOwner<>), typeof(IMemoryOwnerFormatter<>) },
         };
     }
 }
@@ -161,6 +163,46 @@ namespace MemoryPack.Formatters
         {
             var array = reader.ReadArray<T>();
             value = (array == null) ? default : new ReadOnlySequence<T?>(array);
+        }
+    }
+
+    [Preserve]
+    public sealed class IMemoryOwnerFormatter<T> : MemoryPackFormatter<IMemoryOwner<T?>?>
+    {
+        [Preserve]
+        public override void Serialize(ref MemoryPackWriter writer, ref IMemoryOwner<T?>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WriteObjectHeader(1);
+            writer.WriteSpan(value.Memory.Span);
+        }
+
+        [Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, ref IMemoryOwner<T?>? value)
+        {
+            if (!reader.TryReadObjectHeader(out var count))
+            {
+                value = null;
+                return;
+            }
+
+            if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
+
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            value = MemoryPool<T?>.Shared.Rent(length);
+            Span<T?> refSpan = value.Memory.Span;
+
+            reader.ReadSpanWithoutReadLengthHeader(length, ref refSpan);
         }
     }
 }
