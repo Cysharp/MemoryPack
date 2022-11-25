@@ -12,20 +12,18 @@ using System.Runtime.CompilerServices;
 // ReadOnlyMemory
 // ArraySegment
 // ReadOnlySequence
-// IMemoryOwner
 
 namespace MemoryPack
 {
     public static partial class MemoryPackFormatterProvider
     {
-        static readonly Dictionary<Type, Type> ArrayLikeFormatters = new Dictionary<Type, Type>(5)
+        static readonly Dictionary<Type, Type> ArrayLikeFormatters = new Dictionary<Type, Type>(4)
         {
             // If T[], choose UnmanagedArrayFormatter or DangerousUnmanagedTypeArrayFormatter or ArrayFormatter
             { typeof(ArraySegment<>), typeof(ArraySegmentFormatter<>) },
             { typeof(Memory<>), typeof(MemoryFormatter<>) },
             { typeof(ReadOnlyMemory<>), typeof(ReadOnlyMemoryFormatter<>) },
             { typeof(ReadOnlySequence<>), typeof(ReadOnlySequenceFormatter<>) },
-            { typeof(IMemoryOwner<>), typeof(InterfaceMemoryOwnerFormatter<>) },
         };
     }
 }
@@ -154,46 +152,6 @@ namespace MemoryPack.Formatters
         {
             var array = reader.ReadArray<T>();
             value = (array == null) ? default : new ReadOnlySequence<T?>(array);
-        }
-    }
-
-    [Preserve]
-    public sealed class InterfaceMemoryOwnerFormatter<T> : MemoryPackFormatter<IMemoryOwner<T?>?>
-    {
-        [Preserve]
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IMemoryOwner<T?>? value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WriteObjectHeader(1);
-            writer.WriteSpan(value.Memory.Span);
-        }
-
-        [Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref IMemoryOwner<T?>? value)
-        {
-            if (!reader.TryReadObjectHeader(out var count))
-            {
-                value = null;
-                return;
-            }
-
-            if (count != 1) MemoryPackSerializationException.ThrowInvalidPropertyCount(1, count);
-
-            if (!reader.TryReadCollectionHeader(out var length))
-            {
-                value = null;
-                return;
-            }
-
-            value = MemoryPool<T?>.Shared.Rent(length);
-            Span<T?> refSpan = value.Memory.Span;
-
-            reader.ReadSpanWithoutReadLengthHeader(length, ref refSpan);
         }
     }
 }

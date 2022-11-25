@@ -100,9 +100,9 @@ public partial class HogeHoge
 
     public IUnionType? U1;
 
-    // more array
-    public IMemoryOwner<byte> MO1;
-    public IMemoryOwner<string> MO2;
+    // IMemoryOwner support is removed
+    //public IMemoryOwner<byte> MO1;
+    //public IMemoryOwner<string> MO2;
 }
 
 

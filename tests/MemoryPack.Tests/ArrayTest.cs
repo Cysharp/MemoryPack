@@ -82,19 +82,19 @@ public class ArrayTest
         }
     }
 
-    [Fact]
-    public void MemoryOwnerTest()
-    {
-        var memow = MemoryPool<byte>.Shared.Rent(100);
+    //[Fact]
+    //public void MemoryOwnerTest()
+    //{
+    //    var memow = MemoryPool<byte>.Shared.Rent(100);
 
 
 
-        var bin = MemoryPackSerializer.Serialize(memow);
-        var value2 = MemoryPackSerializer.Deserialize<IMemoryOwner<byte>>(bin);
+    //    var bin = MemoryPackSerializer.Serialize(memow);
+    //    var value2 = MemoryPackSerializer.Deserialize<IMemoryOwner<byte>>(bin);
 
 
 
-    }
+    //}
 }
 
 
