@@ -129,15 +129,31 @@ public class CompressionTest
             };
 
             var bin = MemoryPackSerializer.Serialize(data);
-            var v2 = MemoryPackSerializer.Deserialize<CompressionAttrData2>(bin)!;
 
-            v2.Id1.Should().Be(data.Id1);
-            v2.Id2.Should().Be(data.Id2);
-            v2.Data.Should().Equal(data.Data);
-            v2.String.Should().Be(data.String);
+            {
+                var v2 = MemoryPackSerializer.Deserialize<CompressionAttrData2>(bin)!;
 
-            v2.Two.One.Should().Be(data.Two.One);
-            v2.Two.Two.Should().Be(data.Two.Two);
+                v2.Id1.Should().Be(data.Id1);
+                v2.Id2.Should().Be(data.Id2);
+                v2.Data.Should().Equal(data.Data);
+                v2.String.Should().Be(data.String);
+
+                v2.Two.One.Should().Be(data.Two.One);
+                v2.Two.Two.Should().Be(data.Two.Two);
+            }
+            {
+                var seq = ReadOnlySequenceBuilder.Create(bin.Chunk(bin.Length / 5).ToArray());
+
+                var v2 = MemoryPackSerializer.Deserialize<CompressionAttrData2>(seq)!;
+
+                v2.Id1.Should().Be(data.Id1);
+                v2.Id2.Should().Be(data.Id2);
+                v2.Data.Should().Equal(data.Data);
+                v2.String.Should().Be(data.String);
+
+                v2.Two.One.Should().Be(data.Two.One);
+                v2.Two.Two.Should().Be(data.Two.Two);
+            }
         }
     }
 

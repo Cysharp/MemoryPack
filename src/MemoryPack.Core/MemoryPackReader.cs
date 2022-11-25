@@ -155,7 +155,10 @@ public ref partial struct MemoryPackReader
         var rest = bufferLength - count;
         if (rest < 0)
         {
-            MemoryPackSerializationException.ThrowInvalidAdvance();
+            if (TryAdvanceSequence(count))
+            {
+                return;
+            }
         }
 
         bufferLength = rest;
@@ -166,6 +169,27 @@ public ref partial struct MemoryPackReader
 #endif
         advancedCount += count;
         consumed += count;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    bool TryAdvanceSequence(int count)
+    {
+        var rest = bufferSource.Length - count;
+        if (rest < 0)
+        {
+            MemoryPackSerializationException.ThrowInvalidAdvance();
+        }
+
+        bufferSource = bufferSource.Slice(advancedCount + count);
+#if NET7_0_OR_GREATER
+        bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
+#else
+        bufferReference = bufferSource.FirstSpan;
+#endif
+        bufferLength = bufferSource.FirstSpan.Length;
+        advancedCount = 0;
+        consumed += count;
+        return true;
     }
 
     public void GetRemainingSource(out ReadOnlySpan<byte> singleSource, out ReadOnlySequence<byte> remainingSource)
