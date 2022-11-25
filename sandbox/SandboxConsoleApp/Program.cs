@@ -48,9 +48,6 @@ foreach (var item in new[] { str1, str2, str3 })
 
 
 
-
-
-
 // ---
 
 static byte[] Compress(ReadOnlySpan<byte> source)
@@ -80,6 +77,28 @@ public partial class IntClass2
     public int Value { get; set; }
 }
 
+
+
+[MemoryPackable]
+public partial struct BrotliValue<T>
+{
+    public long Value { get; set; }
+}
+
+
+public partial class MyClass : IDisposable
+{
+    [ArrayPoolMemoryFormatter<int>]
+    public Memory<int> LargeArray { get; }
+
+    public void Dispose()
+    {
+        if (MemoryMarshal.TryGetArray<int>(LargeArray, out var segment))
+        {
+            ArrayPool<int>.Shared.Return(segment.Array!);
+        }
+    }
+}
 
 
 

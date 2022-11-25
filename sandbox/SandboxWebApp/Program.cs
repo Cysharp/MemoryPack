@@ -1,5 +1,6 @@
 ﻿using MemoryPack;
 using MemoryPack.AspNetCoreMvcFormatter;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
