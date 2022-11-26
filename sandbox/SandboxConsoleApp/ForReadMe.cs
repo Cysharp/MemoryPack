@@ -1,7 +1,10 @@
 ﻿using MemoryPack;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -157,4 +160,45 @@ public partial class MyDictContainer
     public Dictionary<int, string>? MD { get; set; }
 
 
+}
+
+
+[MemoryPackable]
+public partial class PoolModelSample : IDisposable
+{
+    public int Id { get; }
+
+    [MemoryPoolFormatter<byte>]
+    public Memory<byte> Payload { get; private set; }
+
+    public PoolModelSample(int id, Memory<byte> payload)
+    {
+        Id = id;
+        Payload = payload;
+    }
+
+    bool usePool;
+
+    [MemoryPackOnDeserialized]
+    void OnDeserialized()
+    {
+        usePool = true;
+    }
+
+    public void Dispose()
+    {
+        if (!usePool) return;
+
+        Return(Payload); Payload = default;
+    }
+
+    static void Return<T>(Memory<T> memory) => Return((ReadOnlyMemory<T>)memory);
+
+    static void Return<T>(ReadOnlyMemory<T> memory)
+    {
+        if (MemoryMarshal.TryGetArray(memory, out var segment) && segment.Array is { Length: > 0 })
+        {
+            ArrayPool<T>.Shared.Return(segment.Array, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+        }
+    }
 }
