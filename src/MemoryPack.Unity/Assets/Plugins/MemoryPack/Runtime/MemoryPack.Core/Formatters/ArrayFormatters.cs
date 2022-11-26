@@ -163,4 +163,66 @@ namespace MemoryPack.Formatters
             value = (array == null) ? default : new ReadOnlySequence<T?>(array);
         }
     }
+
+    [Preserve]
+    public sealed class MemoryPoolFormatter<T> : MemoryPackFormatter<Memory<T?>>
+    {
+        [Preserve]
+        public override void Serialize(ref MemoryPackWriter writer, ref Memory<T?> value)
+        {
+            writer.WriteSpan(value.Span);
+        }
+
+        [Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, ref Memory<T?> value)
+        {
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            if (length == 0)
+            {
+                value = Memory<T?>.Empty;
+                return;
+            }
+
+            var memory = ArrayPool<T?>.Shared.Rent(length).AsMemory(0, length);
+            var span = memory.Span;
+            reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+            value = memory;
+        }
+    }
+
+    [Preserve]
+    public sealed class ReadOnlyMemoryPoolFormatter<T> : MemoryPackFormatter<ReadOnlyMemory<T?>>
+    {
+        [Preserve]
+        public override void Serialize(ref MemoryPackWriter writer, ref ReadOnlyMemory<T?> value)
+        {
+            writer.WriteSpan(value.Span);
+        }
+
+        [Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, ref ReadOnlyMemory<T?> value)
+        {
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = null;
+                return;
+            }
+
+            if (length == 0)
+            {
+                value = Memory<T?>.Empty;
+                return;
+            }
+
+            var memory = ArrayPool<T?>.Shared.Rent(length).AsMemory(0, length);
+            var span = memory.Span;
+            reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+            value = memory;
+        }
+    }
 }

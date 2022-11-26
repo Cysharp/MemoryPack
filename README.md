@@ -613,7 +613,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>`, `MemoryPoolFormatter<T>`, `ReadOnlyMemoryPoolFormatter<T>` exsits.
 
 ```csharp
 [MemoryPackable]
@@ -697,6 +697,80 @@ public partial class Sample
     [BrotliFormatter<ChildType>]
     public ChildType? Child { get; set; }
 }
+```
+
+Deserialize array pooling
+---
+For deserializing large array(any `T`), MemoryPack offers multiple efficient pooling methods. The most effective way is to use the [#Overwrite](#overwrite) function. In particular, with `List<T>`, always reuse.
+
+```csharp
+[MemoryPackable]
+public partial class ListBytesSample
+{
+    public int Id { get; set; }
+    public List<byte> Payload { get; set; }
+}
+
+// ----
+
+// List<byte> is reused, no allocation in deserialize.
+MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref reuseObject);
+
+// for efficient operation, you can get Span<T> by CollectionsMarshal
+var span = CollectionsMarshal.AsSpan(value.Payload);
+```
+
+A convinient way is to deserialize to an ArrayPool at deserialization time. MemoryPack provides `MemoryPoolFormatter<T>` and `ReadOnlyMemoryPoolFormatter<T>`.
+
+```csharp
+[MemoryPackable]
+public partial class PoolModelSample : IDisposable
+{
+    public int Id { get; }
+
+    [MemoryPoolFormatter<byte>]
+    public Memory<byte> Payload { get; private set; }
+
+    public PoolModelSample(int id, Memory<byte> payload)
+    {
+        Id = id;
+        Payload = payload;
+    }
+
+    // You must write the return code yourself, here is snippet.
+
+    bool usePool;
+
+    [MemoryPackOnDeserialized]
+    void OnDeserialized()
+    {
+        usePool = true;
+    }
+
+    public void Dispose()
+    {
+        if (!usePool) return;
+
+        Return(Payload); Payload = default;
+    }
+
+    static void Return<T>(Memory<T> memory) => Return((ReadOnlyMemory<T>)memory);
+
+    static void Return<T>(ReadOnlyMemory<T> memory)
+    {
+        if (MemoryMarshal.TryGetArray(memory, out var segment) && segment.Array is { Length: > 0 })
+        {
+            ArrayPool<T>.Shared.Return(segment.Array, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+        }
+    }
+}
+
+// ---
+
+using(var value = MemoryPackSerializer.Deserialize<PoolModelSample>(bin))
+{
+    // do anything...
+}   // return to ArrayPool
 ```
 
 Performance

@@ -1,5 +1,7 @@
 ﻿#pragma warning disable CS8600
 #pragma warning disable CS0169
+#pragma warning disable CS8602
+#pragma warning disable CS8618
 
 using MemoryPack;
 using MemoryPack.Compression;
@@ -26,49 +28,20 @@ using System.Text;
 using System.Xml.Linq;
 
 
-var str1 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia.html");
-var str2 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia_JPN.html");
-var str3 = File.ReadAllText(@"Hypertext Transfer Protocol - Wikipedia _JPN_TextOnly.txt");
+var value = new ListBytesSample();
 
+var bin = MemoryPackSerializer.Serialize(value);
+MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref value);
 
-foreach (var item in new[] { str1, str2, str3 })
+// for efficient operation, you can get Span<T> by CollectionsMarshal
+
+var span = CollectionsMarshal.AsSpan(value.Payload);
+
+[MemoryPackable]
+public partial class ListBytesSample
 {
-    if (item == str1) Console.WriteLine("English");
-    if (item == str2) Console.WriteLine("Japanese");
-    if (item == str3) Console.WriteLine("Jpn Text Only");
-
-    var utf16 = MemoryMarshal.AsBytes(item.AsSpan()).ToArray();
-    var utf8 = Encoding.UTF8.GetBytes(item);
-
-    Console.WriteLine($"UTF16:          {HumanReadable(utf16.Length)}");
-    Console.WriteLine($"UTF8:           {HumanReadable(utf8.Length)}");
-    Console.WriteLine($"Compress UTF16: {HumanReadable(Compress(utf16).Length)}");
-    Console.WriteLine($"Compress UTF8:  {HumanReadable(Compress(utf8).Length)}");
-}
-
-
-
-// ---
-
-static byte[] Compress(ReadOnlySpan<byte> source)
-{
-    using var encoder = new BrotliEncoder(1, 22);
-    var maxLength = BrotliEncoder.GetMaxCompressedLength(source.Length);
-    var dest = new byte[maxLength];
-    var status = encoder.Compress(source, dest, out var consumed, out var written, true);
-    if (status != OperationStatus.Done)
-    {
-        throw new Exception("DAME");
-    }
-    return dest.AsSpan(written).ToArray();
-}
-
-string HumanReadable(int length)
-{
-    if (length < 1024) return $"{length} bytes";
-    if (length < 1024 * 1024) return $"{length / 1024} KB";
-    if (length < 1024 * 1024 * 1024) return $"{length / 1024 / 1024} MB";
-    return $"{length / 1024 / 1024 / 1024} GB";
+    public int Id { get; set; }
+    public List<byte> Payload { get; set; }
 }
 
 [MemoryPackable]
@@ -86,19 +59,6 @@ public partial struct BrotliValue<T>
 }
 
 
-public partial class MyClass : IDisposable
-{
-    [ArrayPoolMemoryFormatter<int>]
-    public Memory<int> LargeArray { get; }
-
-    public void Dispose()
-    {
-        if (MemoryMarshal.TryGetArray<int>(LargeArray, out var segment))
-        {
-            ArrayPool<int>.Shared.Return(segment.Array!);
-        }
-    }
-}
 
 
 

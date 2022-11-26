@@ -102,11 +102,21 @@ public sealed class BrotliStringFormatterAttribute : MemoryPackCustomFormatterAt
     }
 }
 
-public sealed class ArrayPoolMemoryFormatterAttribute<T> : MemoryPackCustomFormatterAttribute<ArrayPoolMemoryFormatter<T?>, Memory<T?>>
+public sealed class MemoryPoolFormatterAttribute<T> : MemoryPackCustomFormatterAttribute<MemoryPoolFormatter<T>, Memory<T?>>
 {
-    static readonly ArrayPoolMemoryFormatter<T> formatter = new ArrayPoolMemoryFormatter<T>();
+    static readonly MemoryPoolFormatter<T> formatter = new MemoryPoolFormatter<T>();
 
-    public override ArrayPoolMemoryFormatter<T> GetFormatter()
+    public override MemoryPoolFormatter<T> GetFormatter()
+    {
+        return formatter;
+    }
+}
+
+public sealed class ReadOnlyMemoryPoolFormatterAttribute<T> : MemoryPackCustomFormatterAttribute<ReadOnlyMemoryPoolFormatter<T>, ReadOnlyMemory<T?>>
+{
+    static readonly ReadOnlyMemoryPoolFormatter<T> formatter = new ReadOnlyMemoryPoolFormatter<T>();
+
+    public override ReadOnlyMemoryPoolFormatter<T> GetFormatter()
     {
         return formatter;
     }
