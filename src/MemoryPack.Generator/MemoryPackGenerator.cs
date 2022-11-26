@@ -190,6 +190,11 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     reference = new ReferenceSymbols(compilation);
                 }
 
+                if (generatePath is null && item.Right is {} options)
+                {
+                    generatePath = options.OutputDirectory;
+                }
+
                 var isUnion = typeSymbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
 
                 if (isUnion)
