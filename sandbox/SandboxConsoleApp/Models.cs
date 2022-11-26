@@ -13,6 +13,30 @@ using System.Threading.Tasks;
 
 namespace SandboxConsoleApp;
 
+public interface IMore
+{
+    public Version Description { get; set; }
+}
+
+
+public class NewBase
+{
+    public long Description { get; set; }
+}
+
+[MemoryPackable]
+public partial class NewProp : NewBase, IMore
+{
+    Version IMore.Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public new string? Description { get; set; }
+
+    public NewProp()
+    {
+
+    }
+}
+
+
 [MemoryPackable]
 public partial class NotNotOmu
 {
@@ -82,3 +106,5 @@ public partial class LisList : List<int>
 {
 
 }
+
+

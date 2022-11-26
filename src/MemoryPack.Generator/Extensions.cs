@@ -144,4 +144,30 @@ internal static class Extensions
         var r = right.IsGenericType ? right.ConstructUnboundGenericType() : right;
         return SymbolEqualityComparer.Default.Equals(l, r);
     }
+
+    public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) => DistinctBy(source, keySelector, null);
+
+    public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? comparer)
+    {
+        return DistinctByIterator(source, keySelector, comparer);
+    }
+
+    private static IEnumerable<TSource> DistinctByIterator<TSource, TKey>(IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? comparer)
+    {
+        using IEnumerator<TSource> enumerator = source.GetEnumerator();
+
+        if (enumerator.MoveNext())
+        {
+            var set = new HashSet<TKey>(comparer);
+            do
+            {
+                TSource element = enumerator.Current;
+                if (set.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
+            while (enumerator.MoveNext());
+        }
+    }
 }

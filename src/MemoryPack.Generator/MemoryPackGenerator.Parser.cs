@@ -76,7 +76,10 @@ partial class TypeMeta
         this.Constructor = ChooseConstructor(symbol, reference);
 
         this.Members = symbol.GetAllMembers() // iterate includes parent type
-            .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false })
+            .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false, CanBeReferencedByName: true })
+            .Reverse()
+            .DistinctBy(x => x.Name) // remove duplicate name(new)
+            .Reverse()
             .Where(x =>
             {
                 var include = x.ContainsAttribute(reference.MemoryPackIncludeAttribute);
