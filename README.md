@@ -354,6 +354,19 @@ public partial class UnionSampleFormatter
 
 > Formatter is register automatically via `ModuleInitializer` in C# 9.0. However ModuleInitializer is not supported in Unity, so if you use in Unity, invoke `***Initializer.RegisterFormatter()` manually in Startup. For example `UnionSampleFormatterInitializer.RegisterFormatter()`.
 
+Union can assembly in code via `DynamicUnionFormatter<T>`.
+
+```csharp
+var formatter = new DynamicUnionFormatter<IFooBarBaz>(new[]
+{
+    (0, typeof(Foo)),
+    (1, typeof(Bar)),
+    (2, typeof(Baz))
+});
+
+MemoryPackFormatterProvider.Register(formatter);
+```
+
 Serialize API
 ---
 Serialize has three overloads.
