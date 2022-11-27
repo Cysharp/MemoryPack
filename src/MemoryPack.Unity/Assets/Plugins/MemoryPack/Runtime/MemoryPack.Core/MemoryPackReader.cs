@@ -18,8 +18,8 @@ using System.Text.Unicode;
 namespace MemoryPack {
 
 #if NET7_0_OR_GREATER
-using static MemoryMarshal;
 using static GC;
+using static MemoryMarshal;
 #else
 using static MemoryPack.Internal.MemoryMarshalEx;
 #endif
@@ -466,6 +466,20 @@ public ref partial struct MemoryPackReader
     {
         T? value = default;
         GetFormatter<T>().Deserialize(ref this, ref value);
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadValue(Type type, ref object? value)
+    {
+        GetFormatter(type).Deserialize(ref this, ref value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public object? ReadValue(Type type)
+    {
+        object? value = default;
+        GetFormatter(type).Deserialize(ref this, ref value);
         return value;
     }
 

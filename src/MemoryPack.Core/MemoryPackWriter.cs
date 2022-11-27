@@ -430,6 +430,15 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteValue(Type type, object? value)
+    {
+        depth++;
+        if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(type);
+        GetFormatter(type).Serialize(ref this, ref value);
+        depth--;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteValueWithFormatter<TFormatter, T>(TFormatter formatter, scoped in T? value)
         where TFormatter : IMemoryPackFormatter<T>
     {
@@ -561,7 +570,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             DangerousWriteUnmanagedSpan(value);
             return;
         }
-        
+
         WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {

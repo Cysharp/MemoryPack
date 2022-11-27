@@ -1,4 +1,5 @@
-﻿using MemoryPack.Tests.Models;
+﻿using MemoryPack.Formatters;
+using MemoryPack.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,4 +40,44 @@ public class UnionTest
             two2.Should().BeAssignableTo<BForTwo<string>>().Subject.Should().BeEquivalentTo(two);
         }
     }
+
+    [Fact]
+    public void Dynamic()
+    {
+        var f = new DynamicUnionFormatter<IDynamicBase>(
+            (0, typeof(Gen1)),
+            (1, typeof(Gen2)));
+
+        MemoryPackFormatterProvider.Register(f);
+
+        var one = new Gen1() { MyProperty = 999 };
+        var two = new Gen2() { MyProperty = "aabbbC" };
+
+        var bin1 = MemoryPackSerializer.Serialize<IDynamicBase>(one);
+        var bin2 = MemoryPackSerializer.Serialize<IDynamicBase>(two);
+
+        var d1 = MemoryPackSerializer.Deserialize<IDynamicBase>(bin1);
+        var d2 = MemoryPackSerializer.Deserialize<IDynamicBase>(bin2);
+
+        (d1 as Gen1)!.MyProperty.Should().Be(999);
+        (d2 as Gen2)!.MyProperty.Should().Be("aabbbC");
+    }
+}
+
+[MemoryPackable(GenerateType.NoGenerate)]
+public partial class IDynamicBase
+{
+}
+
+
+[MemoryPackable(GenerateType.Object)]
+public partial class Gen1 : IDynamicBase
+{
+    public int MyProperty { get; set; }
+}
+
+[MemoryPackable(GenerateType.Object)]
+public partial class Gen2 : IDynamicBase
+{
+    public string? MyProperty { get; set; }
 }
