@@ -484,7 +484,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
-{{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.@{x.Name};").NewLine()}}
 
 {{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)).NewLine()}}
 
@@ -505,7 +505,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
-{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = value.{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = value.@{x.Name};").NewLine()}}
             }
 {{(IsValueType ? "#endif" : "")}}
 
@@ -526,7 +526,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
-{{Members.Where(x => x.Symbol != null).Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.{x.Name} = __{x.Name};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.@{x.Name} = __{x.Name};").NewLine()}}
         goto READ_END;
 
     NEW:
@@ -797,7 +797,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
                 {
                     sb.Append(", ");
                 }
-                sb.Append("value.");
+                sb.Append("value.@");
                 sb.Append(members[index].Name);
             }
             sb.Append(");");
@@ -904,7 +904,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         // all value is deserialized, __Name is exsits.
         return string.Join("," + Environment.NewLine, Members
             .Where(x => x.IsSettable && !x.IsConstructorParameter)
-            .Select(x => $"{indent}{x.Name} = __{x.Name}"));
+            .Select(x => $"{indent}@{x.Name} = __{x.Name}"));
     }
 
     string EmitUnionTemplate(IGeneratorContext context)
@@ -1219,28 +1219,28 @@ public partial class MemberMeta
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
-                return $"{writer}.WritePackable(value.{Name});";
+                return $"{writer}.WritePackable(value.@{Name});";
             case MemberKind.Unmanaged:
             case MemberKind.Enum:
-                return $"{writer}.WriteUnmanaged(value.{Name});";
+                return $"{writer}.WriteUnmanaged(value.@{Name});";
             case MemberKind.UnmanagedNullable:
-                return $"{writer}.DangerousWriteUnmanaged(value.{Name});";
+                return $"{writer}.DangerousWriteUnmanaged(value.@{Name});";
             case MemberKind.String:
-                return $"{writer}.WriteString(value.{Name});";
+                return $"{writer}.WriteString(value.@{Name});";
             case MemberKind.UnmanagedArray:
-                return $"{writer}.WriteUnmanagedArray(value.{Name});";
+                return $"{writer}.WriteUnmanagedArray(value.@{Name});";
             case MemberKind.MemoryPackableArray:
-                return $"{writer}.WritePackableArray(value.{Name});";
+                return $"{writer}.WritePackableArray(value.@{Name});";
             case MemberKind.MemoryPackableList:
-                return $"MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.{Name}));";
+                return $"MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.@{Name}));";
             case MemberKind.Array:
-                return $"{writer}.WriteArray(value.{Name});";
+                return $"{writer}.WriteArray(value.@{Name});";
             case MemberKind.Blank:
                 return "";
             case MemberKind.CustomFormatter:
-                return $"{writer}.WriteValueWithFormatter(__{Name}Formatter, value.{Name});";
+                return $"{writer}.WriteValueWithFormatter(__{Name}Formatter, value.@{Name});";
             default:
-                return $"{writer}.WriteValue(value.{Name});";
+                return $"{writer}.WriteValue(value.@{Name});";
         }
     }
 
@@ -1253,9 +1253,9 @@ public partial class MemberMeta
             case MemberKind.UnmanagedNullable:
                 return $"writer.WriteVarInt(System.Runtime.CompilerServices.Unsafe.SizeOf<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>());";
             case MemberKind.String:
-                return $"writer.WriteVarInt(writer.GetStringWriteLength(value.{Name}));";
+                return $"writer.WriteVarInt(writer.GetStringWriteLength(value.@{Name}));";
             case MemberKind.UnmanagedArray:
-                return $"writer.WriteVarInt(writer.GetUnmanageArrayWriteLength<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(value.{Name}));";
+                return $"writer.WriteVarInt(writer.GetUnmanageArrayWriteLength<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(value.@{Name}));";
             case MemberKind.Blank:
                 return $"writer.WriteVarInt(0);";
             default:
