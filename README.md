@@ -1134,6 +1134,10 @@ Source Generator is also used officially by Unity by [com.unity.properties](http
 
 Unity version is not supported CustomFormatter and ImmutableCollections.
 
+Native AOT
+---
+Unfortunately, .NET 7 Native AOT causes crash(`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It will fix on .NET 8 and see the reporing issue for workaround(write XML manually). [Generic virtual method pointer lookup failure in .NET 7 Native AOT #78882](https://github.com/dotnet/runtime/issues/78882).
+
 Binary wire format specification
 ---
 The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. These types exist as internal representations of binaries, but types cannot be determined without a C# schema.
