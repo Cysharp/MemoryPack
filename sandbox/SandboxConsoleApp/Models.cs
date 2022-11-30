@@ -25,6 +25,13 @@ public class NewBase
 }
 
 [MemoryPackable]
+public partial struct FooUnman
+{
+    public float MyProperty { get; set; }
+    public float MyProperty2 { get; set; }
+}
+
+[MemoryPackable]
 public partial class NewProp : NewBase, IMore
 {
     Version IMore.Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

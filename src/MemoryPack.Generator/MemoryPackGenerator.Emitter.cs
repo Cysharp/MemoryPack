@@ -181,7 +181,11 @@ using MemoryPack;
         {
             if (type.IsUnmanagedType)
             {
-                sb.Append("unmanaged ");
+                sb.Append("GanerateType unmanaged ");
+            }
+            else
+            {
+                sb.Append("GenerateType " + type.GenerateType.ToString() + " ");
             }
             sb.AppendLine(WithEscape(type.Symbol));
             sb.AppendLine("---");
@@ -189,7 +193,14 @@ using MemoryPack;
         else
         {
             sb.AppendLine("/// <remarks>");
-            sb.AppendLine("/// MemoryPack serialize members:<br/>");
+            if (type.IsUnmanagedType)
+            {
+                sb.AppendLine("/// MemoryPack GenerateType: unmanaged<br/>");
+            }
+            else
+            {
+                sb.AppendLine("/// MemoryPack GenerateType: " + type.GenerateType.ToString() + "<br/>");
+            }
             sb.AppendLine("/// <code>");
         }
 

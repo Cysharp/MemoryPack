@@ -270,21 +270,21 @@ public class ReferenceSymbols
                 {
                     if (array.IsSZArray)
                     {
-                        return $"MemoryPack.Formatters.ArrayFormatter<{type.FullyQualifiedToString()}>";
+                        return $"MemoryPack.Formatters.ArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                     }
                     else
                     {
                         if (array.Rank == 2)
                         {
-                            return $"MemoryPack.Formatters.TwoDimensionalArrayFormatter<{type.FullyQualifiedToString()}>";
+                            return $"MemoryPack.Formatters.TwoDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                         else if (array.Rank == 3)
                         {
-                            return $"MemoryPack.Formatters.ThreeDimensionalArrayFormatter<{type.FullyQualifiedToString()}>";
+                            return $"MemoryPack.Formatters.ThreeDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                         else if (array.Rank == 4)
                         {
-                            return $"MemoryPack.Formatters.FourDimensionalArrayFormatter<{type.FullyQualifiedToString()}>";
+                            return $"MemoryPack.Formatters.FourDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                     }
                 }
