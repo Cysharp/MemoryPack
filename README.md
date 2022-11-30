@@ -895,12 +895,13 @@ As it is, I have to wrap it every time, which is inconvenient. Let's create a cu
 ```csharp
 public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
 {
-    public override void Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)
+    // If Unity that does not support scoped and TBufferWriter so change signature to `Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)`
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AnimationCurve value)
     {
         writer.WritePackable(new SerializableAnimationCurve(value));
     }
 
-    public override void Deserialize(ref MemoryPackReader reader, ref AnimationCurve value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref AnimationCurve value)
     {
         var wrapped = reader.ReadPackable<SerializableAnimationCurve>();
         value = wrapped.AnimationCurve;
