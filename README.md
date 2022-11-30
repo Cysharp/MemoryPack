@@ -996,8 +996,16 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers(options =>
 {
     options.InputFormatters.Insert(0, new MemoryPackInputFormatter());
-    options.OutputFormatters.Insert(0, new MemoryPackOutputFormatter());
+    // If checkContentType: true then can output multiple format(JSON/MemoryPack, etc...). default is false.
+    options.OutputFormatters.Insert(0, new MemoryPackOutputFormatter(checkContentType: false));
 });
+```
+
+If you call from HttpClient, you can set `application/x-memorypack` to content-header.
+
+```csharp
+var content = new ByteArrayContent(bin)
+content.Headers.ContentType = new MediaTypeHeaderValue("application/x-memorypack");
 ```
 
 ### TypeScript Type Mapping
