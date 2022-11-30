@@ -853,6 +853,67 @@ public partial class Sample
 }
 ```
 
+Serialize external types
+---
+If you want to serialize external types, you can make custom formatter and register to provider, see [Formatter/Provider API](#formatterprovider-api) for details. However, creating a custom formatter is difficult. Therefore, we recommend making a wrapper type. For example, if you want to serialize an external type called `AnimationCurve`.
+
+```csharp
+// Keyframe: (float time, float inTangent, float outTangent, int tangentMode, int wightedMode, float inWeight, float outWeight)
+[MemoryPackable]
+public readonly partial struct SerializableAnimationCurve
+{
+    [MemoryPackIgnore]
+    public readonly AnimationCurve AnimationCurve;
+
+    [MemoryPackInclude]
+    WrapMode preWrapMode => AnimationCurve.preWrapMode;
+    [MemoryPackInclude]
+    WrapMode postWrapMode => AnimationCurve.postWrapMode;
+    [MemoryPackInclude]
+    Keyframe[] keys => AnimationCurve.keys;
+
+    [MemoryPackConstructor]
+    SerializableAnimationCurve(WrapMode preWrapMode, WrapMode postWrapMode, Keyframe[] keys)
+    {
+        var curve = new AnimationCurve(keys);
+        curve.preWrapMode = preWrapMode;
+        curve.postWrapMode = postWrapMode;
+        this.AnimationCurve = curve;
+    }
+
+    public SerializableAnimationCurve(AnimationCurve animationCurve)
+    {
+        this.AnimationCurve = animationCurve;
+    }
+}
+```
+
+The type to wrap is public, but excluded from serialization(`MemoryPackIgnore`). The properties you want to serialize are private, but included (`MemoryPackInclude`). Two patterns of constructors should also be prepared. The constructor used by the serializer should be private.
+
+As it is, I have to wrap it every time, which is inconvenient. Let's create a custom formatter.
+
+```csharp
+public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
+{
+    public override void Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)
+    {
+        writer.WritePackable(new SerializableAnimationCurve(value));
+    }
+
+    public override void Deserialize(ref MemoryPackReader reader, ref AnimationCurve value)
+    {
+        var wrapped = reader.ReadPackable<SerializableAnimationCurve>();
+        value = wrapped.AnimationCurve;
+    }
+}
+```
+
+Finally, register formatter in startup.
+
+```csharp
+MemoryPackFormatterProvider.Register<AnimationCurve>(new AnimationCurveFormatter());
+```
+
 Packages
 ---
 MemoryPack has thesed packages.
@@ -1141,6 +1202,8 @@ For more information on Unity and Source Generator, please refer to the [Unity d
 Source Generator is also used officially by Unity by [com.unity.properties](https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html) and [com.unity.entities](https://docs.unity3d.com/Packages/com.unity.properties@2.0/changelog/CHANGELOG.html). In other words, it is the standard for code generation in the next generation of Unity.
 
 Unity version is not supported CustomFormatter and ImmutableCollections.
+
+You can serializer all unamnaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
 
 Native AOT
 ---
