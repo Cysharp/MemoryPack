@@ -7,7 +7,7 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 > Measure by .NET 7 / Ryzen 9 5950X machine. These serializers has `IBufferWriter<byte>` method, serialize using `ArrayBuffer<byte>` and reuse to avoid measure buffer copy.
 
-For standard object, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack gots boosted power, x50 ~ x200 faster than other serializers.
+For standard objects, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack is even more powerful, with speeds up to x50 ~ x200 greater than other serializers.
 
 MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator(.NET Standard 2.1(.NET 5, 6) and Unity support is also exists).
 
@@ -62,7 +62,7 @@ var bin = MemoryPackSerializer.Serialize(v);
 var val = MemoryPackSerializer.Deserialize<Person>(bin);
 ```
 
-Serialize method supports return `byte[]` and serialize to `IBufferWriter<byte>` or `Stream`. Deserialize method supports `ReadOnlySpan<byte>`, `ReadOnlySeqeunce<byte>` and `Stream`. And also there have non-generics version.
+Serialize method supports return `byte[]` and serialize to `IBufferWriter<byte>` or `Stream`. Deserialize method supports `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>` and `Stream`. And also there have non-generics version.
 
 Built-in supported types
 ---
@@ -120,7 +120,7 @@ public partial class Sample
 }
 ```
 
-Which members are serialized, you can check IntelliSense in type(code genreator makes serialization info to `<remarks />` comment).
+Which members are serialized, you can check IntelliSense in type(code generator makes serialization info to `<remarks />` comment).
 
 ![image](https://user-images.githubusercontent.com/46207/192393984-9af01fcb-872e-46fb-b08f-4783e8cef4ae.png)
 
@@ -174,7 +174,7 @@ public partial class Person
     public readonly int Age;
     public readonly string Name;
 
-    // You can use parametarized constructor(paramter name must match with member names)
+    // You can use parameterized constructor (parameter name must match with member names)
     public Person(int age, string name)
     {
         this.Age = age;
@@ -207,7 +207,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
+When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be parameterless method.
 
 ```csharp
 [MemoryPackable]
@@ -269,7 +269,7 @@ public partial class MethodCallSample
 
 Define custom collection
 ---
-In default, annotated `[MemoryPackObject]` type try to search members. However if type is collection(`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenreateType.Collection` to serialize correctly.
+In default, annotated `[MemoryPackObject]` type try to search members. However if type is collection(`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenerateType.Collection` to serialize correctly.
 
 ```csharp
 [MemoryPackable(GenerateType.Collection)]
@@ -343,7 +343,7 @@ public partial interface IUnionSample
 {
 }
 
-// AssemblyB define definition outsiede of target type
+// AssemblyB define definition outside of target type
 [MemoryPackUnionFormatter(typeof(IUnionSample))]
 [MemoryPackUnion(0, typeof(FooClass))]
 [MemoryPackUnion(1, typeof(BarClass))]
@@ -380,7 +380,7 @@ async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerO
 
 The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
 
-If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and almostly fast.
+If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and almost as fast.
 
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
 
@@ -429,13 +429,13 @@ MemoryPackSerializer.Deserialize(bin, ref person);
 MemoryPack will attempt to overwrite as much as possible, but if the conditions do not match, it will create a new instance (as in normal deserialization).
 
 * ref value(includes members in object graph) is null, set new instance
-* only allows parameterless constructor, if parametarized constructor is used, create new instance
+* only allows parameterless constructor, if parameterized constructor is used, create new instance
 * if value is `T[]`, reuse only if the length is the same, otherwise create new instance
-* if value is collection that has `.Clear()` method(`List<>`, `Stack<>`, `Queue<>`, `LinkedList<>`, `HashSet<>`, `PriorityQueue<,>`, `ObservableCollection`, `Collection`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentBag<>`, `Dictionary<,>`, `SoretedDictionary<,>`, `SortedList<,>`, `ConcurrentDictionary<,>`) call Clear() and reuse it, otherwise create new instance
+* if value is collection that has `.Clear()` method(`List<>`, `Stack<>`, `Queue<>`, `LinkedList<>`, `HashSet<>`, `PriorityQueue<,>`, `ObservableCollection`, `Collection`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentBag<>`, `Dictionary<,>`, `SortedDictionary<,>`, `SortedList<,>`, `ConcurrentDictionary<,>`) call Clear() and reuse it, otherwise create new instance
 
 Version tolerant
 ---
-In default(`GeneratType.Object`), MemoryPack supports schema evolution limitedly.
+In default(`GenerateType.Object`), MemoryPack supports schema evolution limitedly.
 
 * unmanaged struct can't change any more
 * members can add, but can not delete
@@ -481,7 +481,7 @@ In use-case, store old data(to file, to redis, etc...) and read to new schema is
 
 Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
-When using `GnerateType.VersionTolerant`, it supports full version-torlerant.
+When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 
 * unmanaged struct can't change any more
 * All members must add `[MemoryPackOrder]` explicitly
@@ -527,7 +527,7 @@ public partial class VersionTolerantObject2
 }
 ```
 
-`GnerateType.VersionTolerant` is slower than `GeneratType.Object` in serializing. Also, the payload size will be slightly larger.
+`GenerateType.VersionTolerant` is slower than `GenerateType.Object` in serializing. Also, the payload size will be slightly larger.
 
 Serialization info
 ----
@@ -626,7 +626,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>`, `MemoryPoolFormatter<T>`, `ReadOnlyMemoryPoolFormatter<T>` exsits.
+MemorySharp provides the following formatting attributes: `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribute<TValue>`, `BitPackFormatterAttribute`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>`, `MemoryPoolFormatter<T>`, `ReadOnlyMemoryPoolFormatter<T>`.
 
 ```csharp
 [MemoryPackable]
@@ -660,7 +660,7 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
 }
 ```
 
-`BitPackFormatter` is for `bool[]`, same serialzied result as `BitArray`. In other words, bool is normally 1byte, but since it is treated as 1bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
+`BitPackFormatter` is for `bool[]`, same serialzied result as `BitArray`. In other words, bool is normally 1 byte, but since it is treated as 1 bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
 
 ```csharp
 [MemoryPackable]
@@ -733,7 +733,7 @@ MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref reuseObject);
 var span = CollectionsMarshal.AsSpan(value.Payload);
 ```
 
-A convinient way is to deserialize to an ArrayPool at deserialization time. MemoryPack provides `MemoryPoolFormatter<T>` and `ReadOnlyMemoryPoolFormatter<T>`.
+A convenient way is to deserialize to an ArrayPool at deserialization time. MemoryPack provides `MemoryPoolFormatter<T>` and `ReadOnlyMemoryPoolFormatter<T>`.
 
 ```csharp
 [MemoryPackable]
@@ -858,7 +858,7 @@ Serialize external types
 If you want to serialize external types, you can make custom formatter and register to provider, see [Formatter/Provider API](#formatterprovider-api) for details. However, creating a custom formatter is difficult. Therefore, we recommend making a wrapper type. For example, if you want to serialize an external type called `AnimationCurve`.
 
 ```csharp
-// Keyframe: (float time, float inTangent, float outTangent, int tangentMode, int wightedMode, float inWeight, float outWeight)
+// Keyframe: (float time, float inTangent, float outTangent, int tangentMode, int weightedMode, float inWeight, float outWeight)
 [MemoryPackable]
 public readonly partial struct SerializableAnimationCurve
 {
@@ -917,7 +917,7 @@ MemoryPackFormatterProvider.Register<AnimationCurve>(new AnimationCurveFormatter
 
 Packages
 ---
-MemoryPack has thesed packages.
+MemoryPack has these packages.
 
 * MemoryPack
 * MemoryPack.Core
@@ -925,7 +925,7 @@ MemoryPack has thesed packages.
 * MemoryPack.Streaming
 * MemoryPack.AspNetCoreMvcFormatter
 
-Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionaly use `MemoryPack.Streaming`. `MemoryPack.AspNetCoreMvcFormatter` is input/output formatter for ASP.NET Core.
+Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionally use `MemoryPack.Streaming`. `MemoryPack.AspNetCoreMvcFormatter` is input/output formatter for ASP.NET Core.
 
 TypeScript and ASP.NET Core Formatter
 ---
@@ -1180,7 +1180,7 @@ MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatibility
 
 Since net7.0 uses static abstract members(`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
 
-.NET 7 project can't refere netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
+.NET 7 project shouldn't use the netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
 
 ```xml
 <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -1204,11 +1204,11 @@ Source Generator is also used officially by Unity by [com.unity.properties](http
 
 Unity version is not supported CustomFormatter and ImmutableCollections.
 
-You can serializer all unamnaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
+You can serializer all unmanaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
 
 Native AOT
 ---
-Unfortunately, .NET 7 Native AOT causes crash(`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It will fix on .NET 8 and see the reporing issue for workaround(write XML manually). [Generic virtual method pointer lookup failure in .NET 7 Native AOT #78882](https://github.com/dotnet/runtime/issues/78882).
+Unfortunately, .NET 7 Native AOT causes crash(`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It will fix on .NET 8 and see the reporting issue for workaround(write XML manually). [Generic virtual method pointer lookup failure in .NET 7 Native AOT #78882](https://github.com/dotnet/runtime/issues/78882).
 
 Binary wire format specification
 ---
@@ -1260,7 +1260,7 @@ Tuple is fixed-size, non-nullable value collection. In .NET, `KeyValuePair<TKey,
 
 `(int length, [values...])`
 
-Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
+Collection has 4 byte signed integer as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
 
 ### String
 
@@ -1274,7 +1274,7 @@ String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, rep
 `(byte tag, value)`  
 `(250, ushort tag, value)`
 
-First unsgined byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
+First unsigned byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
 
 License
 ---
