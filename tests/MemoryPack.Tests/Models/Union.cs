@@ -145,3 +145,18 @@ public partial class NoraType
 {
     public IForExternalUnion? ExtUnion { get; set; }
 }
+
+// Union for record
+// https://github.com/Cysharp/MemoryPack/issues/86
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public sealed partial record ChargingBookSubmittedEvent
+    ([property: MemoryPackOrder(1)] string ChargingPlatform, [property: MemoryPackOrder(2)] decimal Amount) : AbstractAuditEvent;
+
+[MemoryPackUnion(0, typeof(ChargingBookSubmittedEvent))]
+[MemoryPackable(SerializeLayout.Explicit)]
+public abstract partial record AbstractAuditEvent
+{
+    [MemoryPackOrder(0)]
+    public DateTimeOffset EventDate { get; init; }
+}

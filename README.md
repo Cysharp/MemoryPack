@@ -5,7 +5,7 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 ![image](https://user-images.githubusercontent.com/46207/200979655-63ed38ae-dad2-4ca0-bbb7-9e0aa98914af.png)
 
-> Measure by .NET 7 / Ryzen 9 5950X machine. These serializers has `IBufferWriter<byte>` method, serialize using `ArrayBuffer<byte>` and reuse to avoid measure buffer copy.
+> Compare with [System.Text.Json](https://learn.microsoft.com/ja-jp/dotnet/api/system.text.json), [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp), [Orleans.Serialization](https://github.com/dotnet/orleans/). Measure by .NET 7 / Ryzen 9 5950X machine. These serializers has `IBufferWriter<byte>` method, serialize using `ArrayBuffer<byte>` and reuse to avoid measure buffer copy. 
 
 For standard objects, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack is even more powerful, with speeds up to x50 ~ x200 greater than other serializers.
 
@@ -788,7 +788,7 @@ using(var value = MemoryPackSerializer.Deserialize<PoolModelSample>(bin))
 
 Performance
 ---
-TODO for describe details, stay tuned.
+See the my blog post [How to make the fastest .NET Serializer with .NET 7 / C# 11, case of MemoryPack](https://medium.com/@neuecc/how-to-make-the-fastest-net-serializer-with-net-7-c-11-case-of-memorypack-ad28c0366516)
 
 Payload size and compression
 ---
