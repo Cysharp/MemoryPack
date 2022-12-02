@@ -120,11 +120,11 @@ public partial class Sample
 }
 ```
 
-Which members are serialized, you can check IntelliSense in type(code generator makes serialization info to `<remarks />` comment).
+`MemoryPack`s code generator adds information about which members are serialized to the `<remarks />` section. This can be viewed by hovering over the type with Intellisense.
 
 ![image](https://user-images.githubusercontent.com/46207/192393984-9af01fcb-872e-46fb-b08f-4783e8cef4ae.png)
 
-All members must be memorypack-serializable, if not, code generator reports error.
+All members must be memorypack-serializable, if not the code generator will emit an error.
 
 ![image](https://user-images.githubusercontent.com/46207/192413557-8a47d668-5339-46c5-a3da-a77841666f81.png)
 
@@ -141,9 +141,9 @@ public partial class Sample2
 }
 ```
 
-Member order is **important**, MemoryPack does not serialize any member-name and other tags, serialize in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant)  section.
+Member order is **important**, MemoryPack does not serialize the member-name or other information, instead serializing fields in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant) section.
 
-Default order is sequential but you can choose explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
+The default order is sequential but you can choose the explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
 
 ```csharp
 // serialize Prop0 -> Prop1
@@ -159,13 +159,13 @@ public partial class SampleExplicitOrder
 
 ### Constructor selection
 
-MemoryPack supports parameterized constructor not only parameterless constructor. The selection of the constructor follows these rules. Both class and struct follows same.
+MemoryPack supports both parameterized and parameterless constructors. The selection of the constructor follows these rules. (Applies to classes and structs).
 
-* If has `[MemoryPackConstructor]`, use it
-* If has no explicit constructor(includes private), use parameterless one
-* If has a one parameterless/parameterized constructor(includes private), use it
-* If has multiple constructors, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
-* If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
+* If has `[MemoryPackConstructor]`, use it.
+* If there is no explicit constructor (includes private), use parameterless one.
+* If there is one parameterless/parameterized constructor (includes private), use it.
+* If there are multiple constructors, then the `[MemoryPackConstructor]` attribute must be applied to the desired constructor (the generator will not automatically choose one), otherwise the generator will emit an error.
+* If using a parameterized constructor, all parameter names must match a corresponding members name (case-insensitive).
 
 ```csharp
 [MemoryPackable]
@@ -174,7 +174,7 @@ public partial class Person
     public readonly int Age;
     public readonly string Name;
 
-    // You can use parameterized constructor (parameter name must match with member names)
+    // You can use a parameterized constructor - parameter names must match a corresponding members name (case-insensitive))
     public Person(int age, string name)
     {
         this.Age = age;
@@ -195,7 +195,7 @@ public partial class Person3
     {
     }
 
-    // If exists multiple constructors, must use [MemoryPackConstructor]
+    // If there are multiple constructors, then [MemoryPackConstructor] should be used
     [MemoryPackConstructor]
     public Person3(int age, string name)
     {
@@ -207,7 +207,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be parameterless method.
+When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. The only requirement is that the annotated method is parameterless.
 
 ```csharp
 [MemoryPackable]
@@ -284,7 +284,7 @@ public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
 }
 ```
 
-Polymorphism(Union)
+Polymorphism (Union)
 ---
 MemoryPack supports serializing interface and abstract class objects for polymorphism serialization. In MemoryPack these are called Union. Only interfaces and abstracts classes are allowed to be annotated with `[MemoryPackUnion]` attributes. Unique union tags are required.
 
@@ -334,7 +334,9 @@ switch (reData)
 
 `tag` allows `0` ~ `65535`, it is especially efficient for less than `250`.
 
-If interface and derived type is in different assembly, you can use `MemoryPackUnionFormatterAttribute` instead.
+If the interface and derived types are in different assemblies, you can use `MemoryPackUnionFormatterAttribute` instead. Formatters generated this way are registered automatically via `ModuleInitializer` in C# 9.0 and above.
+
+> Note that `ModuleInitializer` is not supported in Unity, so the formatter must be manually registered. To register your union formatter invoke `{name of your union formatter}Initializer.RegisterFormatter()` manually in Startup. For example `UnionSampleFormatterInitializer.RegisterFormatter()`.
 
 ```csharp
 // AssemblyA
@@ -351,8 +353,6 @@ public partial class UnionSampleFormatter
 {
 }
 ```
-
-> Formatter is register automatically via `ModuleInitializer` in C# 9.0. However ModuleInitializer is not supported in Unity, so if you use in Unity, invoke `***Initializer.RegisterFormatter()` manually in Startup. For example `UnionSampleFormatterInitializer.RegisterFormatter()`.
 
 Union can assembly in code via `DynamicUnionFormatter<T>`.
 
@@ -378,23 +378,23 @@ void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, Mem
 async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
 ```
 
-The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
+For performance the recommended API uses `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
 
-If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and almost as fast.
+If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), the return `byte[]` API is simple and almost as fast.
 
-Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
+Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes using `WriteAsync`. Therefore, the `BufferWriter` overload, which separates and controls buffer and flush, is better.
 
 If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
 
 ### MemoryPackSerializerOptions
 
-`MemoryPackSerializerOptions` configures how serialize string as Utf16 or Utf8. If passing null then uses `MemoryPackSerializerOptions.Default`, it is same as `MemoryPackSerializerOptions.Utf8`, in other words, serialize the string as Utf8. If you want to serialize with Utf16, you can use `MemoryPackSerializerOptions.Utf16`.
+`MemoryPackSerializerOptions` configures whether strings are serialized as Utf16 or Utf8. This can be configured by passing `MemoryPackSerializerOptions.Utf8` for Utf8 encoding, `MemoryPackSerializerOptions.Utf16` for Utf16 encoding or `MemoryPackSerializerOptions.Default` which defaults to Utf8. Passing null or using the default parameter results in Utf8 encoding.
 
 Since C#'s internal string representation is UTF16, UTF16 performs better. However, the payload tends to be larger; in UTF8, an ASCII string is one byte, while in UTF16 it is two bytes. Because the difference in size of this payload is so large, UTF8 is set by default.
 
 If the data is non-ASCII (e.g. Japanese, which can be more than 3 bytes, and UTF8 is larger), or if you have to compress it separately, UTF16 may give better results.
 
-Whether UTF8 or UTF16 is selected during serialization, it is not necessary to specify it during deserialization. It will be automatically detected and deserialized normally.
+While UTF8 or UTF16 can be selected during serialization, it is not necessary to specify it during deserialization. It will be automatically detected and deserialized normally.
 
 Deserialize API
 ---
@@ -416,7 +416,7 @@ If you want to do complete streaming read, see [Streaming Serialization](#stream
 
 Overwrite
 ---
-MemoryPack supports deserialize to existing instance, that reduce new instance allocation. It can use by `Deserialize(ref T? value)` overload.
+To reduce allocations MemoryPack supports deserializing to an existing instance, overwriting it. This can be used with the `Deserialize(ref T? value)` overload.
 
 ```csharp
 var person = new Person();
@@ -660,7 +660,7 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
 }
 ```
 
-`BitPackFormatter` is for `bool[]`, same serialzied result as `BitArray`. In other words, bool is normally 1 byte, but since it is treated as 1 bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
+`BitPackFormatter` compresses `bool[]` types only. `bool[]` is normally serialized as 1 byte per boolean value, however ``BitPackFormatter` serializes `bool[]` like a `BitArray` storing each bool as 1 bit. Using `BitPackFormatter`, 8 bools become 1 byte where they would normally be 8 bytes, resulting in a 8x smaller size.
 
 ```csharp
 [MemoryPackable]
@@ -794,9 +794,9 @@ Payload size and compression
 ---
 Payload size depends on the target value; unlike JSON, there are no keys and it is a binary format, so the payload size is likely to be smaller than JSON.
 
-For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
+For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MessagePack is 1~5 bytes).
 
-float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MsgPack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
+float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MessagePack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
 
 String is UTF8 by default, which is similar to other serializers, but if the UTF16 option is chosen, it will be of a different nature.
 
@@ -925,7 +925,7 @@ MemoryPack has these packages.
 * MemoryPack.Streaming
 * MemoryPack.AspNetCoreMvcFormatter
 
-Mainly you only reference `MemoryPack`, this both `MemoryPack.Core` and `MemoryPack.Generator`. If you want to use [Streaming Serialization](#streaming-serialization), additionally use `MemoryPack.Streaming`. `MemoryPack.AspNetCoreMvcFormatter` is input/output formatter for ASP.NET Core.
+`MemoryPack` is the main library, it provides full support for high performance serialization and deserialization of binary objects. It depends on `MemoryPack.Core` for the core base libraries and `MemoryPack.Generator` for code generation. `MemoryPack.Streaming` adds additional extensions for [Streaming Serialization](#streaming-serialization).  `MemoryPack.AspNetCoreMvcFormatter` adds input/output formatters for ASP.NET Core.
 
 TypeScript and ASP.NET Core Formatter
 ---
@@ -1048,7 +1048,7 @@ let buffer = await response.arrayBuffer();
 let person2 = Person.deserialize(buffer);
 ```
 
-We're also providing `MemoryPack.AspNetCoreMvcFormatter` package, you can add `MemoryPackInputFormatter`, `MemoryPackOutputFormatter` to ASP.NET Core MVC.
+The `MemoryPack.AspNetCoreMvcFormatter` package adds `MemoryPack` input and output formatters for ASP.NET Core MVC. You can add `MemoryPackInputFormatter`, `MemoryPackOutputFormatter` to ASP.NET Core MVC with the following code.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -1124,7 +1124,7 @@ Also member name is automatically convert to lowerCase. If you want to use origi
 
 Streaming Serialization
 ---
-`MemoryPack.Streaming` provides additional `MemoryPackStreamingSerializer`, it serialize/deserialize collection data streamingly.
+`MemoryPack.Streaming` provides `MemoryPackStreamingSerializer`, which adds additional support for serializing and deserializing collections with streams.
 
 ```csharp
 public static class MemoryPackStreamingSerializer
@@ -1138,7 +1138,7 @@ public static class MemoryPackStreamingSerializer
 
 Formatter/Provider API
 ---
-If you want to implement formatter manually, inherit `MemoryPackFormatter<T>` to recommended.
+If you want to implement formatter manually, inherit `MemoryPackFormatter<T>` and override the `Serialize` and `Deserialize` methods.
 
 ```csharp
 public class SkeltonFormatter : MemoryPackFormatter<Skelton>
