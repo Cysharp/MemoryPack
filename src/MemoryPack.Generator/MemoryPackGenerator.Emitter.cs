@@ -309,7 +309,7 @@ public partial class TypeMeta
             staticRegisterFormatterMethod = "public static void ";
             staticMemoryPackableMethod = "public static void ";
             constraint = context.IsForUnity ? "" : "where TBufferWriter : class, System.Buffers.IBufferWriter<byte>";
-            registerBody = $"MemoryPackFormatterProvider.Register(new {Symbol.Name}Formatter());";
+            registerBody = $"global::MemoryPack.MemoryPackFormatterProvider.Register(new {Symbol.Name}Formatter());";
             registerT = "RegisterFormatter();";
         }
         else
@@ -317,8 +317,8 @@ public partial class TypeMeta
             staticRegisterFormatterMethod = $"static void IMemoryPackFormatterRegister.";
             staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
             constraint = "";
-            registerBody = $"MemoryPackFormatterProvider.Register(new MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
-            registerT = $"MemoryPackFormatterProvider.Register<{TypeName}>();";
+            registerBody = $"global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
+            registerT = $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();";
 
             // similar as VersionTolerantOptimized but not includes String, Array
             var fixedSize = false;
@@ -331,11 +331,11 @@ public partial class TypeMeta
             {
                 var sizeOf = string.Join(" + ", Members.Select(x => $"System.Runtime.CompilerServices.Unsafe.SizeOf<{x.MemberType.FullyQualifiedToString()}>()"));
                 var headerPlus = (Members.Length == 0) ? "1" : "1 + ";
-                fixedSizeInterface = ", MemoryPack.IFixedSizeMemoryPackable";
+                fixedSizeInterface = ", global::MemoryPack.IFixedSizeMemoryPackable";
                 fixedSizeMethod = $$"""
 
     [global::MemoryPack.Internal.Preserve]
-    static int MemoryPack.IFixedSizeMemoryPackable.Size => {{headerPlus}}{{sizeOf}};
+    static int global::MemoryPack.IFixedSizeMemoryPackable.Size => {{headerPlus}}{{sizeOf}};
 
 """;
             }
@@ -357,13 +357,13 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{
     [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
-        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
             {{registerBody}}
         }
-        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
         {
-            MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
+            global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
         }
 {{EmitAdditionalRegisterFormatter("        ", context)}}
     }
@@ -580,9 +580,9 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var sb = new StringBuilder();
         foreach (var (symbol, formatter) in types)
         {
-            sb.AppendLine($"{indent}if (!MemoryPackFormatterProvider.IsRegistered<{symbol.FullyQualifiedToString()}>())");
+            sb.AppendLine($"{indent}if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{symbol.FullyQualifiedToString()}>())");
             sb.AppendLine($"{indent}{{");
-            sb.AppendLine($"{indent}    MemoryPackFormatterProvider.Register(new {formatter}());");
+            sb.AppendLine($"{indent}    global::MemoryPack.MemoryPackFormatterProvider.Register(new {formatter}());");
             sb.AppendLine($"{indent}}}");
         }
 
@@ -631,8 +631,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     string EmitVersionTorelantSerializeBody(bool isForUnity)
     {
         var newTempWriter = isForUnity
-            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
-            : "new MemoryPackWriter<MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
+            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
+            : "new MemoryPackWriter<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
 
         var checkCircularReference = "";
         if (GenerateType == GenerateType.CircularReference)
@@ -656,7 +656,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 """ : "")}}
 {{checkCircularReference}}
-        var tempBuffer = MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Rent();
+        var tempBuffer = global::MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
             Span<int> offsets = stackalloc int[{{Members.Length}}];
@@ -685,7 +685,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         finally
         {
-            MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
+            global::MemoryPack.Internal.ReusableLinkedArrayBufferWriterPool.Return(tempBuffer);
         }
 """;
     }
@@ -926,7 +926,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
         var register = (context.IsNet7OrGreater)
-            ? $"MemoryPackFormatterProvider.Register<{TypeName}>();"
+            ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
             : "RegisterFormatter();";
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
@@ -947,13 +947,13 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
     [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
-        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
-            MemoryPackFormatterProvider.Register(new {{Symbol.Name}}Formatter());
+            global::MemoryPack.MemoryPackFormatterProvider.Register(new {{Symbol.Name}}Formatter());
         }
-        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
         {
-            MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
+            global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
         }
     }
 
@@ -997,16 +997,16 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
         if (!Symbol.IsGenericType || !Symbol.IsUnboundGenericType)
         {
             registerFormatterCode = $$"""
-        if (!MemoryPackFormatterProvider.IsRegistered<{{Symbol.FullyQualifiedToString()}}>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{Symbol.FullyQualifiedToString()}}>())
         {
-            MemoryPackFormatterProvider.Register(new {{TypeName}}());
+            global::MemoryPack.MemoryPackFormatterProvider.Register(new {{TypeName}}());
         }
 """;
         }
         else
         {
             registerFormatterCode = $$"""
-        MemoryPackFormatterProvider.RegisterGenericType(typeof({{Symbol.ConstructUnboundGenericType().FullyQualifiedToString()}}), typeof({{formatterSymbol.ConstructUnboundGenericType().FullyQualifiedToString()}}));
+        global::MemoryPack.MemoryPackFormatterProvider.RegisterGenericType(typeof({{Symbol.ConstructUnboundGenericType().FullyQualifiedToString()}}), typeof({{formatterSymbol.ConstructUnboundGenericType().FullyQualifiedToString()}}));
 """;
         }
 
@@ -1176,7 +1176,7 @@ public static class {{initializerName}}
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
         var register = (context.IsNet7OrGreater)
-            ? $"MemoryPackFormatterProvider.Register<{TypeName}>();"
+            ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
             : "RegisterFormatter();";
 
         var code = $$"""
@@ -1189,9 +1189,9 @@ partial class {{TypeName}} : IMemoryPackFormatterRegister
 
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
-        if (!MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
+        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
         {
-            MemoryPackFormatterProvider.Register{{methodName}}<{{TypeName}}, {{typeArgs}}>();
+            global::MemoryPack.MemoryPackFormatterProvider.Register{{methodName}}<{{TypeName}}, {{typeArgs}}>();
         }
     }
 }
@@ -1243,7 +1243,7 @@ public partial class MemberMeta
             case MemberKind.MemoryPackableArray:
                 return $"{writer}.WritePackableArray(value.@{Name});";
             case MemberKind.MemoryPackableList:
-                return $"MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.@{Name}));";
+                return $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.@{Name}));";
             case MemberKind.Array:
                 return $"{writer}.WriteArray(value.@{Name});";
             case MemberKind.Blank:
@@ -1300,7 +1300,7 @@ public partial class MemberMeta
             case MemberKind.MemoryPackableArray:
                 return $"{pre}__{Name} = reader.ReadPackableArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.MemoryPackableList:
-                return $"{pre}__{Name} = MemoryPack.Formatters.ListFormatter.DeserializePackable<{(MemberType as INamedTypeSymbol)!.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(ref reader);";
+                return $"{pre}__{Name} = global::MemoryPack.Formatters.ListFormatter.DeserializePackable<{(MemberType as INamedTypeSymbol)!.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(ref reader);";
             case MemberKind.Array:
                 return $"{pre}__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
             case MemberKind.Blank:
@@ -1337,7 +1337,7 @@ public partial class MemberMeta
             case MemberKind.MemoryPackableArray:
                 return $"{pre}reader.ReadPackableArray(ref __{Name});";
             case MemberKind.MemoryPackableList:
-                return $"{pre}MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});";
+                return $"{pre}global::MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});";
             case MemberKind.Array:
                 return $"{pre}reader.ReadArray(ref __{Name});";
             case MemberKind.Blank:

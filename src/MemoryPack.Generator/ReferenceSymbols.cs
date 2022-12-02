@@ -261,7 +261,7 @@ public class ReferenceSymbols
 
             if (type.TypeKind == TypeKind.Enum)
             {
-                return $"MemoryPack.Formatters.UnmanagedFormatter<{type.FullyQualifiedToString()}>";
+                return $"global::MemoryPack.Formatters.UnmanagedFormatter<{type.FullyQualifiedToString()}>";
             }
 
             if (type.TypeKind == TypeKind.Array)
@@ -270,21 +270,21 @@ public class ReferenceSymbols
                 {
                     if (array.IsSZArray)
                     {
-                        return $"MemoryPack.Formatters.ArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
+                        return $"global::MemoryPack.Formatters.ArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                     }
                     else
                     {
                         if (array.Rank == 2)
                         {
-                            return $"MemoryPack.Formatters.TwoDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
+                            return $"global::MemoryPack.Formatters.TwoDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                         else if (array.Rank == 3)
                         {
-                            return $"MemoryPack.Formatters.ThreeDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
+                            return $"global::MemoryPack.Formatters.ThreeDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                         else if (array.Rank == 4)
                         {
-                            return $"MemoryPack.Formatters.FourDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
+                            return $"global::MemoryPack.Formatters.FourDimensionalArrayFormatter<{array.ElementType.FullyQualifiedToString()}>";
                         }
                     }
                 }

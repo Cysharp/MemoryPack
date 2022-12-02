@@ -47,7 +47,6 @@ public class GeneratorTest
         VerifyEquivalent(new StandardTypeTwo() { One = 9999, Two = 111 });
         VerifyEquivalent(new StandardUnmanagedStruct { MyProperty = 1111111 });
         VerifyEquivalent(new StandardStruct { MyProperty = "foobarbaz" });
-        VerifyEquivalent(new MemoryPack.Tests.Models.More.StandardTypeTwo { One = "foo", Two = "bar" });
         VerifyEquivalent(new GlobalNamespaceType() { MyProperty = 10000 });
     }
 
