@@ -920,7 +920,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     string EmitUnionTemplate(IGeneratorContext context)
     {
-        var classOrInterface = Symbol.TypeKind == TypeKind.Interface ? "interface" : "class";
+        var classOrInterfaceOrRecord = IsRecord ? "record" : (Symbol.TypeKind == TypeKind.Interface) ? "interface" : "class";
 
         var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
             ? $"static void IMemoryPackFormatterRegister."
@@ -937,7 +937,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
         var code = $$"""
 
-partial {{classOrInterface}} {{TypeName}} : IMemoryPackFormatterRegister
+partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
 {
     static {{Symbol.Name}}()
     {
