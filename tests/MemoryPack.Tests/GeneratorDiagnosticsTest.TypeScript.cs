@@ -33,6 +33,21 @@ public partial class GeneratorDiagnosticsTest
         }
     }
 
+    string CompileAndRead(string code, string fileName, bool enableNullableTypes = true)
+    {
+        var outputDir = Path.GetTempPath();
+        var optionProvider = new TypeScriptOptionProvider();
+
+        optionProvider["build_property.MemoryPackGenerator_TypeScriptOutputDirectory"] = outputDir;
+        optionProvider["build_property.MemoryPackGenerator_TypeScriptEnableNullableTypes"] = enableNullableTypes ? "true" : "false";
+
+        CSharpGeneratorRunner.RunGenerator(code, optionProvider);
+
+        var outputFilePath = Path.Combine(outputDir, fileName);
+
+        return File.ReadAllText(outputFilePath);
+    }
+
     [Fact]
     public void MEMPACK027_GenerateTypeScriptMustBeMemoryPackable()
     {
@@ -173,30 +188,88 @@ public partial class Hoge
 """, true);
     }
 
+    [Fact]
+    public void GenerateTypeScriptNullableReferenceTypes()
+    {
+        var generatedCode = CompileAndRead(
+            """
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial record FullName
+            {
+                public string FirstName { get; init; }
+                public string? MiddleName { get; init; }
+                public string LastName { get; init; }
+            }
+            """,
+            "FullName.ts");
+
+        generatedCode.Should().Contain(
+            """
+            export class FullName {
+                firstName: string;
+                middleName: string | null;
+                lastName: string;
+
+                constructor() {
+                    this.firstName = "";
+                    this.middleName = null;
+                    this.lastName = "";
+            """);
+    }
+
 
     class TypeScriptOptionProvider : AnalyzerConfigOptionsProvider
     {
-        public override AnalyzerConfigOptions GlobalOptions => new SimpleOptions();
+        readonly Dictionary<string, string> _values = new();
+
+        public string this[string key]
+        {
+            get => _values[key];
+            set => _values[key] = value;
+        }
+
+        public override AnalyzerConfigOptions GlobalOptions => new SimpleOptions(_values);
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
         {
-            return new SimpleOptions();
+            return new SimpleOptions(_values);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
         {
-            return new SimpleOptions();
+            return new SimpleOptions(_values);
         }
 
-        class SimpleOptions : AnalyzerConfigOptions
+        public class SimpleOptions : AnalyzerConfigOptions
         {
+            readonly Dictionary<string, string> _configValues;
+
+            public SimpleOptions(Dictionary<string, string> configValues)
+            {
+                _configValues = configValues;
+            }
+
+            /// <inheritdoc />
+            public override IEnumerable<string> Keys => _configValues.Keys;
+
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
+                if (_configValues.ContainsKey(key))
+                {
+                    value = _configValues[key];
+
+                    return true;
+                }
+
                 if (key == "build_property.MemoryPackGenerator_TypeScriptOutputDirectory")
                 {
                     value = Path.GetTempPath();
                     return true;
                 }
+
                 value = null;
                 return false;
             }

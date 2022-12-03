@@ -5,6 +5,7 @@ namespace MemoryPack.Generator;
 internal class TypeScriptType
 {
     public string TypeName { get; set; } = default!;
+    public bool IsNullable { get; set; }
     public string DefaultValue { get; set; } = default!;
     public string WriteMethodTemplate { get; set; } = default!;
     public string ReadMethodTemplate { get; set; } = default!;
@@ -47,7 +48,7 @@ public class TypeScriptMember
         TypeScriptType tsType;
         try
         {
-            tsType = ConvertToTypeScriptType(member.MemberType, references);
+            tsType = ConvertToTypeScriptType(member.MemberType, references, options);
         }
         catch (NotSupportedTypeException ex)
         {
@@ -61,17 +62,18 @@ public class TypeScriptMember
         this.ReadMethodTemplate = tsType.ReadMethodTemplate;
     }
 
-    TypeScriptType ConvertToTypeScriptType(ITypeSymbol symbol, ReferenceSymbols references)
+    TypeScriptType ConvertToTypeScriptType(ITypeSymbol symbol, ReferenceSymbols references, TypeScriptGenerateOptions options)
     {
         if (symbol.TypeKind == TypeKind.Enum)
         {
-            var primitiveType = ConvertFromSymbol(symbol, references)!;
+            var primitiveType = ConvertFromSymbol(symbol, references, options)!;
 
             // enum uses self typename(convert to const enum)
             return new TypeScriptType
             {
                 TypeName = symbol.Name,
                 DefaultValue = primitiveType.DefaultValue,
+                IsNullable = symbol.NullableAnnotation == NullableAnnotation.Annotated || symbol.IsReferenceType,
                 WriteMethodTemplate = $"writer.write{primitiveType.BinaryOperationMethod}({{0}})",
                 ReadMethodTemplate = $"reader.read{primitiveType.BinaryOperationMethod}()"
             };
@@ -93,7 +95,7 @@ public class TypeScriptMember
                     };
                 }
 
-                var innerType = ConvertToTypeScriptType(elemType, references);
+                var innerType = ConvertToTypeScriptType(elemType, references, options);
                 var typeName = innerType.TypeName.Contains("null") ? $"({innerType.TypeName})" : innerType.TypeName;
 
                 var elementWriter = string.Format(innerType.WriteMethodTemplate, "x");
@@ -116,7 +118,7 @@ public class TypeScriptMember
         {
             case CollectionKind.Collection:
                 {
-                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
+                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, options);
                     // same as Array
                     var typeName = innerType.TypeName.Contains("null") ? $"({innerType.TypeName})" : innerType.TypeName;
 
@@ -133,7 +135,7 @@ public class TypeScriptMember
                 }
             case CollectionKind.Set:
                 {
-                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
+                    var innerType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, options);
                     var elementWriter = string.Format(innerType.WriteMethodTemplate, "x");
                     var elementReader = string.Format(innerType.ReadMethodTemplate);
 
@@ -147,8 +149,8 @@ public class TypeScriptMember
                 }
             case CollectionKind.Dictionary:
                 {
-                    var keyType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references);
-                    var valueType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[1], references);
+                    var keyType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[0], references, options);
+                    var valueType = ConvertToTypeScriptType(collectionSymbol!.TypeArguments[1], references, options);
                     var keyWriter = string.Format(keyType.WriteMethodTemplate, "x");
                     var keyReader = string.Format(keyType.ReadMethodTemplate);
                     var valueWriter = string.Format(valueType.WriteMethodTemplate, "x");
@@ -180,7 +182,7 @@ public class TypeScriptMember
         var isNullable = (symbol is INamedTypeSymbol nts && nts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T));
         if (isNullable)
         {
-            var primitiveType = ConvertFromSymbol(((INamedTypeSymbol)symbol).TypeArguments[0], references)!;
+            var primitiveType = ConvertFromSymbol(((INamedTypeSymbol)symbol).TypeArguments[0], references, options)!;
 
             return new TypeScriptType
             {
@@ -193,7 +195,7 @@ public class TypeScriptMember
 
         // others
         {
-            var primitiveType = ConvertFromSymbol(symbol, references)!;
+            var primitiveType = ConvertFromSymbol(symbol, references, options)!;
             return new TypeScriptType
             {
                 TypeName = $"{primitiveType.TypeName}",
@@ -204,9 +206,14 @@ public class TypeScriptMember
         }
     }
 
-    TypeScriptTypeCore ConvertFromSymbol(ITypeSymbol typeSymbol, ReferenceSymbols reference)
+    TypeScriptTypeCore ConvertFromSymbol(ITypeSymbol typeSymbol, ReferenceSymbols reference, TypeScriptGenerateOptions options)
     {
-        var fromSpecial = ConvertFromSpecialType(typeSymbol.SpecialType);
+        var isNullable =
+            options.EnableNullableTypes &&
+            typeSymbol.IsReferenceType &&
+            typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+
+        var fromSpecial = ConvertFromSpecialType(typeSymbol.SpecialType, isNullable, options.EnableNullableTypes);
         if (fromSpecial != null) return fromSpecial;
 
         // + Guid or Enum
@@ -216,7 +223,7 @@ public class TypeScriptMember
         if (namedType.TypeKind == TypeKind.Enum)
         {
             var specialType = namedType.EnumUnderlyingType!.SpecialType;
-            return ConvertFromSpecialType(specialType)!;
+            return ConvertFromSpecialType(specialType, isNullable, options.EnableNullableTypes)!;
         }
 
         if (SymbolEqualityComparer.Default.Equals(namedType, reference.KnownTypes.System_Guid))
@@ -232,82 +239,243 @@ public class TypeScriptMember
         throw new NotSupportedTypeException(typeSymbol);
     }
 
-    TypeScriptTypeCore? ConvertFromSpecialType(SpecialType specialType)
+    TypeScriptTypeCore? ConvertFromSpecialType(
+        SpecialType specialType,
+        bool isNullable,
+        bool allowNullableTypes)
     {
-        var defaultValue = "";
-        var typeName = "";
-        string binaryOperationMethod = "";
+        // NOTE The function to get the TypeScript type was duplicated in order
+        //      to keep the old behavior of the code generator.
+        return allowNullableTypes
+            ? GetNullableTypesAllowedTypeScriptType(specialType, isNullable)
+            : GetNonNullableTypesAllowedTypeScriptType(specialType);
+    }
+
+    static TypeScriptTypeCore? GetNonNullableTypesAllowedTypeScriptType(SpecialType specialType)
+    {
+        string typeName;
+        string binaryOperationMethod;
+        string defaultValue;
+
         switch (specialType)
         {
             case SpecialType.System_Boolean:
                 typeName = "boolean";
                 binaryOperationMethod = "Boolean";
                 defaultValue = "false";
+
                 break;
+
             case SpecialType.System_String:
                 typeName = "string | null";
                 binaryOperationMethod = "String";
                 defaultValue = "null";
+
                 break;
+
             case SpecialType.System_SByte:
                 typeName = "number";
                 binaryOperationMethod = "Int8";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Byte:
                 typeName = "number";
                 binaryOperationMethod = "Uint8";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Int16:
                 typeName = "number";
                 binaryOperationMethod = "Int16";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_UInt16:
                 typeName = "number";
                 binaryOperationMethod = "Uint16";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Int32:
                 typeName = "number";
                 binaryOperationMethod = "Int32";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_UInt32:
                 typeName = "number";
                 binaryOperationMethod = "Uint32";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Single:
                 typeName = "number";
                 binaryOperationMethod = "Float32";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Double:
                 typeName = "number";
                 binaryOperationMethod = "Float64";
                 defaultValue = "0";
+
                 break;
+
             case SpecialType.System_Int64:
                 typeName = "bigint";
                 binaryOperationMethod = "Int64";
                 defaultValue = "0n";
+
                 break;
+
             case SpecialType.System_UInt64:
                 typeName = "bigint";
                 binaryOperationMethod = "Uint64";
                 defaultValue = "0n";
+
                 break;
+
             case SpecialType.System_DateTime:
                 typeName = "Date";
                 binaryOperationMethod = "Date";
                 defaultValue = "new Date(0)";
+
                 break;
+
             default:
                 return null;
         }
 
-        return new TypeScriptTypeCore { TypeName = typeName, DefaultValue = defaultValue, BinaryOperationMethod = binaryOperationMethod };
+        return new TypeScriptTypeCore
+        {
+            TypeName = typeName,
+            DefaultValue = defaultValue,
+            BinaryOperationMethod = binaryOperationMethod
+        };
+    }
+
+    static TypeScriptTypeCore? GetNullableTypesAllowedTypeScriptType(SpecialType specialType, bool isNullable)
+    {
+        string typeName;
+        string binaryOperationMethod;
+        string defaultValue;
+
+        string GetTypeName(string typeName) =>
+            isNullable ? $"{typeName} | null" : typeName;
+
+        string GetDefaultValue(string defaultValue) =>
+            isNullable ? "null" : defaultValue;
+
+        switch (specialType)
+        {
+            case SpecialType.System_Boolean:
+                typeName = GetTypeName("boolean");
+                binaryOperationMethod = "Boolean";
+                defaultValue = GetDefaultValue("false");
+
+                break;
+
+            case SpecialType.System_String:
+                typeName = GetTypeName("string");
+                binaryOperationMethod = "String";
+                defaultValue = GetDefaultValue(@"""""");
+
+                break;
+
+            case SpecialType.System_SByte:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Int8";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Byte:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Uint8";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Int16:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Int16";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_UInt16:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Uint16";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Int32:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Int32";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_UInt32:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Uint32";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Single:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Float32";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Double:
+                typeName = GetTypeName("number");
+                binaryOperationMethod = "Float64";
+                defaultValue = GetDefaultValue("0");
+
+                break;
+
+            case SpecialType.System_Int64:
+                typeName = GetTypeName("bigint");
+                binaryOperationMethod = "Int64";
+                defaultValue = GetDefaultValue("0n");
+
+                break;
+
+            case SpecialType.System_UInt64:
+                typeName = GetTypeName("bigint");
+                binaryOperationMethod = "Uint64";
+                defaultValue = GetDefaultValue("0n");
+
+                break;
+
+            case SpecialType.System_DateTime:
+                typeName = GetTypeName("Date");
+                binaryOperationMethod = "Date";
+                defaultValue = GetDefaultValue("new Date(0)");
+
+                break;
+
+            default:
+                return null;
+        }
+
+        return new TypeScriptTypeCore
+        {
+            TypeName = typeName,
+            DefaultValue = defaultValue,
+            BinaryOperationMethod = binaryOperationMethod
+        };
     }
 }

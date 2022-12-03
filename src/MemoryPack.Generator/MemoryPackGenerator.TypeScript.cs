@@ -15,6 +15,7 @@ public record TypeScriptGenerateOptions
     public string OutputDirectory { get; set; } = default!;
     public string ImportExtension { get; set; } = default!;
     public bool ConvertPropertyName { get; set; } = true;
+    public bool EnableNullableTypes { get; set; } = false;
 }
 
 partial class MemoryPackGenerator
