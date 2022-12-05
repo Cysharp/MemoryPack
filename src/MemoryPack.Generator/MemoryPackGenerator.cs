@@ -146,10 +146,23 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 {
                     convertProp = "true";
                 }
+
+                if (!configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptEnableNullableTypes", out var enableNullableTypes))
+                {
+                    enableNullableTypes = "false";
+                }
+
                 if (!bool.TryParse(convertProp, out var convert)) convert = true;
 
                 if (path == null) return null;
-                return new TypeScriptGenerateOptions { OutputDirectory = path, ImportExtension = ext, ConvertPropertyName = convert };
+
+                return new TypeScriptGenerateOptions
+                {
+                    OutputDirectory = path,
+                    ImportExtension = ext,
+                    ConvertPropertyName = convert,
+                    EnableNullableTypes = bool.TryParse(enableNullableTypes, out var enabledNullableTypesParsed) && enabledNullableTypesParsed
+                };
             });
 
         var typeScriptDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
