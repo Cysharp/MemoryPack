@@ -1112,6 +1112,7 @@ Also member name is automatically convert to lowerCase. If you want to use origi
     <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptOutputDirectory" />
     <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptImportExtension" />
     <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptConvertPropertyName" />
+    <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptEnableNullableTypes" />
 </ItemGroup>
 <PropertyGroup>
     <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>
@@ -1119,8 +1120,12 @@ Also member name is automatically convert to lowerCase. If you want to use origi
     <MemoryPackGenerator_TypeScriptImportExtension></MemoryPackGenerator_TypeScriptImportExtension>
     <!-- default is true -->
     <MemoryPackGenerator_TypeScriptConvertPropertyName>false</MemoryPackGenerator_TypeScriptConvertPropertyName>
+    <!-- default is false -->
+    <MemoryPackGenerator_TypeScriptEnableNullableTypes>true</MemoryPackGenerator_TypeScriptEnableNullableTypes>
 </PropertyGroup>
 ```
+
+`MemoryPackGenerator_TypeScriptEnableNullableTypes` allows C# nullable annotations to be reflected in TypeScript code. The default is false, making everything nullable.
 
 Streaming Serialization
 ---
