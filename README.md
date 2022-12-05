@@ -9,9 +9,9 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 For standard objects, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack is even more powerful, with speeds up to x50 ~ x200 greater than other serializers.
 
-MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator(.NET Standard 2.1(.NET 5, 6) and Unity support is also exists).
+MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator (.NET Standard 2.1 (.NET 5, 6) and Unity support is also exists).
 
-Other serializers performs many encoding operations such as VarInt encoding, tag, string, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. zero-encoding is similar as FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
+Other serializers performs many encoding operations such as VarInt encoding, tag, string, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. Zero-encoding is similar to FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
 
 Other than performance, MemoryPack has these features.
 
@@ -19,8 +19,8 @@ Other than performance, MemoryPack has these features.
 * Native AOT friendly Source Generator based code generation, no Dynamic CodeGen(IL.Emit)
 * Reflectionless non-generics APIs
 * Deserialize into existing instance
-* Polymorphism(Union) serialization
-* limited version-tolerant(fast/default) and full version-tolerant support
+* Polymorphism (Union) serialization
+* limited version-tolerant (fast/default) and full version-tolerant support
 * Circular reference serialization
 * PipeWriter/Reader based streaming serialization
 * TypeScript code generation and ASP.NET Core Formatter
@@ -69,7 +69,7 @@ Built-in supported types
 These types can serialize by default:
 
 * .NET primitives (`byte`, `int`, `bool`, `char`, `double`, etc...)
-* Unmanaged types(Any `enum`, Any user-defined `struct` that no contains reference type)
+* Unmanaged types (Any `enum`, Any user-defined `struct` that no contains reference type)
 * `string`, `decimal`, `Half`, `Int128`, `UInt128`, `Guid`, `Rune`, `BigInteger`
 * `TimeSpan`,  `DateTime`, `DateTimeOffset`, `TimeOnly`, `DateOnly`, `TimeZoneInfo`
 * `Complex`, `Plane`, `Quaternion` `Matrix3x2`, `Matrix4x4`, `Vector2`, `Vector3`, `Vector4`
@@ -78,15 +78,15 @@ These types can serialize by default:
 * `Nullable<>`, `Lazy<>`, `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `SortedSet<>`, `PriorityQueue<,>`
 * `Dictionary<,>`, `SortedList<,>`, `SortedDictionary<,>`,  `ReadOnlyDictionary<,>` 
-* `Collection<>`, `ReadOnlyCollection<>`,`ObservableCollection<>`, `ReadOnlyObservableCollection<>`
+* `Collection<>`, `ReadOnlyCollection<>`, `ObservableCollection<>`, `ReadOnlyObservableCollection<>`
 * `IEnumerable<>`, `ICollection<>`, `IList<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`, `ISet<>`
 * `IDictionary<,>`, `IReadOnlyDictionary<,>`, `ILookup<,>`, `IGrouping<,>`,
 * `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`, `BlockingCollection<>`
-* Immutable collections (`ImmutableList<>`, etc) and interfaces (`IImmutableList<>`, etc)
+* Immutable collections (`ImmutableList<>`, etc.) and interfaces (`IImmutableList<>`, etc.  )
 
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
-`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `record struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation(ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
+`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `record struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation (ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
 
 Otherwise, in the default, `[MemoryPackable]` serializes public instance property or field. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
 
@@ -128,7 +128,7 @@ All members must be memorypack-serializable, if not the code generator will emit
 
 ![image](https://user-images.githubusercontent.com/46207/192413557-8a47d668-5339-46c5-a3da-a77841666f81.png)
 
-MemoryPack has 24 diagnostics rules(`MEMPACK001` to `MEMPACK026`) to be define comfortably.
+MemoryPack has 33 diagnostics rules (`MEMPACK001` to `MEMPACK033`) to be defined comfortably.
 
 If target type is defined MemoryPack serialization externally and registered, use `[MemoryPackAllowSerialize]` to silent diagnostics.
 
@@ -143,7 +143,7 @@ public partial class Sample2
 
 Member order is **important**, MemoryPack does not serialize the member-name or other information, instead serializing fields in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant) section.
 
-The default order is sequential but you can choose the explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
+The default order is sequential, but you can choose the explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
 
 ```csharp
 // serialize Prop0 -> Prop1
@@ -165,7 +165,7 @@ MemoryPack supports both parameterized and parameterless constructors. The selec
 * If there is no explicit constructor (includes private), use parameterless one.
 * If there is one parameterless/parameterized constructor (includes private), use it.
 * If there are multiple constructors, then the `[MemoryPackConstructor]` attribute must be applied to the desired constructor (the generator will not automatically choose one), otherwise the generator will emit an error.
-* If using a parameterized constructor, all parameter names must match a corresponding members name (case-insensitive).
+* If using a parameterized constructor, all parameter names must match a corresponding member names (case-insensitive).
 
 ```csharp
 [MemoryPackable]
@@ -269,7 +269,7 @@ public partial class MethodCallSample
 
 Define custom collection
 ---
-In default, annotated `[MemoryPackObject]` type try to search members. However if type is collection(`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenerateType.Collection` to serialize correctly.
+In default, annotated `[MemoryPackObject]` type try to search members. However, if type is a collection (`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenerateType.Collection` to serialize correctly.
 
 ```csharp
 [MemoryPackable(GenerateType.Collection)]
@@ -354,7 +354,7 @@ public partial class UnionSampleFormatter
 }
 ```
 
-Union can assembly in code via `DynamicUnionFormatter<T>`.
+Union can be assembled in code via `DynamicUnionFormatter<T>`.
 
 ```csharp
 var formatter = new DynamicUnionFormatter<IFooBarBaz>(new[]
@@ -378,13 +378,13 @@ void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, Mem
 async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
 ```
 
-For performance the recommended API uses `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
+For performance, the recommended API uses `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
 
 If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), the return `byte[]` API is simple and almost as fast.
 
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes using `WriteAsync`. Therefore, the `BufferWriter` overload, which separates and controls buffer and flush, is better.
 
-If you want to do complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
+If you want to do a complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
 
 ### MemoryPackSerializerOptions
 
@@ -412,11 +412,11 @@ async ValueTask<T?> DeserializeAsync<T>(Stream stream)
 
 `DeserializeAsync(Stream)` is not completely streaming read, first read into MemoryPack's internal pool up to the end-of-stream, then deserialize.
 
-If you want to do complete streaming read, see [Streaming Serialization](#streaming-serialization) section.
+If you want to do a complete streaming read, see [Streaming Serialization](#streaming-serialization) section.
 
 Overwrite
 ---
-To reduce allocations MemoryPack supports deserializing to an existing instance, overwriting it. This can be used with the `Deserialize(ref T? value)` overload.
+To reduce allocations, MemoryPack supports deserializing to an existing instance, overwriting it. This can be used with the `Deserialize(ref T? value)` overload.
 
 ```csharp
 var person = new Person();
@@ -428,17 +428,17 @@ MemoryPackSerializer.Deserialize(bin, ref person);
 
 MemoryPack will attempt to overwrite as much as possible, but if the conditions do not match, it will create a new instance (as in normal deserialization).
 
-* ref value(includes members in object graph) is null, set new instance
+* ref value (includes members in object graph) is null, set new instance
 * only allows parameterless constructor, if parameterized constructor is used, create new instance
 * if value is `T[]`, reuse only if the length is the same, otherwise create new instance
 * if value is collection that has `.Clear()` method(`List<>`, `Stack<>`, `Queue<>`, `LinkedList<>`, `HashSet<>`, `PriorityQueue<,>`, `ObservableCollection`, `Collection`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentBag<>`, `Dictionary<,>`, `SortedDictionary<,>`, `SortedList<,>`, `ConcurrentDictionary<,>`) call Clear() and reuse it, otherwise create new instance
 
 Version tolerant
 ---
-In default(`GenerateType.Object`), MemoryPack supports schema evolution limitedly.
+In default(`GenerateType.Object`), MemoryPack supports limited schema evolution.
 
-* unmanaged struct can't change any more
-* members can add, but can not delete
+* unmanaged struct can't be changed anymore
+* members can be added, but can not be deleted
 * can change member name
 * can't change member order
 * can't change member type
@@ -477,9 +477,9 @@ public partial class VersionCheck
 }
 ```
 
-In use-case, store old data(to file, to redis, etc...) and read to new schema is always ok. In RPC scenario, schema exists both client server, the client must be updated before the server. An updated client has no problem connecting to the old server but old client can not connect to new server.
+In use-case, store old data (to file, to redis, etc...) and read to new schema is always ok. In RPC scenario, schema exists both client server, the client must be updated before the server. An updated client has no problem connecting to the old server but an old client can not connect to a new server.
 
-Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
+The next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
 When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 
@@ -714,7 +714,7 @@ public partial class Sample
 
 Deserialize array pooling
 ---
-For deserializing large array(any `T`), MemoryPack offers multiple efficient pooling methods. The most effective way is to use the [#Overwrite](#overwrite) function. In particular, with `List<T>`, always reuse.
+For deserializing a large array (any `T`), MemoryPack offers multiple efficient pooling methods. The most effective way is to use the [#Overwrite](#overwrite) function. In particular `List<T>` is always reused.
 
 ```csharp
 [MemoryPackable]
@@ -1183,9 +1183,9 @@ MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatibility
 
 > Unhandled exception. System.TypeLoadException: Virtual static method '*' is not implemented on type '*' from assembly '*'.
 
-Since net7.0 uses static abstract members(`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
+Since net7.0 uses static abstract members (`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
 
-.NET 7 project shouldn't use the netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
+.NET 7 project shouldn't use the netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
 
 ```xml
 <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -1193,23 +1193,23 @@ Since net7.0 uses static abstract members(`Virtual static method`), that does no
 
 Unity
 ---
-Install via UPM git URL package or asset package(MemoryPack.*.*.*.unitypackage) available in [MemoryPack/releases](https://github.com/Cysharp/MemoryPack/releases) page.
+Install via UPM git URL package or asset package (MemoryPack.*.*.*.unitypackage) available in [MemoryPack/releases](https://github.com/Cysharp/MemoryPack/releases) page.
 
 * https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack
 
-If you want to set a target version, MemoryPack uses the `*.*.*` release tag so you can specify a version like #1.8.0. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.8.0`.
+If you want to set a target version, MemoryPack uses the `*.*.*` release tag, so you can specify a version like #1.8.0. For example `https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.8.0`.
 
 Supporting minimum Unity version is `2021.3`. The dependency managed DLL `System.Runtime.CompilerServices.Unsafe/6.0.0` is included with unitypackage. For git references, you will need to add them in another way as they are not included to avoid unnecessary dependencies; either extract the dll from unitypackage or download it from the [NuGet page](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/6.0.0).
 
-As with the .NET version, the code is generated by a code generator(`MemoryPack.Generator.Roslyn3.dll`). Reflection-free implementation also provides the best performance in IL2CPP.
+As with the .NET version, the code is generated by a code generator (`MemoryPack.Generator.Roslyn3.dll`). Reflection-free implementation also provides the best performance in IL2CPP.
 
 For more information on Unity and Source Generator, please refer to the [Unity documentation](https://docs.unity3d.com/Manual/roslyn-analyzers.html).
 
 Source Generator is also used officially by Unity by [com.unity.properties](https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html) and [com.unity.entities](https://docs.unity3d.com/Packages/com.unity.properties@2.0/changelog/CHANGELOG.html). In other words, it is the standard for code generation in the next generation of Unity.
 
-Unity version is not supported CustomFormatter and ImmutableCollections.
+Unity version does not support CustomFormatter and ImmutableCollections.
 
-You can serializer all unmanaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
+You can serialize all unmanaged types (such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
 
 Native AOT
 ---
@@ -1217,9 +1217,9 @@ Unfortunately, .NET 7 Native AOT causes crash(`Generic virtual method pointer lo
 
 Binary wire format specification
 ---
-The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self described format. Deserialize requires the corresponding C# schema. These types exist as internal representations of binaries, but types cannot be determined without a C# schema.
+The type of `T` defined in `Serialize<T>` and `Deserialize<T>` is called C# schema. MemoryPack format is not self-described format. Deserialize requires the corresponding C# schema. These types exist as internal representations of binaries, but types cannot be determined without a C# schema.
 
-Endian must be `Little Endian`. However reference C# implementation does not care endianness so can not use on big-endian machine. However modern computers are usually little-endian.
+Endian must be `Little Endian`. However, reference C# implementation does not care endianness so can not use on big-endian machine. However, modern computers are usually little-endian.
 
 There are eight types of format.
 
