@@ -165,7 +165,7 @@ MemoryPack supports parameterized constructor not only parameterless constructor
 * If has no explicit constructor(includes private), use parameterless one
 * If has a one parameterless/parameterized constructor(includes private), use it
 * If has multiple constructors, must apply `[MemoryPackConstructor]` attribute(no automatically choose one), otherwise generator error it.
-* If choosed parameterized constructor, all parameter name must match with member name(case-insensitive)
+* If chosen parameterized constructor, all parameter name must match with member name(case-insensitive)
 
 ```csharp
 [MemoryPackable]
@@ -207,7 +207,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be paramterless method.
+When serialize, deserialize, MemoryPack can hook before/after event with `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance, public and private method but must be parameterless method.
 
 ```csharp
 [MemoryPackable]
@@ -380,7 +380,7 @@ async ValueTask SerializeAsync<T>(Stream stream, T? value, MemoryPackSerializerO
 
 The recommended way to do this in Performance is to use `BufferWriter`. This serializes directly into the buffer. It can be applied to `PipeWriter` in `System.IO.Pipelines`, `BodyWriter` in ASP .NET Core, etc.
 
-If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and almostly fast.
+If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)), return `byte[]` API is simple and mostly fast.
 
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes it out with WriteAsync. Therefore, BufferWriter overloading, which separates and controls buffer and flush, is better.
 
@@ -429,7 +429,7 @@ MemoryPackSerializer.Deserialize(bin, ref person);
 MemoryPack will attempt to overwrite as much as possible, but if the conditions do not match, it will create a new instance (as in normal deserialization).
 
 * ref value(includes members in object graph) is null, set new instance
-* only allows parameterless constructor, if parametarized constructor is used, create new instance
+* only allows parameterless constructor, if parameterized constructor is used, create new instance
 * if value is `T[]`, reuse only if the length is the same, otherwise create new instance
 * if value is collection that has `.Clear()` method(`List<>`, `Stack<>`, `Queue<>`, `LinkedList<>`, `HashSet<>`, `PriorityQueue<,>`, `ObservableCollection`, `Collection`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentBag<>`, `Dictionary<,>`, `SoretedDictionary<,>`, `SortedList<,>`, `ConcurrentDictionary<,>`) call Clear() and reuse it, otherwise create new instance
 
@@ -481,7 +481,7 @@ In use-case, store old data(to file, to redis, etc...) and read to new schema is
 
 Next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
-When using `GnerateType.VersionTolerant`, it supports full version-torlerant.
+When using `GnerateType.VersionTolerant`, it supports full version-tolerant.
 
 * unmanaged struct can't change any more
 * All members must add `[MemoryPackOrder]` explicitly
@@ -626,7 +626,7 @@ public abstract class MemoryPackCustomFormatterAttribute<T> : Attribute
 }
 ```
 
-In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>`, `MemoryPoolFormatter<T>`, `ReadOnlyMemoryPoolFormatter<T>` exsits.
+In built-in attribtues, `Utf8StringFormatterAttribute`, `Utf16StringFormatterAttribute`, `InternStringFormatterAttribute`, `OrdinalIgnoreCaseStringDictionaryFormatterAttribtue<TValue>`, `BitPackFormatterAttribtue`, `BrotliFormatter`, `BrotliStringFormatter`, `BrotliFormatter<T>`, `MemoryPoolFormatter<T>`, `ReadOnlyMemoryPoolFormatter<T>` exists.
 
 ```csharp
 [MemoryPackable]
@@ -660,7 +660,7 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
 }
 ```
 
-`BitPackFormatter` is for `bool[]`, same serialzied result as `BitArray`. In other words, bool is normally 1byte, but since it is treated as 1bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
+`BitPackFormatter` is for `bool[]`, same serialized result as `BitArray`. In other words, bool is normally 1byte, but since it is treated as 1bit, eight bools are stored in one byte. Therefore, the size after serialization is 1/8.
 
 ```csharp
 [MemoryPackable]
@@ -733,7 +733,7 @@ MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref reuseObject);
 var span = CollectionsMarshal.AsSpan(value.Payload);
 ```
 
-A convinient way is to deserialize to an ArrayPool at deserialization time. MemoryPack provides `MemoryPoolFormatter<T>` and `ReadOnlyMemoryPoolFormatter<T>`.
+A convenient way is to deserialize to an ArrayPool at deserialization time. MemoryPack provides `MemoryPoolFormatter<T>` and `ReadOnlyMemoryPoolFormatter<T>`.
 
 ```csharp
 [MemoryPackable]
@@ -794,7 +794,7 @@ Payload size and compression
 ---
 Payload size depends on the target value; unlike JSON, there are no keys and it is a binary format, so the payload size is likely to be smaller than JSON.
 
-For those with varint encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
+For those with variant encoding, such as MessagePack and Protobuf, MemoryPack tends to be larger if ints are used a lot (in MemoryPack, ints are always 4 bytes due to fixed size encoding, while MsgPack is 1~5 bytes).
 
 float and double are 4 bytes and 8 bytes in MemoryPack, but 5 bytes and 9 bytes in MsgPack. So MemoryPack is smaller, for example, for Vector3 (float, float, float) arrays.
 
@@ -1180,7 +1180,7 @@ MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatibility
 
 Since net7.0 uses static abstract members(`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
 
-.NET 7 project can't refere netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
+.NET 7 project can't refer netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all of the dependencies that use MemoryPack must support .NET 7. So for library developer if depend MemoryPack, you need to configure dual target framework.
 
 ```xml
 <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -1204,7 +1204,7 @@ Source Generator is also used officially by Unity by [com.unity.properties](http
 
 Unity version is not supported CustomFormatter and ImmutableCollections.
 
-You can serializer all unamnaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
+You can serializer all unmanaged types(such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
 
 Native AOT
 ---
@@ -1260,7 +1260,7 @@ Tuple is fixed-size, non-nullable value collection. In .NET, `KeyValuePair<TKey,
 
 `(int length, [values...])`
 
-Collection has 4byte signed interger as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
+Collection has 4byte signed integer as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
 
 ### String
 
@@ -1274,7 +1274,7 @@ String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, rep
 `(byte tag, value)`  
 `(250, ushort tag, value)`
 
-First unsgined byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
+First unsigned byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
 
 License
 ---
