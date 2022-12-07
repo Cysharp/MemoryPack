@@ -369,7 +369,7 @@ MemoryPackFormatterProvider.Register(formatter);
 
 Serialize API
 ---
-Serialize has three overloads.
+`Serialize` has three overloads.
 
 ```csharp
 // Non generic API also available, these version is first argument is Type and value is object?
