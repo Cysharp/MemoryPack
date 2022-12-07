@@ -388,7 +388,7 @@ If you want to do a complete streaming write, see the [Streaming Serialization](
 
 ### MemoryPackSerializerOptions
 
-`MemoryPackSerializerOptions` configures whether strings are serialized as Utf16 or Utf8. This can be configured by passing `MemoryPackSerializerOptions.Utf8` for Utf8 encoding, `MemoryPackSerializerOptions.Utf16` for Utf16 encoding or `MemoryPackSerializerOptions.Default` which defaults to Utf8. Passing null or using the default parameter results in Utf8 encoding.
+`MemoryPackSerializerOptions` configures whether strings are serialized as UTF16 or UTF8. This can be configured by passing `MemoryPackSerializerOptions.Utf8` for UTF8 encoding, `MemoryPackSerializerOptions.Utf16` for UTF16 encoding or `MemoryPackSerializerOptions.Default` which defaults to UTF8. Passing null or using the default parameter results in UTF8 encoding.
 
 Since C#'s internal string representation is UTF16, UTF16 performs better. However, the payload tends to be larger; in UTF8, an ASCII string is one byte, while in UTF16 it is two bytes. Because the difference in size of this payload is so large, UTF8 is set by default.
 
@@ -398,7 +398,7 @@ While UTF8 or UTF16 can be selected during serialization, it is not necessary to
 
 Deserialize API
 ---
-Deserialize has `ReadOnlySpan<byte>` and `ReadOnlySequence<byte>`, `Stream` overload and `ref` support.
+`Deserialize` has `ReadOnlySpan<byte>` and `ReadOnlySequence<byte>`, `Stream` overload and `ref` support.
 
 ```csharp
 T? Deserialize<T>(ReadOnlySpan<byte> buffer)
@@ -408,11 +408,11 @@ int Deserialize<T>(in ReadOnlySequence<byte> buffer, ref T? value)
 async ValueTask<T?> DeserializeAsync<T>(Stream stream)
 ```
 
-`ref` overload overwrite existing instance, for details see [Overwrite](#overwrite) section.
+`ref` overload overwrites an existing instance, for details see the [Overwrite](#overwrite) section.
 
-`DeserializeAsync(Stream)` is not completely streaming read, first read into MemoryPack's internal pool up to the end-of-stream, then deserialize.
+`DeserializeAsync(Stream)` is not a complete streaming read operation, first it reads into MemoryPack's internal pool up to the end-of-stream, then it deserializes.
 
-If you want to do a complete streaming read, see [Streaming Serialization](#streaming-serialization) section.
+If you want to do a complete streaming read operation, see the [Streaming Serialization](#streaming-serialization) section.
 
 Overwrite
 ---
@@ -426,7 +426,7 @@ var bin = MemoryPackSerializer.Serialize(person);
 MemoryPackSerializer.Deserialize(bin, ref person);
 ```
 
-MemoryPack will attempt to overwrite as much as possible, but if the conditions do not match, it will create a new instance (as in normal deserialization).
+MemoryPack will attempt to overwrite as much as possible, but if the following conditions do not match, it will create a new instance (as in normal deserialization).
 
 * ref value (includes members in object graph) is null, set new instance
 * only allows parameterless constructor, if parameterized constructor is used, create new instance
@@ -477,7 +477,7 @@ public partial class VersionCheck
 }
 ```
 
-In use-case, store old data (to file, to redis, etc...) and read to new schema is always ok. In RPC scenario, schema exists both client server, the client must be updated before the server. An updated client has no problem connecting to the old server but an old client can not connect to a new server.
+In use-case, store old data (to file, to redis, etc...) and read to new schema is always ok. In the RPC scenario, schema exists both on the client and the server side, the client must be updated before the server. An updated client has no problem connecting to the old server but an old client can not connect to a new server.
 
 The next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
@@ -485,7 +485,7 @@ When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 
 * unmanaged struct can't change any more
 * All members must add `[MemoryPackOrder]` explicitly
-* members can add, can delete but not reuse order(can use missing order)
+* members can add, can delete but not reuse order (can use missing order)
 * can change member name
 * can't change member order
 * can't change member type
@@ -531,7 +531,7 @@ public partial class VersionTolerantObject2
 
 Serialization info
 ----
-Which members are serialized, you can check IntelliSense in type. There is an option to write that information to a file at compile time. Set `MemoryPackGenerator_SerializationInfoOutputDirectory` as follows.
+You can check IntelliSense in type what members are serialized. There is an option to write that information to a file at compile time. Set `MemoryPackGenerator_SerializationInfoOutputDirectory` as follows.
 
 ```xml
 <!-- output memorypack serialization info to directory -->
@@ -616,7 +616,7 @@ public partial class Employee
 
 CustomFormatter
 ---
-If implements `MemoryPackCustomFormatterAttribute<T>` or `MemoryPackCustomFormatterAttribute<TFormatter, T>`(more performant but complex), you can configure to use custom formatter to MemoryPackObject's member.
+If implements `MemoryPackCustomFormatterAttribute<T>` or `MemoryPackCustomFormatterAttribute<TFormatter, T>`(more performant, but complex), you can configure to use custom formatter to MemoryPackObject's member.
 
 ```csharp
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -646,7 +646,7 @@ public partial class Sample
 }
 ```
 
-For configure set/dictionary's equality comparer, all built-in formatter has comparer constructor overload. You can create custom equality-comparer formatter easily.
+For configure set/dictionary's equality comparer, all built-in formatter has comparer constructor overload. You can easily create custom equality-comparer formatters.
 
 ```csharp
 public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryPackCustomFormatterAttribute<Dictionary<string, TValue?>>
@@ -686,7 +686,7 @@ public partial class Sample
 }
 ```
 
-`BrotliStringFormatter` is for `string`, serialize compressed string(UTF16) by Brotli.
+`BrotliStringFormatter` is for `string`, serialize compressed string (UTF16) by Brotli.
 
 ```csharp
 [MemoryPackable]
@@ -699,7 +699,7 @@ public partial class Sample
 }
 ```
 
-`BrotliFormatter<T>` is for any type, serialized data compressed by Brotli. If type is `byte[]` or `string`, should use `BrotliFormatter` or `BrotliStringFormatter` for performance.
+`BrotliFormatter<T>` is for any type, serialized data compressed by Brotli. If a type is `byte[]` or `string`, you should use `BrotliFormatter` or `BrotliStringFormatter` for performance.
 
 ```csharp
 [MemoryPackable]
@@ -832,15 +832,15 @@ var decompressedBuffer = decompressor.Decompress(buffer);
 var value = MemoryPackSerializer.Deserialize<T>(decompressedBuffer);
 ```
 
-Both `BrotliCompressor` and `BrotliDecompressor` are struct, it does not allocate memory on heap. Both store compressed or decompressed data in an internal memory pool for Serialize/Deserialize.  Therefore, it is necessary to release the memory pooling, don't forget to use `using`.
+Both `BrotliCompressor` and `BrotliDecompressor` are struct, it does not allocate memory on heap. Both store compressed or decompressed data in an internal memory pool for Serialize/Deserialize. Therefore, it is necessary to release the memory pooling, don't forget to use `using`.
 
 Compression level is very important. The default is set to quality-1 (CompressionLevel.Fastest), which is different from the .NET default (CompressionLevel.Optimal, quality-4).
 
-Fastest (quality-1) will be close to the speed of [LZ4](https://github.com/lz4/lz4), but 4 is much slower. This was determined to be critical in the serializer use scenario. Be careful when using the standard `BrotliStream`(quality-4 is the default). In any case, compression/decompression speeds and sizes will result in very different results for different data. Please prepare the data to be handled by your application and test it yourself.
+Fastest (quality-1) will be close to the speed of [LZ4](https://github.com/lz4/lz4), but 4 is much slower. This was determined to be critical in the serializer use scenario. Be careful when using the standard `BrotliStream` (quality-4 is the default). In any case, compression/decompression speeds and sizes will result in very different results for different data. Please prepare the data to be handled by your application and test it yourself.
 
 Note that there is a several-fold speed penalty between MemoryPack's uncompressed and Brotli's added compression.
 
-Brotli support also exists in custom formatter. `BrotliFormatter` can compress specify member.
+Brotli is also suppored in a custom formatter. `BrotliFormatter` can compress a specific member.
 
 ```csharp
 [MemoryPackable]
@@ -855,7 +855,7 @@ public partial class Sample
 
 Serialize external types
 ---
-If you want to serialize external types, you can make custom formatter and register to provider, see [Formatter/Provider API](#formatterprovider-api) for details. However, creating a custom formatter is difficult. Therefore, we recommend making a wrapper type. For example, if you want to serialize an external type called `AnimationCurve`.
+If you want to serialize external types, you can make a custom formatter and register it to provider, see [Formatter/Provider API](#formatterprovider-api) for details. However, creating a custom formatter is difficult. Therefore, we recommend making a wrapper type. For example, if you want to serialize an external type called `AnimationCurve`.
 
 ```csharp
 // Keyframe: (float time, float inTangent, float outTangent, int tangentMode, int weightedMode, float inWeight, float outWeight)
