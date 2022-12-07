@@ -888,14 +888,14 @@ public readonly partial struct SerializableAnimationCurve
 }
 ```
 
-The type to wrap is public, but excluded from serialization(`MemoryPackIgnore`). The properties you want to serialize are private, but included (`MemoryPackInclude`). Two patterns of constructors should also be prepared. The constructor used by the serializer should be private.
+The type to wrap is public, but excluded from serialization (`MemoryPackIgnore`). The properties you want to serialize are private, but included (`MemoryPackInclude`). Two patterns of constructors should also be prepared. The constructor used by the serializer should be private.
 
-As it is, I have to wrap it every time, which is inconvenient. Let's create a custom formatter.
+As it is, it must be wrapped every time, which is inconvenient. Let's create a custom formatter.
 
 ```csharp
 public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
 {
-    // If Unity that does not support scoped and TBufferWriter so change signature to `Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)`
+    // Unity does not support scoped and TBufferWriter so change signature to `Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)`
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AnimationCurve value)
     {
         writer.WritePackable(new SerializableAnimationCurve(value));
@@ -909,7 +909,7 @@ public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
 }
 ```
 
-Finally, register formatter in startup.
+Finally, register the formatter in startup.
 
 ```csharp
 MemoryPackFormatterProvider.Register<AnimationCurve>(new AnimationCurveFormatter());
@@ -943,7 +943,7 @@ Code generation is integrated with Source Generator, the following options(`Memo
 </PropertyGroup>
 ```
 
-At first, require to annotate `[GenerateTypeScript]` to C# MemoryPackable type.
+A C# MemoryPackable type must be annotated with `[GenerateTypeScript]`.
 
 ```csharp
 [MemoryPackable]
@@ -965,7 +965,7 @@ public enum Gender
 }
 ```
 
-Runtime code and TypeScript type will generate to target directory.
+Runtime code and TypeScript type will be generated in the target directory.
 
 ![image](https://user-images.githubusercontent.com/46207/194916544-1b6bb5ed-966b-43c3-a378-3eac297c2b40.png)
 
@@ -1105,7 +1105,7 @@ There are a few restrictions on the types that can be generated. Among the primi
 ### Configure import file extension and member name casing
 
 In default, MemoryPack generates file extension as `.js` like `import { MemoryPackWriter } from "./MemoryPackWriter.js";`. If you want to change other extension or empty, use `MemoryPackGenerator_TypeScriptImportExtension` to configure it.
-Also member name is automatically convert to lowerCase. If you want to use original name, use `MemoryPackGenerator_TypeScriptConvertPropertyName` to `false`.
+Also the member name is automatically converted to camelCase. If you want to use original name, use `MemoryPackGenerator_TypeScriptConvertPropertyName` to `false`.
 
 ```xml
 <ItemGroup>
