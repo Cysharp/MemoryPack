@@ -66,10 +66,10 @@ Serialization method supports a return type of `byte[]` as well as it can serial
 
 Built-in supported types
 ---
-These types can serialize by default:
+These types can be serialized by default:
 
-* .NET primitives (`byte`, `int`, `bool`, `char`, `double`, etc...)
-* Unmanaged types (Any `enum`, Any user-defined `struct` that no contains reference type)
+* .NET primitives (`byte`, `int`, `bool`, `char`, `double`, etc.)
+* Unmanaged types (Any `enum`, Any user-defined `struct` which doesn't contain reference types)
 * `string`, `decimal`, `Half`, `Int128`, `UInt128`, `Guid`, `Rune`, `BigInteger`
 * `TimeSpan`,  `DateTime`, `DateTimeOffset`, `TimeOnly`, `DateOnly`, `TimeZoneInfo`
 * `Complex`, `Plane`, `Quaternion` `Matrix3x2`, `Matrix4x4`, `Vector2`, `Vector3`, `Vector4`
@@ -82,13 +82,13 @@ These types can serialize by default:
 * `IEnumerable<>`, `ICollection<>`, `IList<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`, `ISet<>`
 * `IDictionary<,>`, `IReadOnlyDictionary<,>`, `ILookup<,>`, `IGrouping<,>`,
 * `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`, `BlockingCollection<>`
-* Immutable collections (`ImmutableList<>`, etc.) and interfaces (`IImmutableList<>`, etc.  )
+* Immutable collections (`ImmutableList<>`, etc.) and interfaces (`IImmutableList<>`, etc.)
 
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
-`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If type is `struct` or `record struct` and that contains no reference type([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)), any additional annotation (ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
+`[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If a type is `struct` or `record struct` which contains no reference types ([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)) any additional annotation (ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
 
-Otherwise, in the default, `[MemoryPackable]` serializes public instance property or field. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
+Otherwise, by default, `[MemoryPackable]` serializes public instance properties or fields. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
 
 ```csharp
 [MemoryPackable]
@@ -108,11 +108,11 @@ public partial class Sample
     int privateField;
     readonly int privateReadOnlyField;
 
-    // use [MemoryPackIgnore] to remove target of public member
+    // use [MemoryPackIgnore] to remove target of a public member
     [MemoryPackIgnore]
     public int PublicProperty2 => PublicProperty + PublicField;
 
-    // use [MemoryPackInclude] to promote private member to serialization target
+    // use [MemoryPackInclude] to promote a private member to serialization target
     [MemoryPackInclude]
     int privateField2;
     [MemoryPackInclude]
@@ -120,7 +120,7 @@ public partial class Sample
 }
 ```
 
-`MemoryPack`s code generator adds information about which members are serialized to the `<remarks />` section. This can be viewed by hovering over the type with Intellisense.
+`MemoryPack`'s code generator adds information about what members are serialized to the `<remarks />` section. This can be viewed by hovering over the type with Intellisense.
 
 ![image](https://user-images.githubusercontent.com/46207/192393984-9af01fcb-872e-46fb-b08f-4783e8cef4ae.png)
 
