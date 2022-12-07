@@ -646,7 +646,7 @@ public partial class Sample
 }
 ```
 
-For configure set/dictionary's equality comparer, all built-in formatter has comparer constructor overload. You can easily create custom equality-comparer formatters.
+In order to configure set/dictionary's equality comparer, all built-in formatters have a comparer constructor overload. You can easily create custom equality-comparer formatters.
 
 ```csharp
 public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryPackCustomFormatterAttribute<Dictionary<string, TValue?>>
@@ -714,7 +714,7 @@ public partial class Sample
 
 Deserialize array pooling
 ---
-For deserializing a large array (any `T`), MemoryPack offers multiple efficient pooling methods. The most effective way is to use the [#Overwrite](#overwrite) function. In particular `List<T>` is always reused.
+In order to deserialize a large array (any `T`), MemoryPack offers multiple efficient pooling methods. The most effective way is to use the [#Overwrite](#overwrite) function. In particular `List<T>` is always reused.
 
 ```csharp
 [MemoryPackable]
