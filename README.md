@@ -5,13 +5,13 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 ![image](https://user-images.githubusercontent.com/46207/200979655-63ed38ae-dad2-4ca0-bbb7-9e0aa98914af.png)
 
-> Compare with [System.Text.Json](https://learn.microsoft.com/ja-jp/dotnet/api/system.text.json), [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp), [Orleans.Serialization](https://github.com/dotnet/orleans/). Measure by .NET 7 / Ryzen 9 5950X machine. These serializers has `IBufferWriter<byte>` method, serialize using `ArrayBuffer<byte>` and reuse to avoid measure buffer copy. 
+> Compared with [System.Text.Json](https://learn.microsoft.com/ja-jp/dotnet/api/system.text.json), [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp), [Orleans.Serialization](https://github.com/dotnet/orleans/). Measured by .NET 7 / Ryzen 9 5950X machine. These serializers have `IBufferWriter<byte>` method, serialized using `ArrayBuffer<byte>` and reused to avoid measure buffer copy. 
 
 For standard objects, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack is even more powerful, with speeds up to x50 ~ x200 greater than other serializers.
 
-MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator (.NET Standard 2.1 (.NET 5, 6) and Unity support is also exists).
+MemoryPack is my 4th serializer, previously I've created well known serializers, ~~[ZeroFormatter](https://github.com/neuecc/ZeroFormatter)~~, ~~[Utf8Json](https://github.com/neuecc/Utf8Json)~~, [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). The reason for MemoryPack's speed is due to its C#-specific, C#-optimized binary format and a well tuned implementation based on my past experience. It is also a completely new design utilizing .NET 7 and C# 11 and the Incremental Source Generator (.NET Standard 2.1 (.NET 5, 6) and there is also Unity support).
 
-Other serializers performs many encoding operations such as VarInt encoding, tag, string, etc. MemoryPack format uses a zero-encoding design that copies as much of the C# memory as possible. Zero-encoding is similar to FlatBuffers but don't need special type, MemoryPack's serialize target is POCO.
+Other serializers perform many encoding operations such as VarInt encoding, tag, string, etc. MemoryPack format uses a zero-encoding design that copies as much C# memory as possible. Zero-encoding is similar to FlatBuffers, but it doesn't need a special type, MemoryPack's serialization target is POCO.
 
 Other than performance, MemoryPack has these features.
 
