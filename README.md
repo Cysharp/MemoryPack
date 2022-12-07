@@ -161,7 +161,7 @@ public partial class SampleExplicitOrder
 
 MemoryPack supports both parameterized and parameterless constructors. The selection of the constructor follows these rules. (Applies to classes and structs).
 
-* If it has `[MemoryPackConstructor]`, use it.
+* If there is `[MemoryPackConstructor]`, use it.
 * If there is no explicit constructor (including private), use a parameterless one.
 * If there is one parameterless/parameterized constructor (including private), use it.
 * If there are multiple constructors, then the `[MemoryPackConstructor]` attribute must be applied to the desired constructor (the generator will not automatically choose one), otherwise the generator will emit an error.
