@@ -646,7 +646,7 @@ public partial class Sample
 }
 ```
 
-In order to configure set/dictionary's equality comparer, all built-in formatters have a comparer constructor overload. You can easily create custom equality-comparer formatters.
+In order to configure a set/dictionary's equality comparer, all built-in formatters have a comparer constructor overload. You can easily create custom equality-comparer formatters.
 
 ```csharp
 public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryPackCustomFormatterAttribute<Dictionary<string, TValue?>>
