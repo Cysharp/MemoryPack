@@ -141,7 +141,7 @@ public partial class Sample2
 }
 ```
 
-Member order is **important**, MemoryPack does not serialize the member-name or other information, instead serializing fields in the declared order. If the type is inherited, serialize in the order of parent → child. Member orders can not change for the deserialization. For the schema evolution, see [Version tolerant](#version-tolerant) section.
+Member order is **important**, MemoryPack does not serialize the member-name or other information, instead serializing fields in the order they are declared. If a type is inherited, serialization is performed in the order of parent → child. The order of members can not change for the deserialization. For the schema evolution, see the [Version tolerant](#version-tolerant) section.
 
 The default order is sequential, but you can choose the explicit layout with `[MemoryPackable(SerializeLayout.Explicit)]` and `[MemoryPackOrder()]`.
 
@@ -161,11 +161,11 @@ public partial class SampleExplicitOrder
 
 MemoryPack supports both parameterized and parameterless constructors. The selection of the constructor follows these rules. (Applies to classes and structs).
 
-* If has `[MemoryPackConstructor]`, use it.
-* If there is no explicit constructor (includes private), use parameterless one.
-* If there is one parameterless/parameterized constructor (includes private), use it.
+* If it has `[MemoryPackConstructor]`, use it.
+* If there is no explicit constructor (including private), use a parameterless one.
+* If there is one parameterless/parameterized constructor (including private), use it.
 * If there are multiple constructors, then the `[MemoryPackConstructor]` attribute must be applied to the desired constructor (the generator will not automatically choose one), otherwise the generator will emit an error.
-* If using a parameterized constructor, all parameter names must match a corresponding member names (case-insensitive).
+* If using a parameterized constructor, all parameter names must match corresponding member names (case-insensitive).
 
 ```csharp
 [MemoryPackable]
@@ -174,7 +174,7 @@ public partial class Person
     public readonly int Age;
     public readonly string Name;
 
-    // You can use a parameterized constructor - parameter names must match a corresponding members name (case-insensitive))
+    // You can use a parameterized constructor - parameter names must match corresponding members name (case-insensitive)
     public Person(int age, string name)
     {
         this.Age = age;
@@ -269,7 +269,7 @@ public partial class MethodCallSample
 
 Define custom collection
 ---
-In default, annotated `[MemoryPackObject]` type try to search members. However, if type is a collection (`ICollection<>`, `ISet<>`, `IDictionary<,>`), you can change `GenerateType.Collection` to serialize correctly.
+By default, annotated `[MemoryPackObject]` type try to serialize its members. However, if a type is a collection (`ICollection<>`, `ISet<>`, `IDictionary<,>`), use `GenerateType.Collection` to serialize it correctly.
 
 ```csharp
 [MemoryPackable(GenerateType.Collection)]
@@ -286,10 +286,10 @@ public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
 
 Polymorphism (Union)
 ---
-MemoryPack supports serializing interface and abstract class objects for polymorphism serialization. In MemoryPack these are called Union. Only interfaces and abstracts classes are allowed to be annotated with `[MemoryPackUnion]` attributes. Unique union tags are required.
+MemoryPack supports serializing interface and abstract class objects for polymorphism serialization. In MemoryPack this feature is called Union. Only interfaces and abstracts classes are allowed to be annotated with `[MemoryPackUnion]` attributes. Unique union tags are required.
 
 ```csharp
-// Annotate [MemoryPackable] and inheritance types by [MemoryPackUnion]
+// Annotate [MemoryPackable] and inheritance types with [MemoryPackUnion]
 // Union also supports abstract class
 [MemoryPackable]
 [MemoryPackUnion(0, typeof(FooClass))]
@@ -334,7 +334,7 @@ switch (reData)
 
 `tag` allows `0` ~ `65535`, it is especially efficient for less than `250`.
 
-If the interface and derived types are in different assemblies, you can use `MemoryPackUnionFormatterAttribute` instead. Formatters generated this way are registered automatically via `ModuleInitializer` in C# 9.0 and above.
+If an interface and derived types are in different assemblies, you can use `MemoryPackUnionFormatterAttribute` instead. Formatters are generated the way that they are automatically registered via `ModuleInitializer` in C# 9.0 and above.
 
 > Note that `ModuleInitializer` is not supported in Unity, so the formatter must be manually registered. To register your union formatter invoke `{name of your union formatter}Initializer.RegisterFormatter()` manually in Startup. For example `UnionSampleFormatterInitializer.RegisterFormatter()`.
 
@@ -384,7 +384,7 @@ If a `byte[]` is required (e.g. `RedisValue` in [StackExchange.Redis](https://gi
 
 Note that `SerializeAsync` for `Stream` is asynchronous only for Flush; it serializes everything once into MemoryPack's internal pool buffer and then writes using `WriteAsync`. Therefore, the `BufferWriter` overload, which separates and controls buffer and flush, is better.
 
-If you want to do a complete streaming write, see [Streaming Serialization](#streaming-serialization) section.
+If you want to do a complete streaming write, see the [Streaming Serialization](#streaming-serialization) section.
 
 ### MemoryPackSerializerOptions
 
