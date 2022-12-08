@@ -207,7 +207,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. The only requirement is that the annotated method is parameterless.
+When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. 
 
 ```csharp
 [MemoryPackable]
@@ -263,6 +263,50 @@ public partial class MethodCallSample
     public void OnDeserialized2()
     {
         Console.WriteLine(nameof(OnDeserialized2));
+    }
+}
+```
+
+Callbacks allows parameterless method and `ref reader/writer, ref T value` method. For example, ref callbacks can write/read custom header before serialization process.
+
+```csharp
+[MemoryPackable]
+public partial class EmitIdData
+{
+    public int MyProperty { get; set; }
+
+    [MemoryPackOnSerializing]
+    static void WriteId<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref EmitIdData? value)
+        where TBufferWriter : IBufferWriter<byte> // .NET Standard 2.1, use where TBufferWriter : class, IBufferWriter<byte>
+    {
+        writer.WriteUnmanaged(Guid.NewGuid()); // emit GUID in header.
+    }
+
+    [MemoryPackOnDeserializing]
+    static void ReadId(ref MemoryPackReader reader, ref EmitIdData? value)
+    {
+        // read custom header before deserialize
+        var guid = reader.ReadUnmanaged<Guid>();
+        Console.WriteLine(guid);
+    }
+}
+```
+
+If set a value to `ref value`, you can change the value used for serialization/deserialization. For example, instantiate from ServiceProvider.
+
+```csharp
+[MemoryPackable]
+public partial class InstantiateFromServiceProvider
+{
+    static IServiceProvider serviceProvider = default!;
+
+    public int MyProperty { get; private set; }
+
+    [MemoryPackOnDeserializing]
+    static void OnDeserializing(ref MemoryPackReader reader, ref InstantiateFromServiceProvider value)
+    {
+        if (value != null) return;
+        value = serviceProvider.GetRequiredService<InstantiateFromServiceProvider>();
     }
 }
 ```
