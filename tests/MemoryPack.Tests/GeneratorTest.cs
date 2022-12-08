@@ -99,24 +99,24 @@ public class GeneratorTest
         var mc = new MethodCall();
         MethodCall.Log.Clear();
         var bin = MemoryPackSerializer.Serialize(mc);
-        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerializing2", "Get", "OnSerialized1", "OnSerialized2");
+        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerializing2", "OnSerializing_M1", "OnSerializing_M2",  "Get", "OnSerialized1", "OnSerialized2", "OnSerialized_M1", "OnSerialized_M2");
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin, ref mc);
-        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing2", "Get", "Set", "OnDeserialized1", "OnDeserialized2");
+        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing2", "OnDeserializing_M1", "OnDeserializing_M2", "Get", "Set", "OnDeserialized1", "OnDeserialized2", "OnDeserialized_M1", "OnDeserialized_M2");
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin);
-        MethodCall.Log.Should().Equal("OnDeserializing1", "Constructor", "Set", "OnDeserialized1", "OnDeserialized2");
+        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing_M1", "Constructor", "Set", "OnDeserialized1", "OnDeserialized2", "OnDeserialized_M1", "OnDeserialized_M2");
 
         // allow null
         MethodCall.Log.Clear();
         var bin2 = MemoryPackSerializer.Serialize((MethodCall?)null);
-        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerialized1");
+        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerializing_M1", "OnSerialized1", "OnSerialized_M1");
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin2);
-        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserialized1");
+        MethodCall.Log.Should().Equal("OnDeserializing1", "OnDeserializing_M1", "OnDeserialized1", "OnDeserialized_M1");
     }
 
     [Fact]

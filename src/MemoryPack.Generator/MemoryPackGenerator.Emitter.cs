@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -887,7 +888,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     string EmitConstructor()
     {
-        // noee need `;` because after using object initializer
+        // no need `;` because after using object initializer
         if (this.Constructor == null || this.Constructor.Parameters.Length == 0)
         {
             return $"new {TypeName}()";
@@ -1205,20 +1206,21 @@ public partial class MethodMeta
 {
     public string Emit()
     {
-        if (IsStatic)
+        var instance = (IsStatic) ? ""
+            : (IsValueType) ? "value."
+            : "value?.";
+
+        if (UseReaderArgument)
         {
-            return $"{Name}();";
+            return $"{instance}{Name}(ref reader, ref value);";
+        }
+        else if (UseWriterArgument)
+        {
+            return $"{instance}{Name}(ref writer, ref value);";
         }
         else
         {
-            if (IsValueType)
-            {
-                return $"value.{Name}();";
-            }
-            else
-            {
-                return $"value?.{Name}();";
-            }
+            return $"{instance}{Name}();";
         }
     }
 }

@@ -43,6 +43,7 @@ public enum MemberKind
 partial class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
+
     readonly ReferenceSymbols reference;
     public INamedTypeSymbol Symbol { get; set; }
     public GenerateType GenerateType { get; }
@@ -110,10 +111,10 @@ partial class TypeMeta
         this.IsInterfaceOrAbstract = symbol.IsAbstract;
         this.IsUnion = symbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
         this.IsRecord = symbol.IsRecord;
-        this.OnSerializing = CollectMethod(reference.MemoryPackOnSerializingAttribute, IsValueType);
-        this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType);
-        this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType);
-        this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType);
+        this.OnSerializing = CollectMethod(reference.MemoryPackOnSerializingAttribute, IsValueType, isReader: false);
+        this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType, isReader: false);
+        this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType, isReader: true);
+        this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType, isReader: true);
 
         if (IsUnion)
         {
@@ -167,12 +168,12 @@ partial class TypeMeta
         }
     }
 
-    MethodMeta[] CollectMethod(INamedTypeSymbol attribute, bool isValueType)
+    MethodMeta[] CollectMethod(INamedTypeSymbol attribute, bool isValueType, bool isReader)
     {
         return Symbol.GetMembers()
             .OfType<IMethodSymbol>()
             .Where(x => x.ContainsAttribute(attribute))
-            .Select(x => new MethodMeta(x, isValueType))
+            .Select(x => new MethodMeta(x, isValueType, isReader))
             .ToArray();
     }
 
@@ -296,16 +297,29 @@ partial class TypeMeta
         // methods
         foreach (var item in OnSerializing.Concat(OnSerialized).Concat(OnDeserializing).Concat(OnDeserialized))
         {
-            if (item.Symbol.Parameters.Length != 0)
-            {
-                // diagnostics location should be method identifier
-                // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, item.GetLocation(syntax), Symbol.Name, item.Name));
-                noError = false;
-            }
+            // diagnostics location should be method identifier
+            // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
+
             if (IsUnmanagedType)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
+                noError = false;
+                continue;
+            }
+
+            if (item.Symbol.Parameters.Length != 0)
+            {
+                // if (ref reader/writer), ok.
+                if (item.Symbol.Parameters.Length == 2)
+                {
+                    if (item.Symbol.Parameters[0].RefKind == RefKind.Ref && item.Symbol.Parameters[1].RefKind == RefKind.Ref)
+                    {
+                        // ref ref is ok.
+                        continue;
+                    }
+                }
+
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodHasParameter, item.GetLocation(syntax), Symbol.Name, item.Name));
                 noError = false;
             }
         }
@@ -743,13 +757,28 @@ public partial class MethodMeta
     public string Name { get; }
     public bool IsStatic { get; }
     public bool IsValueType { get; }
+    public bool UseReaderArgument { get; }
+    public bool UseWriterArgument { get; }
 
-    public MethodMeta(IMethodSymbol symbol, bool isValueType)
+    public MethodMeta(IMethodSymbol symbol, bool isValueType, bool isReader)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.IsStatic = symbol.IsStatic;
         this.IsValueType = isValueType;
+
+        var hasArg = symbol.Parameters.Length != 0;
+        if (hasArg)
+        {
+            if (isReader)
+            {
+                this.UseReaderArgument = true;
+            }
+            else
+            {
+                this.UseWriterArgument = true;
+            }
+        }
     }
 
     public Location GetLocation(TypeDeclarationSyntax fallback)

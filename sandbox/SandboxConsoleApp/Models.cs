@@ -1,6 +1,7 @@
 ﻿using MemoryPack;
 using MemoryPack.Formatters;
 using MemoryPack.Internal;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Buffers;
@@ -115,3 +116,19 @@ public partial class LisList : List<int>
 }
 
 
+
+
+[MemoryPackable]
+public partial class InstantiateFromServiceProvider
+{
+    static IServiceProvider serviceProvider = default!;
+
+    public int MyProperty { get; private set; }
+
+    [MemoryPackOnDeserializing]
+    static void OnDeserializing(ref MemoryPackReader reader, ref InstantiateFromServiceProvider value)
+    {
+        if (value != null) return;
+        value = serviceProvider.GetRequiredService<InstantiateFromServiceProvider>();
+    }
+}
