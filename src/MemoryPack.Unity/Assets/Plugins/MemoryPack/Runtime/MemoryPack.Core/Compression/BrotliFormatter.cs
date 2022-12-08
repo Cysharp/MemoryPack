@@ -70,7 +70,7 @@ public sealed class BrotliFormatter : MemoryPackFormatter<byte[]>
 
         using var encoder = new BrotliEncoder(quality, window);
 
-        var maxLength = BrotliEncoder.GetMaxCompressedLength(value.Length);
+        var maxLength = BrotliUtils.BrotliEncoderMaxCompressedSize(value.Length);
 
         ref var head = ref writer.GetSpanReference(maxLength + 8);
 

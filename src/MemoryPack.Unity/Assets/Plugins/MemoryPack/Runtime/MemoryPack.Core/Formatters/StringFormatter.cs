@@ -159,7 +159,7 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
         using var encoder = new BrotliEncoder(quality, window);
 
         var srcLength = value.Length * 2;
-        var maxLength = BrotliEncoder.GetMaxCompressedLength(srcLength);
+        var maxLength = BrotliUtils.BrotliEncoderMaxCompressedSize(srcLength);
 
         ref var spanRef = ref writer.GetSpanReference(maxLength + 4);
         var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref spanRef, 4), maxLength);

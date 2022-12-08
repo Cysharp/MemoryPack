@@ -313,7 +313,7 @@ public static partial class MemoryPackFormatterProvider
         formatterType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
         if (formatterType != null) goto CREATE;
 
-        // finally custom geenrated
+        // finally custom generated
         formatterType = TryCreateGenericFormatterType(type, genericFormatterFactory);
         if (formatterType != null) goto CREATE;
 

@@ -85,7 +85,8 @@ public
 
         using var encoder = new BrotliEncoder(quality, window);
 
-        var maxLength = BrotliEncoder.GetMaxCompressedLength(bufferWriter.TotalWritten);
+        var maxLength = BrotliUtils.BrotliEncoderMaxCompressedSize(bufferWriter.TotalWritten);
+
         var finalBuffer = ArrayPool<byte>.Shared.Rent(maxLength);
         try
         {
@@ -278,6 +279,19 @@ internal static partial class BrotliUtils
 #endif
             _ => throw new ArgumentException()
         };
+
+
+    // https://github.com/dotnet/runtime/issues/35142
+    // BrotliEncoder.GetMaxCompressedLength is broken in .NET 7
+    // port from encode.c https://github.com/google/brotli/blob/3914999fcc1fda92e750ef9190aa6db9bf7bdb07/c/enc/encode.c#L1200
+    internal static int BrotliEncoderMaxCompressedSize(int input_size)
+    {
+        var num_large_blocks = input_size >> 14;
+        var overhead = 2 + (4 * num_large_blocks) + 3 + 1;
+        var result = input_size + overhead;
+        if (input_size == 0) return 2;
+        return (result < input_size) ? 0 : result;
+    }
 }
 
 }
