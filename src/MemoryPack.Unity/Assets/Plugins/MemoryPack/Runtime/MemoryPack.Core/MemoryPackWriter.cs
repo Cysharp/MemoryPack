@@ -50,6 +50,7 @@ public ref partial struct MemoryPackWriter
     public int WrittenCount => writtenCount;
     public int BufferLength => bufferLength;
     public MemoryPackWriterOptionalState OptionalState => optionalState;
+    public MemoryPackSerializerOptions Options => optionalState.Options;
 
     public MemoryPackWriter(ref IBufferWriter<byte> writer, MemoryPackWriterOptionalState optionalState)
     {

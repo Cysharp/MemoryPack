@@ -34,6 +34,7 @@ public ref partial struct MemoryPackReader
     public int Consumed => consumed;
     public long Remaining => totalLength - consumed;
     public MemoryPackReaderOptionalState OptionalState => optionalState;
+    public MemoryPackSerializerOptions Options => optionalState.Options;
 
     public MemoryPackReader(in ReadOnlySequence<byte> sequence, MemoryPackReaderOptionalState optionalState)
     {

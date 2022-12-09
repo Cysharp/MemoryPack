@@ -7,6 +7,7 @@ using MemoryPack;
 using MemoryPack.Compression;
 using MemoryPack.Formatters;
 using MemoryPack.Streaming;
+using Microsoft.Extensions.DependencyInjection;
 using Samples;
 using SandboxConsoleApp;
 using System;
@@ -34,6 +35,15 @@ var bin = MemoryPackSerializer.Serialize(value);
 MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref value);
 
 // for efficient operation, you can get Span<T> by CollectionsMarshal
+
+//IServiceProvider provider = default!;
+
+//var a = MemoryPackSerializerOptions.Default with { ServiceProvider = provider };
+
+
+
+
+
 
 var span = CollectionsMarshal.AsSpan(value.Payload);
 

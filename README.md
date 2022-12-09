@@ -295,6 +295,10 @@ public partial class EmitIdData
 If set a value to `ref value`, you can change the value used for serialization/deserialization. For example, instantiate from ServiceProvider.
 
 ```csharp
+// before using this formatter, set ServiceProvider
+// var options = MemoryPackSerializerOptions.Default with { ServiceProvider = provider };
+// MemoryPackSerializer.Deserialize(value, options);
+
 [MemoryPackable]
 public partial class InstantiateFromServiceProvider
 {
@@ -306,7 +310,7 @@ public partial class InstantiateFromServiceProvider
     static void OnDeserializing(ref MemoryPackReader reader, ref InstantiateFromServiceProvider value)
     {
         if (value != null) return;
-        value = serviceProvider.GetRequiredService<InstantiateFromServiceProvider>();
+        value = reader.Options.ServiceProvider!.GetRequiredService<InstantiateFromServiceProvider>();
     }
 }
 ```
@@ -439,6 +443,8 @@ Since C#'s internal string representation is UTF16, UTF16 performs better. Howev
 If the data is non-ASCII (e.g. Japanese, which can be more than 3 bytes, and UTF8 is larger), or if you have to compress it separately, UTF16 may give better results.
 
 While UTF8 or UTF16 can be selected during serialization, it is not necessary to specify it during deserialization. It will be automatically detected and deserialized normally.
+
+Additionaly you can get/set `IServiceProvider? ServiceProvider { get; init; }` from options. It is useful to get DI object(such as `ILogger<T>`) from serialization process(`MemoryPackReader/MemoryPackWriter` has .Options property).
 
 Deserialize API
 ---

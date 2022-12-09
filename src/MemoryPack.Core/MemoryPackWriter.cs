@@ -41,6 +41,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public int WrittenCount => writtenCount;
     public int BufferLength => bufferLength;
     public MemoryPackWriterOptionalState OptionalState => optionalState;
+    public MemoryPackSerializerOptions Options => optionalState.Options;
 
     public MemoryPackWriter(ref TBufferWriter writer, MemoryPackWriterOptionalState optionalState)
     {
