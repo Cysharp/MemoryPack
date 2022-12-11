@@ -297,7 +297,8 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool PeekIsNull()
     {
-        return TryPeekObjectHeader(out _);
+        var code = GetSpanReference(1);
+        return code == MemoryPackCode.NullObject;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

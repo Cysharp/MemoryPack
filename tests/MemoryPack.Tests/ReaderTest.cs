@@ -167,4 +167,15 @@ public class ReaderTest
         catch (MemoryPackSerializationException) { }
     }
 
+    [Fact]
+    public void PeekIsNull()
+    {
+        var bin = MemoryPackSerializer.Serialize<string>(null);
+
+        using var state = MemoryPackReaderOptionalStatePool.Rent(null);
+        var reader = new MemoryPackReader(bin, state);
+
+        var isNull = reader.PeekIsNull();
+        isNull.Should().BeTrue();
+    }
 }
