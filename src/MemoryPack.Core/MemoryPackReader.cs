@@ -294,6 +294,55 @@ public ref partial struct MemoryPackReader
         return length != MemoryPackCode.NullCollection;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool PeekIsNull()
+    {
+        return TryPeekObjectHeader(out _);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryPeekObjectHeader(out byte memberCount)
+    {
+        memberCount = GetSpanReference(1);
+        return memberCount != MemoryPackCode.NullObject;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryPeekUnionHeader(out ushort tag)
+    {
+        var firstTag = GetSpanReference(1);
+        if (firstTag < MemoryPackCode.WideTag)
+        {
+            tag = firstTag;
+            return true;
+        }
+        else if (firstTag == MemoryPackCode.WideTag)
+        {
+            ref var spanRef = ref GetSpanReference(sizeof(ushort) + 1); // skip firstTag
+            tag = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref spanRef, 1));
+            return true;
+        }
+        else
+        {
+            tag = 0;
+            return false;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryPeekCollectionHeader(out int length)
+    {
+        length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
+
+        // If collection-length is larger than buffer-length, it is invalid data.
+        if (Remaining < length)
+        {
+            MemoryPackSerializationException.ThrowInsufficientBufferUnless(length);
+        }
+
+        return length != MemoryPackCode.NullCollection;
+    }
+
     /// <summary>
     /// no validate collection size, be careful to use.
     /// </summary>

@@ -940,19 +940,31 @@ public readonly partial struct SerializableAnimationCurve
 
 The type to wrap is public, but excluded from serialization (`MemoryPackIgnore`). The properties you want to serialize are private, but included (`MemoryPackInclude`). Two patterns of constructors should also be prepared. The constructor used by the serializer should be private.
 
-As it is, it must be wrapped every time, which is inconvenient. Let's create a custom formatter.
+As it is, it must be wrapped every time, which is inconvenient. And also strcut wrapper can not represents null. So let's create a custom formatter.
 
 ```csharp
 public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
 {
     // Unity does not support scoped and TBufferWriter so change signature to `Serialize(ref MemoryPackWriter writer, ref AnimationCurve value)`
-    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AnimationCurve value)
+    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AnimationCurve? value)
     {
+        if (value == null)
+        {
+            writer.WriteNullObjectHeader();
+            return;
+        }
+
         writer.WritePackable(new SerializableAnimationCurve(value));
     }
 
-    public override void Deserialize(ref MemoryPackReader reader, scoped ref AnimationCurve value)
+    public override void Deserialize(ref MemoryPackReader reader, scoped ref AnimationCurve? value)
     {
+        if (reader.PeekIsNull())
+        {
+            value = null;
+            return;
+        }
+        
         var wrapped = reader.ReadPackable<SerializableAnimationCurve>();
         value = wrapped.AnimationCurve;
     }
