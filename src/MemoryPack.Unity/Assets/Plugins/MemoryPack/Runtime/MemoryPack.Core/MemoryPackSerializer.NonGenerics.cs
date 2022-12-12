@@ -102,7 +102,14 @@ public static partial class MemoryPackSerializer
 
         var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter), state);
 
-        Serialize(type, ref writer, value);
+        try
+        {
+            Serialize(type, ref writer, value);
+        }
+        finally
+        {
+            state.Reset();
+        }
     }
 
     // Deserialize

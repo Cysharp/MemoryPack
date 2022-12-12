@@ -17,10 +17,10 @@ public static class MemoryPackReaderOptionalStatePool
         return state;
     }
 
-    internal static void Return(MemoryPackReaderOptionalState writer)
+    internal static void Return(MemoryPackReaderOptionalState state)
     {
-        writer.Reset();
-        queue.Enqueue(writer);
+        state.Reset();
+        queue.Enqueue(state);
     }
 }
 
@@ -66,6 +66,6 @@ public sealed class MemoryPackReaderOptionalState : IDisposable
 
     void IDisposable.Dispose()
     {
-        Reset();
+        MemoryPackReaderOptionalStatePool.Return(this);
     }
 }

@@ -93,7 +93,14 @@ public static partial class MemoryPackSerializer
 
         var writer = new MemoryPackWriter<ReusableLinkedArrayBufferWriter>(ref bufferWriter, state);
 
-        Serialize(type, ref writer, value);
+        try
+        {
+            Serialize(type, ref writer, value);
+        }
+        finally
+        {
+            state.Reset();
+        }
     }
 
     // Deserialize

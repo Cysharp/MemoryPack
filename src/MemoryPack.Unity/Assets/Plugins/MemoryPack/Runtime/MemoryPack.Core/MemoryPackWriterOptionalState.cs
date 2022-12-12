@@ -29,10 +29,10 @@ public static class MemoryPackWriterOptionalStatePool
         return state;
     }
 
-    internal static void Return(MemoryPackWriterOptionalState writer)
+    internal static void Return(MemoryPackWriterOptionalState state)
     {
-        writer.Reset();
-        queue.Enqueue(writer);
+        state.Reset();
+        queue.Enqueue(state);
     }
 }
 
@@ -100,7 +100,7 @@ public sealed class MemoryPackWriterOptionalState : IDisposable
 
     void IDisposable.Dispose()
     {
-        Reset();
+        MemoryPackWriterOptionalStatePool.Return(this);
     }
 
     // ReferenceEqualityComparer is exsits in .NET 6 but NetStandard 2.1 does not.
