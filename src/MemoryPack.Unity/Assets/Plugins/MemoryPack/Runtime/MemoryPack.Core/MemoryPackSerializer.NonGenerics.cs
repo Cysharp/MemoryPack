@@ -82,13 +82,27 @@ public static partial class MemoryPackSerializer
         var tempWriter = ReusableLinkedArrayBufferWriterPool.Rent();
         try
         {
-            Serialize(tempWriter, value, options);
+            SerializeToTempWriter(tempWriter, type, value, options);
             await tempWriter.WriteToAndResetAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             ReusableLinkedArrayBufferWriterPool.Return(tempWriter);
         }
+    }
+
+    static void SerializeToTempWriter(ReusableLinkedArrayBufferWriter bufferWriter, Type type, object? value, MemoryPackSerializerOptions? options)
+    {
+        var state = threadStaticWriterOptionalState;
+        if (state == null)
+        {
+            state = threadStaticWriterOptionalState = new MemoryPackWriterOptionalState();
+        }
+        state.Init(options);
+
+        var writer = new MemoryPackWriter(ref Unsafe.As<ReusableLinkedArrayBufferWriter, IBufferWriter<byte>>(ref bufferWriter), state);
+
+        Serialize(type, ref writer, value);
     }
 
     // Deserialize
