@@ -111,7 +111,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnionMemberTypeNotImplementBaseType = new(
         id: "MEMPACK013",
         title: "Union member not implement union interface",
-        messageFormat: "The MemoryPackable object '{0}' union member '{1}' not implment union interface",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' not implement union interface",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
