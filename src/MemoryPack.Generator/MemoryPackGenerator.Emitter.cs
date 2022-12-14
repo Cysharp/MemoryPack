@@ -328,7 +328,8 @@ public partial class TypeMeta
                 fixedSize = true;
             }
 
-            if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType)
+            var callbackCount = new[] { this.OnSerializing, this.OnSerialized, this.OnDeserialized, this.OnDeserializing }.Select(x => x.Length).Sum();
+            if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType && callbackCount == 0)
             {
                 var sizeOf = string.Join(" + ", Members.Select(x => $"System.Runtime.CompilerServices.Unsafe.SizeOf<{x.MemberType.FullyQualifiedToString()}>()"));
                 var headerPlus = (Members.Length == 0) ? "1" : "1 + ";
