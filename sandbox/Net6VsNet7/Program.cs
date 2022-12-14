@@ -24,7 +24,7 @@ BenchmarkSwitcher.FromTypes(new[] { typeof(Net6Net7<>) }).RunAllJoined(config);
 #endif
 
 [GenericTypeArguments(typeof(Sample))]
-// [GenericTypeArguments(typeof(Sample2))]
+[GenericTypeArguments(typeof(Sample2))]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByMethod)]
 public class Net6Net7<T>
     where T : class, new()
@@ -50,11 +50,11 @@ public class Net6Net7<T>
         return MemoryPackSerializer.Serialize(s);
     }
 
-    //[Benchmark]
-    //public Sample? Deserialize()
-    //{
-    //    return MemoryPackSerializer.Deserialize<Sample>(bin);
-    //}
+    [Benchmark]
+    public T? Deserialize()
+    {
+        return MemoryPackSerializer.Deserialize<T>(bin);
+    }
 }
 
 [MemoryPackable]
