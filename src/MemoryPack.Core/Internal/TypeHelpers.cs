@@ -75,7 +75,7 @@ internal static class TypeHelpers
                 {
                     if (typeof(IFixedSizeMemoryPackable).IsAssignableFrom(type))
                     {
-                        var prop = type.GetProperty("MemoryPack.IFixedSizeMemoryPackable.Size", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                        var prop = type.GetProperty("global::MemoryPack.IFixedSizeMemoryPackable.Size", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                         if (prop != null)
                         {
                             IsFixedSizeMemoryPackable = true;

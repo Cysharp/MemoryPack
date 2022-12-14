@@ -6,6 +6,8 @@ using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using MemoryPack;
+using System.Buffers;
+using System.Reflection;
 
 var config = ManualConfig.CreateMinimumViable()
     .AddDiagnoser(MemoryDiagnoser.Default)
@@ -15,17 +17,24 @@ var config = ManualConfig.CreateMinimumViable()
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1).WithRuntime(CoreRuntime.Core60))
     .AddJob(Job.Default.WithWarmupCount(1).WithIterationCount(1).WithRuntime(CoreRuntime.Core70));
 
-BenchmarkRunner.Run<Net6Net7>(config);
+#if DEBUG
 
+#else
+BenchmarkSwitcher.FromTypes(new[] { typeof(Net6Net7<>) }).RunAllJoined(config);
+#endif
+
+[GenericTypeArguments(typeof(Sample))]
+[GenericTypeArguments(typeof(Sample2))]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByMethod)]
-public class Net6Net7
+public class Net6Net7<T>
+    where T : class, new()
 {
-    private Sample s = new();
-
+    private T s;
     byte[] bin;
 
     public Net6Net7()
     {
+        s = new();
         bin = MemoryPackSerializer.Serialize(s);
     }
 
@@ -41,35 +50,47 @@ public class Net6Net7
         return MemoryPackSerializer.Serialize(s);
     }
 
-    [Benchmark]
-    public Sample? Deserialize()
-    {
-        return MemoryPackSerializer.Deserialize<Sample>(bin);
-    }
+    //[Benchmark]
+    //public Sample? Deserialize()
+    //{
+    //    return MemoryPackSerializer.Deserialize<Sample>(bin);
+    //}
 }
 
 [MemoryPackable]
 public partial class Sample
 {
-    // these types are serialized by default
     public int PublicField;
     public readonly int PublicReadOnlyField;
     public int PublicProperty { get; set; }
     public int PrivateSetPublicProperty { get; private set; }
     public int ReadOnlyPublicProperty { get; }
     public int InitProperty { get; init; }
-    // public required int RequiredInitProperty { get; init; }
 
-    // these types are not serialized by default
-    int privateProperty { get; set; }
-    int privateField;
-    readonly int privateReadOnlyField;
-
-    // use [MemoryPackIgnore] to remove target of a public member
     [MemoryPackIgnore]
     public int PublicProperty2 => PublicProperty + PublicField;
 
-    // use [MemoryPackInclude] to promote a private member to serialization target
+    [MemoryPackInclude]
+    int privateField2;
+    [MemoryPackInclude]
+    int privateProperty2 { get; set; }
+}
+
+[MemoryPackable]
+public partial class Sample2
+{
+    public int PublicField;
+    public readonly int PublicReadOnlyField;
+    public int PublicProperty { get; set; }
+    public int PrivateSetPublicProperty { get; private set; }
+    public int ReadOnlyPublicProperty { get; }
+    public int InitProperty { get; init; }
+
+    public int[]? ArrayProp { get; set; }
+
+    [MemoryPackIgnore]
+    public int PublicProperty2 => PublicProperty + PublicField;
+
     [MemoryPackInclude]
     int privateField2;
     [MemoryPackInclude]
