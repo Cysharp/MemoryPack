@@ -38,7 +38,11 @@ public static partial class MemoryPackSerializer
         }
 #if NET7_0_OR_GREATER
         var typeKind = TypeHelpers.TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out var elementSize);
-        if (typeKind == TypeHelpers.TypeKind.UnmanagedSZArray)
+        if (typeKind == TypeHelpers.TypeKind.None)
+        {
+            // do nothing
+        }
+        else if (typeKind == TypeHelpers.TypeKind.UnmanagedSZArray)
         {
             if (value == null)
             {
