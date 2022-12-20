@@ -896,7 +896,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         else
         {
-            var nameDict = Members.ToDictionary(x => x.Name, x => x.Name, StringComparer.OrdinalIgnoreCase);
+            var nameDict = Members.Where(x => x.Symbol != null).ToDictionary(x => x.Name, x => x.Name, StringComparer.OrdinalIgnoreCase);
             var parameters = this.Constructor.Parameters
                 .Select(x =>
                 {

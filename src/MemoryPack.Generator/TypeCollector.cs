@@ -12,7 +12,7 @@ public class TypeCollector
     public void Visit(TypeMeta typeMeta, bool visitInterface)
     {
         Visit(typeMeta.Symbol, visitInterface);
-        foreach (var item in typeMeta.Members)
+        foreach (var item in typeMeta.Members.Where(x => x.Symbol != null))
         {
             Visit(item.MemberType, visitInterface);
         }
