@@ -13,7 +13,7 @@ public class ConstructorTest
         var a = new Alpha { B1 = new Beta(10) };
         var bin = MemoryPackSerializer.Serialize(a);
         var v2 = MemoryPackSerializer.Deserialize<Alpha>(bin);
-        v2.B1!.Value1.Should().Be(10);
+        v2!.B1!.Value1.Should().Be(10);
     }
 }
 

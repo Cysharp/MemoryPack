@@ -132,29 +132,3 @@ public partial class InstantiateFromServiceProvider
 }
 
 
-
-[MemoryPackable(GenerateType.CircularReference)]
-public partial class Alpha
-{
-    [MemoryPackOrder(1)]
-    public Beta B1 { get; set; }
-
-    public Alpha()
-    {
-
-    }
-
-}
-
-
-[MemoryPackable(GenerateType.VersionTolerant)]
-public partial class Beta
-{
-    [MemoryPackOrder(1)]
-    public int Value1 { get; set; }
-
-    public Beta(int value1)
-    {
-
-    }
-}
