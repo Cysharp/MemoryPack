@@ -1273,6 +1273,10 @@ Unity version does not support CustomFormatter and ImmutableCollections.
 
 You can serialize all unmanaged types (such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
 
+In Unity performance, MemoryPack is x3~x10 faster than JsonUtility.
+
+![image](https://user-images.githubusercontent.com/46207/209254561-79ec18fe-c421-4d8c-9c86-b55276dd1a45.png)
+
 Native AOT
 ---
 Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It is going to be fixed in .NET 8 and see the reporting issue for workaround (write XML manually). [Generic virtual method pointer lookup failure in .NET 7 Native AOT #78882](https://github.com/dotnet/runtime/issues/78882).
