@@ -1253,6 +1253,10 @@ Since net7.0 uses static abstract members (`Virtual static method`), that does n
 <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
 ```
 
+RPC
+---
+[Cysharp/MagicOnion](https://github.com/Cysharp/MagicOnion) is a code-first grpc-dotnet framework using MessagePack instead of protobuf. MagicOnion now supports MemoryPack as a serialization layer via `MagicOnion.Serialization.MemoryPack` package(preview). See details: [MagicOnion#MemoryPack support](https://github.com/Cysharp/MagicOnion#memorypack-support)
+
 Unity
 ---
 Install via UPM git URL package or asset package (MemoryPack.*.*.*.unitypackage) available in [MemoryPack/releases](https://github.com/Cysharp/MemoryPack/releases) page.
