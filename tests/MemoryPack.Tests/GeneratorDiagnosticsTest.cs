@@ -526,6 +526,57 @@ public partial class Hoge
 }
 """);
     }
+
+    [Fact]
+    public void MEMPACK034_UnamangedStructWithLayoutAutoField()
+    {
+        var code = """
+using System;
+using MemoryPack;
+
+[MemoryPackable]
+public partial struct Hoge
+{
+    public int X;
+    public int Y;
+    public DateTime DT;
+}
+""";
+
+        {
+            var diagnostics = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new[] { "NET7_0_OR_GREATER" });
+            diagnostics.Length.Should().Be(0);
+        }
+        {
+            var diagnostics = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new string[] { });
+            diagnostics.Length.Should().Be(1);
+            diagnostics[0].Id.Should().Be("MEMPACK034");
+        }
+    }
+
+    [Fact]
+    public void MEMPACK035_UnamangedStructMemoryPackCtor()
+    {
+        Compile(35, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial struct Hoge
+{
+    public int X;
+    public int Y;
+
+    [MemoryPackConstructor]
+    public Hoge(int x, int y)
+    {
+        this.X = x;
+        this.Y = y;
+    }
+}
+""");
+    }
+
+
 }
 
 

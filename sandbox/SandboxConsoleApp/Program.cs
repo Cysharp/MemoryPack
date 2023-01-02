@@ -631,3 +631,70 @@ public partial class Sample
     [MemoryPackInclude]
     int privateProperty2 { get; set; }
 }
+
+
+public struct DateTimeParamDefault
+{
+    public DateTimeOffset DateTime; // short offset(2+padding) + dateTime/ulong(8) = 16
+    public long Timestamp;  // 8
+    public bool IsItInSeconds; // 1(+padding7) = 8
+}
+
+[StructLayout(LayoutKind.Sequential)]
+[MemoryPackable]
+public partial struct TesTest
+{
+    public ValueTuple<int, int> VTI;
+    public MyMessageHeader MyMsgHead;
+    public bool IsItInSeconds; // 1(+padding7) = 8
+}
+
+[StructLayout(LayoutKind.Sequential)]
+[MemoryPackable]
+public partial struct DateTimeParamSequential
+{
+    public DateTimeOffset DateTime; // short offset(2+padding) + dateTime/ulong(8) = 16
+    public long Timestamp;  // 8
+    public bool IsItInSeconds; // 1(+padding7) = 8
+}
+
+[StructLayout(LayoutKind.Auto)]
+[MemoryPackable]
+public partial struct DateTimeParamAuto
+{
+    public DateTimeOffset DateTime; // short offset(2+padding) + dateTime/ulong(8) = 16
+    public long Timestamp;  // 8
+    public bool IsItInSeconds; // 1(+padding7) = 8
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 25)]
+[MemoryPackable]
+public partial struct DateTimeParamExplicit
+{
+    [FieldOffset(9)]
+    public DateTimeOffset DateTime;
+    [FieldOffset(1)]
+    public long Timestamp;  // 8
+    [FieldOffset(0)]
+    public bool IsItInSeconds; // 1
+}
+
+[StructLayout(LayoutKind.Auto)]
+public struct MyMessageHeader
+{
+}
+
+[MemoryPackable]
+public partial struct HogeEEE
+{
+    public int X;
+    public int Y;
+
+    // [MemoryPackConstructor]
+    public HogeEEE(int x, int y)
+    {
+        this.X = x;
+        this.Y = y;
+    }
+}
+

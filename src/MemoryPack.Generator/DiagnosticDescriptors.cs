@@ -276,4 +276,20 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnamangedStructWithLayoutAutoField = new(
+        id: "MEMPACK034",
+        title: "Before .NET 7 unmanaged struct must annotate LayoutKind.Auto or Explicit",
+        messageFormat: "The unmanaged struct '{0}' has LayoutKind.Auto field('{1}'). Before .NET 7, if field contains Auto then automatically promote to LayoutKind.Auto but .NET 7 is Sequential so breaking binary compatibility when runtime upgraded. To safety, you have to annotate [StructLayout(LayoutKind.Auto)] or LayoutKind.Explicit to type.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnamangedStructMemoryPackCtor = new(
+        id: "MEMPACK035",
+        title: "Unamanged strcut does not allow [MemoryPackConstructor]",
+        messageFormat: "The unamanged struct '{0}' can not annotate with [MemoryPackConstructor] because don't call any constructors",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

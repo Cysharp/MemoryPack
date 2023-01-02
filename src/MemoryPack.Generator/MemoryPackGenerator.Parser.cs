@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -40,7 +42,7 @@ public enum MemberKind
     CustomFormatter, // used [MemoryPackCustomFormatterAttribtue]
 }
 
-partial class TypeMeta
+public partial class TypeMeta
 {
     DiagnosticDescriptor? ctorInvalid = null;
 
@@ -145,12 +147,21 @@ partial class TypeMeta
             return null; // allows null as ok(not exists explicitly declared constructor == has implictly empty ctor)
         }
 
-        if (ctors.Length == 1)
+        if (!Symbol.IsUnmanagedType && ctors.Length == 1)
         {
             return ctors[0];
         }
 
         var ctorWithAttrs = ctors.Where(x => x.ContainsAttribute(reference.MemoryPackConstructorAttribute)).ToArray();
+
+        if (Symbol.IsUnmanagedType)
+        {
+            if (ctorWithAttrs.Length != 0)
+            {
+                ctorInvalid = DiagnosticDescriptors.UnamangedStructMemoryPackCtor;
+            }
+            return null;
+        }
 
         if (ctorWithAttrs.Length == 0)
         {
@@ -274,23 +285,86 @@ partial class TypeMeta
             noError = false;
         }
 
+        // ctor
         if (ctorInvalid != null)
         {
             context.ReportDiagnostic(Diagnostic.Create(ctorInvalid, syntax.Identifier.GetLocation(), Symbol.Name));
             noError = false;
         }
 
-        // check ctor members
-        if (this.Constructor != null)
+        if (this.IsUnmanagedType)
         {
-            var nameDict = new HashSet<string>(Members.Where(x => x.IsConstructorParameter).Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
-            var allParameterExists = this.Constructor.Parameters.All(x => nameDict.Contains(x.Name));
-            if (!allParameterExists)
-            {
-                var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+            var structLayoutFields = this.Symbol.GetAllMembers()
+                .OfType<IFieldSymbol>()
+                .Select(x =>
+                {
+                    if (x.IsStatic) return null;
 
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, location, Symbol.Name));
-                noError = false;
+                    // ValueTuple, DateTime, DateTimeOffset is auto but can not get from Roslyn GetAttributes.
+
+                    if (SymbolEqualityComparer.Default.Equals(x.Type, reference.KnownTypes.System_DateTime) || SymbolEqualityComparer.Default.Equals(x.Type, reference.KnownTypes.System_DateTimeOffset))
+                    {
+                        return Tuple.Create(x.Type, LayoutKind.Auto);
+                    }
+
+                    if (x.Type is INamedTypeSymbol nts && nts.IsGenericType)
+                    {
+                        var fullyQualifiedString = nts.ConstructUnboundGenericType().FullyQualifiedToString();
+                        if (fullyQualifiedString.StartsWith("global::System.ValueTuple<"))
+                        {
+                            return Tuple.Create(x.Type, LayoutKind.Auto);
+                        }
+                    }
+
+                    var structLayout = x.Type.GetAttribute(reference.KnownTypes.System_Runtime_InteropServices_StructLayout);
+                    var layoutKind = (structLayout != null && structLayout.ConstructorArguments.Length != 0)
+                        ? structLayout.ConstructorArguments[0].Value
+                        : null;
+
+                    if (layoutKind != null)
+                    {
+                        return Tuple.Create(x.Type, (LayoutKind)layoutKind);
+                    }
+
+                    return null;
+                })
+                .Where(x => x != null && x.Item2 == LayoutKind.Auto)
+                .ToArray();
+
+            // has auto field, should mark Auto in lower Net6
+            if (structLayoutFields.Length != 0)
+            {
+                var structLayout = Symbol.GetAttribute(reference.KnownTypes.System_Runtime_InteropServices_StructLayout);
+                var layoutKind = (structLayout != null && structLayout.ConstructorArguments.Length != 0)
+                    ? structLayout.ConstructorArguments[0].Value
+                    : null;
+
+                if (layoutKind == null || (LayoutKind)layoutKind == LayoutKind.Sequential)
+                {
+                    var autoTypes = string.Join(", ", structLayoutFields.Select(x => x!.Item1.Name));
+
+                    if (!context.IsNet7OrGreater)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnamangedStructWithLayoutAutoField, syntax.Identifier.GetLocation(), Symbol.Name, autoTypes));
+                        noError = false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // check ctor members
+            if (this.Constructor != null)
+            {
+                var nameDict = new HashSet<string>(Members.Where(x => x.IsConstructorParameter).Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
+                var allParameterExists = this.Constructor.Parameters.All(x => nameDict.Contains(x.Name));
+                if (!allParameterExists)
+                {
+                    var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, location, Symbol.Name));
+                    noError = false;
+                }
             }
         }
 
@@ -473,6 +547,11 @@ partial class TypeMeta
         }
 
         return noError;
+    }
+
+    public override string ToString()
+    {
+        return this.TypeName;
     }
 }
 

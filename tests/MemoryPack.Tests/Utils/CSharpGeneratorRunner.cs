@@ -37,15 +37,21 @@ public static class CSharpGeneratorRunner
         baseCompilation = compilation;
     }
 
-    public static Diagnostic[] RunGenerator(string source, AnalyzerConfigOptionsProvider? options = null)
+    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null)
     {
-        var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator());
+        if (preprocessorSymbols == null)
+        {
+            preprocessorSymbols = new[] { "NET7_0_OR_GREATER" };
+        }
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
+
+        var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
         {
             driver = (Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
         }
 
-        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp11))); // use C#11
+        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
 
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
 

@@ -21,7 +21,7 @@ public partial class GeneratorDiagnosticsTest
 {
     void Compile2(int id, string code, bool allowMultipleError = false)
     {
-        var diagnostics = CSharpGeneratorRunner.RunGenerator(code, new TypeScriptOptionProvider());
+        var diagnostics = CSharpGeneratorRunner.RunGenerator(code, options: new TypeScriptOptionProvider());
         if (!allowMultipleError)
         {
             diagnostics.Length.Should().Be(1);
@@ -41,7 +41,7 @@ public partial class GeneratorDiagnosticsTest
         optionProvider["build_property.MemoryPackGenerator_TypeScriptOutputDirectory"] = outputDir;
         optionProvider["build_property.MemoryPackGenerator_TypeScriptEnableNullableTypes"] = enableNullableTypes ? "true" : "false";
 
-        CSharpGeneratorRunner.RunGenerator(code, optionProvider);
+        CSharpGeneratorRunner.RunGenerator(code,options: optionProvider);
 
         var outputFilePath = Path.Combine(outputDir, fileName);
 
