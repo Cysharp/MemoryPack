@@ -99,7 +99,7 @@ public class GeneratorTest
         var mc = new MethodCall();
         MethodCall.Log.Clear();
         var bin = MemoryPackSerializer.Serialize(mc);
-        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerializing2", "OnSerializing_M1", "OnSerializing_M2",  "Get", "OnSerialized1", "OnSerialized2", "OnSerialized_M1", "OnSerialized_M2");
+        MethodCall.Log.Should().Equal("OnSerializing1", "OnSerializing2", "OnSerializing_M1", "OnSerializing_M2", "Get", "OnSerialized1", "OnSerialized2", "OnSerialized_M1", "OnSerialized_M2");
 
         MethodCall.Log.Clear();
         MemoryPackSerializer.Deserialize<MethodCall>(bin, ref mc);
@@ -271,7 +271,7 @@ public class GeneratorTest
         };
 
         VerifyEquivalent(gt);
-        
+
         var comp = new MoreComplecsGenerics<int, string>()
         {
             Dict = new Dictionary<int, GenericsType<string>>{
@@ -360,7 +360,7 @@ public class GeneratorTest
         Debug.Assert(v4 != null);
         v4.MyProperty1.Should().Be(19);
         v4.MyProperty2.Should().BeSameAs(v1);
-        
+
         v1.Should().BeSameAs(v1_original);
 
     }

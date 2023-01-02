@@ -507,7 +507,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         {{commentOutInvalidBody}}else if (count > {{count}})
         {{commentOutInvalidBody}}{
-            {{commentOutInvalidBody}}MemoryPackSerializationException.ThrowInvalidPropertyCount({{count}}, count);
+            {{commentOutInvalidBody}}MemoryPackSerializationException.ThrowInvalidPropertyCount(typeof({{TypeName}}), {{count}}, count);
             {{commentOutInvalidBody}}goto READ_END;
         {{commentOutInvalidBody}}}
         else

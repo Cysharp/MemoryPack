@@ -37,6 +37,12 @@ public class MemoryPackSerializationException : Exception
     }
 
     [DoesNotReturn]
+    public static void ThrowInvalidPropertyCount(Type type, byte expected, byte actual)
+    {
+        throw new MemoryPackSerializationException($"Current object {type.FullName} property count is {expected} but binary's header maked as {actual}, can't deserialize about versioning.");
+    }
+
+    [DoesNotReturn]
     public static void ThrowInvalidCollection()
     {
         throw new MemoryPackSerializationException($"Current read to collection, the buffer header is not collection.");
