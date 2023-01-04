@@ -81,6 +81,7 @@ public class ReferenceSymbols
         public INamedTypeSymbol System_Collections_BitArray { get; }
         public INamedTypeSymbol System_Text_StringBuilder { get; }
         public INamedTypeSymbol System_Type { get; }
+        public INamedTypeSymbol System_Globalization_CultureInfo { get; }
         public INamedTypeSymbol System_Lazy_T { get; }
         public INamedTypeSymbol System_Collections_Generic_KeyValuePair_T { get; }
         public INamedTypeSymbol System_Nullable_T { get; }
@@ -196,6 +197,7 @@ public class ReferenceSymbols
             System_Collections_BitArray = GetTypeByMetadataName("System.Collections.BitArray");
             System_Text_StringBuilder = GetTypeByMetadataName("System.Text.StringBuilder");
             System_Type = GetTypeByMetadataName("System.Type");
+            System_Globalization_CultureInfo = GetTypeByMetadataName("System.Globalization.CultureInfo");
             System_Lazy_T = GetTypeByMetadataName("System.Lazy`1").ConstructUnboundGenericType();
             System_Collections_Generic_KeyValuePair_T = GetTypeByMetadataName("System.Collections.Generic.KeyValuePair`2").ConstructUnboundGenericType();
             System_Nullable_T = GetTypeByMetadataName("System.Nullable`1").ConstructUnboundGenericType();
@@ -221,6 +223,7 @@ public class ReferenceSymbols
                 System_Collections_BitArray,
                 System_Text_StringBuilder,
                 System_Type,
+                System_Globalization_CultureInfo,
                 System_Lazy_T,
                 System_Collections_Generic_KeyValuePair_T,
                 System_Nullable_T,

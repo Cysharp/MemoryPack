@@ -9,6 +9,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace MemoryPack.Tests.Models;
 
@@ -90,6 +91,7 @@ public partial class HogeHoge
     public Nullable<KnownFruits> P63;
     public string SEPARATOR1;
     public Nullable<int> P64;
+    public CultureInfo P65;
 
     // tuples
     public Tuple<int, string, int> T3;
