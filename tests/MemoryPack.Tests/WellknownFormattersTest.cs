@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,6 +47,10 @@ public class WellknownFormattersTest
         ConvertEqual(typeof(WellknownFormattersTest));
         var bitArray = new BitArray(Enumerable.Range(1, 1000).Select(x => x % 3 == 0).ToArray());
         Convert(bitArray).OfType<bool>().ToArray().Should().Equal(bitArray.OfType<bool>().ToArray());
+        ConvertEqual(CultureInfo.InvariantCulture);
+        ConvertEqual(CultureInfo.GetCultureInfo("ja"));
+        ConvertEqual(CultureInfo.GetCultureInfo("ja-JP"));
+        ConvertEqual(CultureInfo.GetCultureInfo("en"));
     }
 }
 

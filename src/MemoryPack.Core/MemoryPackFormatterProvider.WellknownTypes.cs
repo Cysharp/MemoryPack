@@ -1,5 +1,6 @@
 ﻿using MemoryPack.Formatters;
 using System.Collections;
+using System.Globalization;
 using System.Text;
 using System.Numerics;
 
@@ -126,5 +127,7 @@ public static partial class MemoryPackFormatterProvider
         Register(new ArrayFormatter<StringBuilder>());
         Register(new TypeFormatter());
         Register(new ArrayFormatter<Type>());
+        Register(new CultureInfoFormatter());
+        Register(new ArrayFormatter<CultureInfo>());
     }
 }

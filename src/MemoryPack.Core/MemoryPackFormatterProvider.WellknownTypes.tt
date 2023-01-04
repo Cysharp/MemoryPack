@@ -70,10 +70,12 @@
             "BitArray",
             "StringBuilder",
             "Type",
+            "CultureInfo",
         });
 #>
 using MemoryPack.Formatters;
 using System.Collections;
+using System.Globalization;
 using System.Text;
 using System.Numerics;
 
