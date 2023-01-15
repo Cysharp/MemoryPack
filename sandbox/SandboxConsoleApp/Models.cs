@@ -19,7 +19,6 @@ public interface IMore
     public Version Description { get; set; }
 }
 
-
 public class NewBase
 {
     public long Description { get; set; }

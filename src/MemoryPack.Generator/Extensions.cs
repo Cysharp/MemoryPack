@@ -64,10 +64,11 @@ internal static class Extensions
 
     public static bool TryGetMemoryPackableType(this ITypeSymbol symbol, ReferenceSymbols references, out GenerateType generateType, out SerializeLayout serializeLayout)
     {
-        var packableCtorArgs = symbol.GetAttribute(references.MemoryPackableAttribute)?.ConstructorArguments;
+        var memPackAttr = symbol.GetAttribute(references.MemoryPackableAttribute);
+        var packableCtorArgs = memPackAttr?.ConstructorArguments;
         generateType = GenerateType.Object;
         serializeLayout = SerializeLayout.Sequential;
-        if (packableCtorArgs == null)
+        if (memPackAttr == null || packableCtorArgs == null)
         {
             generateType = GenerateType.NoGenerate;
             serializeLayout = SerializeLayout.Sequential;
@@ -75,23 +76,37 @@ internal static class Extensions
         }
         else if (packableCtorArgs.Value.Length != 0)
         {
-            // MemoryPackable has two attribtue
+            // MemoryPackable has three attribtues
+            // [GenerateType generateType]
+            // [SerializeLayout serializeLayout]
+            // [GenerateType generateType, SerializeLayout serializeLayout]
+
             if (packableCtorArgs.Value.Length == 1)
             {
-                // (SerializeLayout serializeLayout)
                 var ctorValue = packableCtorArgs.Value[0];
-                serializeLayout = (SerializeLayout)(ctorValue.Value ?? SerializeLayout.Sequential);
-                generateType = GenerateType.Object;
+
+                // check which construcotr was used
+                var attrConstructor = memPackAttr.AttributeConstructor;
+                var isSerializeLayout = attrConstructor!.Parameters[0].Type.Name == nameof(SerializeLayout);
+                if (isSerializeLayout)
+                {
+                    generateType = GenerateType.Object;
+                    serializeLayout = (SerializeLayout)(ctorValue.Value!);
+                }
+                else
+                {
+                    generateType = (GenerateType)(ctorValue.Value!);
+                    serializeLayout = SerializeLayout.Sequential;
+                    if (generateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
+                    {
+                        serializeLayout = SerializeLayout.Explicit;
+                    }
+                }
             }
             else
             {
-                // (GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
                 generateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
                 serializeLayout = (SerializeLayout)(packableCtorArgs.Value[1].Value ?? SerializeLayout.Sequential);
-                if (generateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
-                {
-                    serializeLayout = SerializeLayout.Explicit; // version-torelant, always explicit.
-                }
             }
         }
 

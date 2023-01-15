@@ -43,3 +43,13 @@ public partial class Employee
     [MemoryPackOrder(2)]
     public List<Employee>? DirectReports { get; set; }
 }
+
+
+
+[MemoryPackable(GenerateType.CircularReference, SerializeLayout.Sequential)]
+public partial class SequentialCircularReference
+{
+    public string? Name { get; set; }
+    public SequentialCircularReference? Manager { get; set; }
+    public List<SequentialCircularReference>? DirectReports { get; set; }
+}

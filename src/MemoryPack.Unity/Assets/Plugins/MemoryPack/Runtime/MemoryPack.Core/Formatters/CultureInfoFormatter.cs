@@ -37,5 +37,4 @@ public sealed class CultureInfoFormatter : MemoryPackFormatter<CultureInfo>
         }
     }
 }
-
 }
