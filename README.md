@@ -976,6 +976,7 @@ Finally, register the formatter in startup.
 ```csharp
 MemoryPackFormatterProvider.Register<AnimationCurve>(new AnimationCurveFormatter());
 ```
+> Note: Unity's AnimationCurve can serializable by default so does not needs this custom formatter for AnimationCurve
 
 Packages
 ---
@@ -986,8 +987,9 @@ MemoryPack has these packages.
 * MemoryPack.Generator
 * MemoryPack.Streaming
 * MemoryPack.AspNetCoreMvcFormatter
+* MemoryPack.UnityShims
 
-`MemoryPack` is the main library, it provides full support for high performance serialization and deserialization of binary objects. It depends on `MemoryPack.Core` for the core base libraries and `MemoryPack.Generator` for code generation. `MemoryPack.Streaming` adds additional extensions for [Streaming Serialization](#streaming-serialization).  `MemoryPack.AspNetCoreMvcFormatter` adds input/output formatters for ASP.NET Core.
+`MemoryPack` is the main library, it provides full support for high performance serialization and deserialization of binary objects. It depends on `MemoryPack.Core` for the core base libraries and `MemoryPack.Generator` for code generation. `MemoryPack.Streaming` adds additional extensions for [Streaming Serialization](#streaming-serialization).  `MemoryPack.AspNetCoreMvcFormatter` adds input/output formatters for ASP.NET Core. `MemoryPack.UnityShims` adds Unity shim types and formatters for share type between .NET and Unity.
 
 TypeScript and ASP.NET Core Formatter
 ---
@@ -1239,6 +1241,8 @@ The created formatter is registered with `MemoryPackFormatterProvider`.
 MemoryPackFormatterProvider.Register(new SkeltonFormatter());
 ```
 
+Note: `unmanged struct`(doesn't contain reference types) can not use custom formatter, it always serializes native memory layout.
+
 Target framework dependency
 ---
 MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatible. For example, MemoryPackable types under `netstandard2.1` project and use it from `net7.0` project, throws runtime exception like this
@@ -1275,11 +1279,23 @@ Source Generator is also used officially by Unity by [com.unity.properties](http
 
 Unity version does not support CustomFormatter and ImmutableCollections.
 
-You can serialize all unmanaged types (such as `Vector3`, `Rect`, etc...). If you want to serialize other Unity-specific types (e.g., `AnimationCurve`), see [Serialize external types](#serialize-external-types) section.
+You can serialize all unmanaged types (such as `Vector3`, `Rect`, etc...) and some classes(`AnimationCurve`, `Gradient`, `RectOffset`). If you want to serialize other Unity-specific types, see [Serialize external types](#serialize-external-types) section.
 
 In Unity performance, MemoryPack is x3~x10 faster than JsonUtility.
 
 ![image](https://user-images.githubusercontent.com/46207/209254561-79ec18fe-c421-4d8c-9c86-b55276dd1a45.png)
+
+Unity version's MemoryPack does not compatible with .NET MemoryPack in NuGet so can't do creating netstandard 2.1 dll in .NET and use in Unity. If you want to share type between .NET and Unity, share source-code, for example place source code in Unity directory and .NET project reference by code link.
+
+```xml
+<ItemGroup>
+  <Compile Include="..\ChatApp.Unity\Assets\Scripts\ServerShared\**\*.cs" />
+</ItemGroup>
+```
+
+If shared code has Unity's type(`Vector2`, etc...), MemoryPack provides `MemoryPack.UnityShims` package in NuGet.
+
+The `MemoryPack.UnityShims` package provides shims for Unity's standard structs (`Vector2`, `Vector3`, `Vector4`, `Quaternion`, `Color`, `Bounds`, `Rect`, `Keyframe`, `WrapMode`, `Matrix4x4`, `GradientColorKey`, `GradientAlphaKey`, `GradientMode`, `Color32`, `LayerMask`, `Vector2Int`, `Vector3Int`, `RangeInt`, `RectInt`, `BoundsInt`) and some classes(`AnimationCurve`, `Gradient`, `RectOffset`).
 
 Native AOT
 ---
