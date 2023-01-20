@@ -129,4 +129,26 @@ public class CircularReferenceTest
         }
     }
 
+    [Fact]
+    public void Sequential()
+    {
+        SequentialCircularReference tyler = new()
+        {
+            Name = "Tyler Stein"
+        };
+
+        SequentialCircularReference adrian = new()
+        {
+            Name = "Adrian King"
+        };
+
+        tyler.DirectReports = new List<SequentialCircularReference> { adrian };
+        adrian.Manager = tyler;
+
+        var bin = MemoryPackSerializer.Serialize(tyler);
+        SequentialCircularReference? tylerDeserialized = MemoryPackSerializer.Deserialize<SequentialCircularReference>(bin);
+
+        tylerDeserialized?.DirectReports?[0].Manager.Should().BeSameAs(tylerDeserialized);
+    }
+
 }

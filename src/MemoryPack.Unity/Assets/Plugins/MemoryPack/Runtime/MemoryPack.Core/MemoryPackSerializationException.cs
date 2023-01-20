@@ -39,7 +39,7 @@ public class MemoryPackSerializationException : Exception
     [DoesNotReturn]
     public static void ThrowInvalidPropertyCount(Type type, byte expected, byte actual)
     {
-        throw new MemoryPackSerializationException($"Current object {type.FullName} property count is {expected} but binary's header maked as {actual}, can't deserialize about versioning.");
+        throw new MemoryPackSerializationException($"{type.FullName} property count is {expected} but binary's header maked as {actual}, can't deserialize about versioning.");
     }
 
     [DoesNotReturn]

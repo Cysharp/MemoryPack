@@ -128,7 +128,7 @@ All members must be memorypack-serializable, if not the code generator will emit
 
 ![image](https://user-images.githubusercontent.com/46207/192413557-8a47d668-5339-46c5-a3da-a77841666f81.png)
 
-MemoryPack has 33 diagnostics rules (`MEMPACK001` to `MEMPACK033`) to be defined comfortably.
+MemoryPack has 35 diagnostics rules (`MEMPACK001` to `MEMPACK035`) to be defined comfortably.
 
 If target type is defined MemoryPack serialization externally and registered, use `[MemoryPackAllowSerialize]` to silent diagnostics.
 
@@ -534,7 +534,7 @@ The next [Serialization info](#serialization-info) section shows how to check fo
 When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 
 * unmanaged struct can't change any more
-* all members must add `[MemoryPackOrder]` explicitly
+* all members must add `[MemoryPackOrder]` explicitly(except annotate `StructLayout.Sequential`)
 * members can add, can delete but not reuse order (can use missing order)
 * can change member name
 * can't change member order
@@ -574,6 +574,18 @@ public partial class VersionTolerantObject2
     // added
     [MemoryPackOrder(3)]
     public short MyProperty3 { get; set; } = default;
+}
+```
+
+```csharp
+// If set SerializeLayout.Sequential explicitly, allows automatically order.
+// But it can not remove any member for versoin-tolerant.
+[MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
+public partial class VersionTolerantObject3
+{
+    public int MyProperty0 { get; set; } = default;
+    public long MyProperty1 { get; set; } = default;
+    public short MyProperty2 { get; set; } = default;
 }
 ```
 

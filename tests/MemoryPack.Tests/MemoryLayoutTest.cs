@@ -72,6 +72,15 @@ public class MemoryLayoutTest
         offset3.Should().Be(0);
     }
 
+    [Fact]
+    public void DateTimeOffsetLayout()
+    {
+        // if this tast fail, runtime auto layout was changed.
+        var dto = new DateTimeOffset(2012, 11, 3, 4, 12, 8, TimeSpan.FromHours(9));
+        var data = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref dto, 1)).ToArray();
+        data.Should().Equal(new byte[] { 28, 2, 0, 0, 0, 0, 0, 0, 0, 180, 89, 22, 69, 135, 207, 8 });
+    }
+
     // can not use Marshal.OffsetOf because has AutoLayout field
 
     static unsafe (int, int, int) GetOffsets()

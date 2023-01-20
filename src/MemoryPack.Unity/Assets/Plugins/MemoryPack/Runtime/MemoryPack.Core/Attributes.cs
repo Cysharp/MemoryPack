@@ -15,21 +15,33 @@ public sealed class MemoryPackableAttribute : Attribute
     public GenerateType GenerateType { get; }
     public SerializeLayout SerializeLayout { get; }
 
-    // ctor parameter count is used in MemoryPackGenerator.Parser TypeMeta for detect which ctor used.
+    // ctor parameter is parsed in MemoryPackGenerator.Parser TypeMeta for detect which ctor used in MemoryPack.Generator.
     // if modify ctor, be careful.
 
-    public MemoryPackableAttribute(GenerateType generateType = GenerateType.Object, SerializeLayout serializeLayout = SerializeLayout.Sequential)
+    /// <summary>
+    /// [generateType, (VersionTolerant or CircularReference) ? SerializeLayout.Explicit : SerializeLayout.Sequential]
+    /// </summary>
+    /// <param name="generateType"></param>
+    public MemoryPackableAttribute(GenerateType generateType = GenerateType.Object)
     {
         this.GenerateType = generateType;
-        this.SerializeLayout = (generateType == GenerateType.VersionTolerant)
+        this.SerializeLayout = (generateType == GenerateType.VersionTolerant || generateType == GenerateType.CircularReference)
             ? SerializeLayout.Explicit
-            : serializeLayout;
+            : SerializeLayout.Sequential;
     }
 
-    // set SerializeLayout only allows Object
+    /// <summary>
+    /// [GenerateType.Object, serializeLayout]
+    /// </summary>
     public MemoryPackableAttribute(SerializeLayout serializeLayout)
     {
         this.GenerateType = GenerateType.Object;
+        this.SerializeLayout = serializeLayout;
+    }
+
+    public MemoryPackableAttribute(GenerateType generateType, SerializeLayout serializeLayout)
+    {
+        this.GenerateType = generateType;
         this.SerializeLayout = serializeLayout;
     }
 }
