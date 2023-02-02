@@ -1311,7 +1311,8 @@ The `MemoryPack.UnityShims` package provides shims for Unity's standard structs 
 
 Native AOT
 ---
-Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It is going to be fixed in .NET 8 and see the reporting issue for workaround (write XML manually). [Generic virtual method pointer lookup failure in .NET 7 Native AOT #78882](https://github.com/dotnet/runtime/issues/78882).
+Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It 
+is going to be fixed in .NET 8. Using ``Microsoft.DotNet.ILCompiler` preview version, will fix it in .NET 7. Please see [issue's comment](https://github.com/Cysharp/MemoryPack/issues/75#issuecomment-1386884611) how setup it.
 
 Binary wire format specification
 ---
