@@ -1255,6 +1255,24 @@ MemoryPackFormatterProvider.Register(new SkeltonFormatter());
 
 Note: `unmanged struct`(doesn't contain reference types) can not use custom formatter, it always serializes native memory layout.
 
+MemoryPackWriter/ReaderOptionalState
+---
+Initializing `MemoryPackWriter`/`MemoryPackReader` requires OptionalState. It is wrapper of `MemoryPackSerializerOptions`, it can create form `MemoryPackWriterOptionalStatePool`.
+
+```csharp
+// when disposed, OptionalState will return to pool.
+using(var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Default))
+{
+    var writer = new MemoryPackWriter<T>(ref t, state);
+}
+
+// for Reader
+using (var state = MemoryPackReaderOptionalStatePool.Rent(MemoryPackSerializerOptions.Default))
+{
+    var reader = new MemoryPackReader(buffer, state);
+}
+```
+
 Target framework dependency
 ---
 MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatible. For example, MemoryPackable types under `netstandard2.1` project and use it from `net7.0` project, throws runtime exception like this
