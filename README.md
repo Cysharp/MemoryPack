@@ -534,7 +534,7 @@ The next [Serialization info](#serialization-info) section shows how to check fo
 When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 
 * unmanaged struct can't change any more
-* all members must add `[MemoryPackOrder]` explicitly(except annotate `StructLayout.Sequential`)
+* all members must add `[MemoryPackOrder]` explicitly(except annotate `SerializeLayout.Sequential`)
 * members can add, can delete but not reuse order (can use missing order)
 * can change member name
 * can't change member order
