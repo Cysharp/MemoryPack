@@ -10,6 +10,11 @@ using System.Threading.Tasks;
 using MemoryPack.Internal;
 using System.Runtime.CompilerServices;
 
+#if NET7_0_OR_GREATER
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+#endif
+
 namespace MemoryPack.Compression {
 
 [Preserve]
@@ -26,13 +31,68 @@ public sealed class BitPackFormatter : MemoryPackFormatter<bool[]>
             return;
         }
         writer.WriteCollectionHeader(value.Length);
+        if (value.Length == 0)
+        {
+            return;
+        }
 
         var data = 0;
+#if NET7_0_OR_GREATER
+        ref var item = ref MemoryMarshal.GetArrayDataReference(value);
+#else
+        ref var item = ref value[0];
+#endif
+        ref var end = ref Unsafe.Add(ref item, value.Length);
+
+#if NET7_0_OR_GREATER
+        if (value.Length >= 32)
+        {
+            ref var loopEnd = ref Unsafe.Subtract(ref end, 32);
+            if (Vector256.IsHardwareAccelerated)
+            {
+                while (!Unsafe.IsAddressGreaterThan(ref item, ref loopEnd))
+                {
+                    var vector = Vector256.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item));
+                    // false -> 1 true -> 0
+                    data = (int)Vector256.Equals(vector, Vector256<byte>.Zero).ExtractMostSignificantBits();
+                    writer.WriteUnmanaged(~data);
+                    item = ref Unsafe.Add(ref item, 32);
+                }
+            }
+            else if (Vector128.IsHardwareAccelerated)
+            {
+                while (!Unsafe.IsAddressGreaterThan(ref item, ref loopEnd))
+                {
+                    var bits0 = (ushort)Vector128.Equals(Vector128.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item)), Vector128<byte>.Zero).ExtractMostSignificantBits();
+                    var bits1 = (ushort)Vector128.Equals(Vector128.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item), 16), Vector128<byte>.Zero).ExtractMostSignificantBits();
+                    data = bits0 | (bits1 << 16);
+                    writer.WriteUnmanaged(~data);
+                    item = ref Unsafe.Add(ref item, 32);
+                }
+            }
+            else if (Vector64.IsHardwareAccelerated)
+            {
+                while (!Unsafe.IsAddressGreaterThan(ref item, ref loopEnd))
+                {
+                    var bits0 = (byte)Vector64.Equals(Vector64.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item)), Vector64<byte>.Zero).ExtractMostSignificantBits();
+                    var bits1 = (byte)Vector64.Equals(Vector64.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item), 8), Vector64<byte>.Zero).ExtractMostSignificantBits();
+                    var bits2 = (byte)Vector64.Equals(Vector64.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item), 16), Vector64<byte>.Zero).ExtractMostSignificantBits();
+                    var bits3 = (byte)Vector64.Equals(Vector64.LoadUnsafe(ref Unsafe.As<bool, byte>(ref item), 24), Vector64<byte>.Zero).ExtractMostSignificantBits();
+                    data = bits0 | (bits1 << 8) | (bits2 << 16) | (bits3 << 24);
+                    writer.WriteUnmanaged(~data);
+                    item = ref Unsafe.Add(ref item, 32);
+                }
+            }
+
+            data = 0;
+        }
+#endif
         var bit = 0;
-        foreach (var item in value)
+        while (Unsafe.IsAddressLessThan(ref item, ref end))
         {
             Set(ref data, bit, item);
 
+            item = ref Unsafe.Add(ref item, 1);
             bit += 1;
 
             if (bit == 32)
