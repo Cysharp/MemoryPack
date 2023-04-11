@@ -474,6 +474,20 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         reader.OptionalState.AddObjectReference(id, value);
 """;
         }
+        if (GenerateType == GenerateType.MultipleReferences)
+        {
+            readBeginBody = $$"""
+        uint id = reader.ReadVarIntUInt32();
+        if (count == MemoryPackCode.ReferenceId)
+        {
+            value = ({{TypeName}})reader.OptionalState.GetObjectReference(id);
+            goto END;
+        }
+""";
+            readEndBody = $$"""
+         reader.OptionalState.AddObjectReference(id, value);
+""";
+        }
 
         return $$"""
         if (!reader.TryReadObjectHeader(out var count))
@@ -617,7 +631,23 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
         }
 
-        return $$"""
+        var checkMultipleReferences = "";
+        if (GenerateType == GenerateType.MultipleReferences)
+        {
+            checkMultipleReferences = $$"""
+        var (existsReference, id) = writer.OptionalState.GetOrAddReference(value);
+        if (existsReference)
+        {
+            writer.WriteObjectReferenceId(id);
+            goto END;
+        }
+        writer.WriteObjectHeader({{Members.Length}});
+        writer.WriteVarInt(id);
+
+""";
+        }
+
+            return $$"""
 {{(!IsValueType ? $$"""
         if (value == null)
         {
@@ -625,8 +655,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             goto END;
         }
 """ : "")}}
-
-{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: true)}}
+{{checkMultipleReferences}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: GenerateType != GenerateType.MultipleReferences)}}
 """;
     }
 

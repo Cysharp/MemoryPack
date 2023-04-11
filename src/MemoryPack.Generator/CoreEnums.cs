@@ -6,6 +6,7 @@ public enum GenerateType
     Object,
     VersionTolerant,
     CircularReference,
+    MultipleReferences,
     Collection,
     NoGenerate,
 
