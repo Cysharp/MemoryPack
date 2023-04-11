@@ -1,29 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace MemoryPack.Tests.Models;
 
 [MemoryPackable(GenerateType.MultipleReferences)]
 public partial class RefNode
 {
-    public RefNode() : this(Array.Empty<RefNode>())
+    [MemoryPackInclude]
+    private readonly List<RefNode> children;
+
+    public RefNode() : this(new List<RefNode>())
     {
     }
 
     [MemoryPackConstructor]
-    private RefNode(IReadOnlyList<RefNode> children)
+    private RefNode(List<RefNode> children)
     {
-        Children = children;
+        this.children = children;
     }
 
-    public IReadOnlyList<RefNode> Children { get; private set; }
+    [MemoryPackIgnore]
+    public IReadOnlyList<RefNode> Children => children;
 
     public void AddChild(RefNode child)
     {
-        var list = Children?.ToList() ?? new List<RefNode>();
-        list.Add(child);
-        Children = list.ToArray();
+        children.Add(child);
     }
 }
 
@@ -44,32 +44,36 @@ public partial class PureRefNode
 [MemoryPackable]
 public partial class MultipleReferencesHolder
 {
+    [MemoryPackInclude]
+    private readonly List<RefNode> list;
+
+    [MemoryPackInclude]
+    private readonly List<PureRefNode> listPure;
+
     public MultipleReferencesHolder() : this(new List<RefNode>(), new List<PureRefNode>())
     {
     }
 
     [MemoryPackConstructor]
-    private MultipleReferencesHolder(IReadOnlyList<RefNode> list, IReadOnlyList<PureRefNode> listPure)
+    private MultipleReferencesHolder(List<RefNode> list, List<PureRefNode> listPure)
     {
-        List = list;
-        ListPure = listPure;
+        this.list = list;
+        this.listPure = listPure;
     }
 
-    public IReadOnlyList<RefNode> List { get; private set; }
+    [MemoryPackIgnore]
+    public IReadOnlyList<RefNode> List => list;
 
     public void Add(RefNode refNode)
     {
-        var list = List?.ToList() ?? new List<RefNode>();
         list.Add(refNode);
-        List = list.ToArray();
     }
 
-    public IReadOnlyList<PureRefNode> ListPure { get; private set; }
+    [MemoryPackIgnore]
+    public IReadOnlyList<PureRefNode> ListPure => listPure;
 
     public void Add(PureRefNode refNode)
     {
-        var list = ListPure?.ToList() ?? new List<PureRefNode>();
-        list.Add(refNode);
-        ListPure = list.ToArray();
+        listPure.Add(refNode);
     }
 }
