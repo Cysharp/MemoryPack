@@ -52,8 +52,11 @@ public class MultipleReferencesTest
             var a3 = parent.Children[2];
 
             parent.Should().NotBeSameAs(parent2);
+            ReferenceEquals(parent, parent2).Should().BeFalse();
             parent2.Children[0].Should().BeSameAs(parent);
+            ReferenceEquals(parent2.Children[0], parent).Should().BeTrue();
             parent2.Children[1].Should().BeSameAs(a2);
+            ReferenceEquals(parent2.Children[1], a2).Should().BeTrue();
         }
         {
             var pure1 = value2.ListPure[0];
