@@ -292,4 +292,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InheritTypeCanNotIncludeParentPrivateMember = new(
+        id: "MEMPACK036",
+        title: "Inherit type can not include private member",
+        messageFormat: "Type '{0}' can not include parent type's private member {1}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

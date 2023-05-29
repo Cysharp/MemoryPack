@@ -577,6 +577,34 @@ public partial struct Hoge
     }
 
 
+    [Fact]
+    public void MEMPACK036_InheritTypeCanNotIncludeParentPrivateMember()
+    {
+        Compile(36, """
+using MemoryPack;
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public  partial class TestParent2
+{
+    [MemoryPackOrder(0)]
+    public int A;
+
+    [MemoryPackOrder(1), MemoryPackInclude]
+    private int B;
+
+    [MemoryPackOrder(2)]
+    public int C;
+}
+
+[MemoryPackable(SerializeLayout.Explicit)]
+public sealed partial class TestChild2 : TestParent2
+{
+    [MemoryPackOrder(3)]
+    public int D;
+}
+""");
+    }
+
 }
 
 

@@ -62,6 +62,22 @@ internal static class Extensions
         }
     }
 
+    public static IEnumerable<ISymbol> GetParentMembers(this INamedTypeSymbol symbol)
+    {
+        // Iterate Parent -> Derived
+        if (symbol.BaseType != null)
+        {
+            foreach (var item in GetAllMembers(symbol.BaseType))
+            {
+                // override item already iterated in parent type
+                if (!item.IsOverride)
+                {
+                    yield return item;
+                }
+            }
+        }
+    }
+
     public static bool TryGetMemoryPackableType(this ITypeSymbol symbol, ReferenceSymbols references, out GenerateType generateType, out SerializeLayout serializeLayout)
     {
         var memPackAttr = symbol.GetAttribute(references.MemoryPackableAttribute);

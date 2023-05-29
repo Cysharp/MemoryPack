@@ -398,9 +398,9 @@ public partial class TypeMeta
             }
         }
 
-        // Member override member can't annotate[Ignore][Include]
         if (Symbol.BaseType != null)
         {
+            // Member override member can't annotate[Ignore][Include]
             foreach (var item in Symbol.GetAllMembers(withoutOverride: false))
             {
                 if (item.IsOverride)
@@ -415,6 +415,19 @@ public partial class TypeMeta
                         context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OverrideMemberCantAddAnnotation, location, Symbol.Name, item.Name, attr));
                         noError = false;
                     }
+                }
+            }
+
+            // inherit type can not serialize parent private member
+            foreach (var item in Symbol.GetParentMembers())
+            {
+                var include = item.ContainsAttribute(reference.MemoryPackIncludeAttribute);
+                var ignore = item.ContainsAttribute(reference.MemoryPackIgnoreAttribute);
+                if (include && item.DeclaredAccessibility == Accessibility.Private)
+                {
+                    var location = item.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InheritTypeCanNotIncludeParentPrivateMember, location, Symbol.Name, item.Name));
+                    noError = false;
                 }
             }
         }
