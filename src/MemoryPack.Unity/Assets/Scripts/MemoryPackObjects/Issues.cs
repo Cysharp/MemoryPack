@@ -5,39 +5,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Assets.Scripts.MemoryPackObjects;
-public struct float2 { }
-public struct quaternion { }
-
-[Serializable]
-[MemoryPackable]
-public partial class PlayerInput
+namespace Assets.Scripts.MemoryPackObjects
 {
-    public float2 move;
-    public quaternion target;
-    public List<KeyRecord> keyRecords = new();
-}
+    public struct float2 { }
+    public struct quaternion { }
 
-public enum EAction : byte
-{
-    Ability1,
-    Ability2,
-    Ability3,
-    Ability4,
-    Ability5,
-    Ability6,
-}
+    [Serializable]
+    [MemoryPackable]
+    public partial class PlayerInput
+    {
+        public float2 move;
+        public quaternion target;
+        public List<KeyRecord> keyRecords = new();
+    }
 
-public enum EActionStatus : byte
-{
-    KeyDown = 0,
-    keyPressing = 1,
-    KeyUp = 2,
-}
+    public enum EAction : byte
+    {
+        Ability1,
+        Ability2,
+        Ability3,
+        Ability4,
+        Ability5,
+        Ability6,
+    }
 
-[MemoryPackable]
-public partial struct KeyRecord
-{
-    public EAction action;
-    public EActionStatus status;
+    public enum EActionStatus : byte
+    {
+        KeyDown = 0,
+        keyPressing = 1,
+        KeyUp = 2,
+    }
+
+    [MemoryPackable]
+    public partial struct KeyRecord
+    {
+        public EAction action;
+        public EActionStatus status;
+    }
+
 }
