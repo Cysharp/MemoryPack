@@ -296,7 +296,15 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor InheritTypeCanNotIncludeParentPrivateMember = new(
         id: "MEMPACK036",
         title: "Inherit type can not include private member",
-        messageFormat: "Type '{0}' can not include parent type's private member {1}",
+        messageFormat: "Type '{0}' can not include parent type's private member '{1}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ReadOnlyFieldMustBeConstructorMember = new(
+        id: "MEMPACK037",
+        title: "Readonly field must be constructor member",
+        messageFormat: "Type '{0}' readonly field '{1}' must be constructor member",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

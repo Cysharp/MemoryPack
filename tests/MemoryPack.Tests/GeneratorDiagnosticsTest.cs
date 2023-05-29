@@ -605,6 +605,21 @@ public sealed partial class TestChild2 : TestParent2
 """);
     }
 
+
+    [Fact]
+    public void MEMPACK037_ReadOnlyFieldMustBeConstructorMember()
+    {
+        Compile(37, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class ReadOnlyTest
+{
+    public readonly int A;
+}
+
+""");
+    }
 }
 
 

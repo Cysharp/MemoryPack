@@ -609,7 +609,7 @@ public partial class Sample
 {
     // these types are serialized by default
     public int PublicField;
-    public readonly int PublicReadOnlyField;
+    // public readonly int PublicReadOnlyField;
     public int PublicProperty { get; set; }
     public int PrivateSetPublicProperty { get; private set; }
     public int ReadOnlyPublicProperty { get; }

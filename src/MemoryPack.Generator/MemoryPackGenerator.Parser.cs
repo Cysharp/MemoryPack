@@ -366,6 +366,15 @@ public partial class TypeMeta
                     noError = false;
                 }
             }
+
+            foreach (var item in Members)
+            {
+                if (item.IsField && ((IFieldSymbol)item.Symbol).IsReadOnly && !item.IsConstructorParameter)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ReadOnlyFieldMustBeConstructorMember, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    noError = false;
+                }
+            }
         }
 
         // methods

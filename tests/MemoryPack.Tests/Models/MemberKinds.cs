@@ -50,4 +50,10 @@ public partial class MemberKindsAllUnmanaged
     {
         return H;
     }
+
+    public MemberKindsAllUnmanaged(int c, int d)
+    {
+        this.C = c;
+        this.D = d;
+    }
 }

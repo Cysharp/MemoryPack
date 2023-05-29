@@ -61,7 +61,7 @@ public class Net6Net7<T>
 public partial class Sample
 {
     public int PublicField;
-    public readonly int PublicReadOnlyField;
+    // public readonly int PublicReadOnlyField;
     public int PublicProperty { get; set; }
     public int PrivateSetPublicProperty { get; private set; }
     public int ReadOnlyPublicProperty { get; }
@@ -80,7 +80,7 @@ public partial class Sample
 public partial class Sample2
 {
     public int PublicField;
-    public readonly int PublicReadOnlyField;
+    // public readonly int PublicReadOnlyField;
     public int PublicProperty { get; set; }
     public int PrivateSetPublicProperty { get; private set; }
     public int ReadOnlyPublicProperty { get; }
