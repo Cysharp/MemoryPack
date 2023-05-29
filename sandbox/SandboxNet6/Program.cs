@@ -177,3 +177,39 @@ public partial struct PartialStructOne
 //public struct MyMessageHeader
 //{
 //}
+
+
+public struct float2 { }
+public struct quaternion { }
+
+[Serializable]
+[MemoryPackable]
+public partial class PlayerInput
+{
+    public float2 move;
+    public quaternion target;
+    public List<KeyRecord> keyRecords = new();
+}
+
+public enum EAction : byte
+{
+    Ability1,
+    Ability2,
+    Ability3,
+    Ability4,
+    Ability5,
+    Ability6,
+}
+
+public enum EActionStatus : byte
+{
+    KeyDown = 0,
+    keyPressing = 1,
+    KeyUp = 2,
+}
+
+public struct KeyRecord
+{
+    public EAction action;
+    public EActionStatus status;
+}

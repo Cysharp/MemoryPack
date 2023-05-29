@@ -485,6 +485,21 @@ public partial class TypeMeta
                 }
             }
 
+            // don't allow duplicate order
+            var orderSet = new Dictionary<int, MemberMeta>(Members.Length);
+            foreach (var item in Members)
+            {
+                if (orderSet.TryGetValue(item.Order, out var duplicateMember))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.DuplicateOrderDoesNotAllow, item.GetLocation(syntax), Symbol.Name, item.Name, duplicateMember.Name));
+                    noError = false;
+                }
+                else
+                {
+                    orderSet.Add(item.Order, item);
+                }
+            }
+
             // Annotated MemoryPackOrder must be continuous number from zero if GenerateType.Object.
             if (noError && GenerateType == GenerateType.Object)
             {

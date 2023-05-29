@@ -308,4 +308,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DuplicateOrderDoesNotAllow = new(
+        id: "MEMPACK038",
+        title: "All members order must be unique",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' is duplicated order between '{2}'.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

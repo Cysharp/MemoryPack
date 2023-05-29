@@ -620,6 +620,28 @@ public partial class ReadOnlyTest
 
 """);
     }
+
+    [Fact]
+    public void MEMPACK038_()
+    {
+        Compile(38, """
+using MemoryPack;
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class Tester
+{
+    [MemoryPackOrder(0)]
+    public int I1 { get; set; }
+
+    [MemoryPackOrder(0)]
+    public string S1 { get; set; }
+
+    [MemoryPackOrder(1)]
+    public bool B1 { get; set; }
+}
+
+""");
+    }
 }
 
 

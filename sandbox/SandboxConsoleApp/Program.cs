@@ -698,3 +698,16 @@ public partial struct HogeEEE
     }
 }
 
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class TesterIssue141
+{
+    [MemoryPackOrder(0)]
+    public int I1 { get; set; }
+
+    [MemoryPackOrder(0)]
+    public string S1 { get; set; }
+
+    [MemoryPackOrder(0)]
+    public bool B1 { get; set; }
+}
