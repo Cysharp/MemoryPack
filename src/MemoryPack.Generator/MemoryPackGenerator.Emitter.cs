@@ -1125,18 +1125,25 @@ public static class {{initializerName}}
 
         var readBody = UnionTags.Select(x =>
         {
+            var tagTypeFullQualified = ToUnionTagTypeFullyQualifiedToString(x.Type);
+
             var method = (x.Type.TryGetMemoryPackableType(reference, out var genType, out _) && genType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
                 ? "ReadPackable"
                 : "ReadValue";
+
+            var castString = method == "ReadPackable" && symbolFullQualified != tagTypeFullQualified
+                ? $"({tagTypeFullQualified})"
+                : "";
+
             return $$"""
                 case {{x.Tag}}:
-                    if (value is {{ToUnionTagTypeFullyQualifiedToString(x.Type)}})
+                    if (value is {{tagTypeFullQualified}})
                     {
-                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{symbolFullQualified}}?, {{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>(ref value));
+                        reader.{{method}}(ref System.Runtime.CompilerServices.Unsafe.As<{{symbolFullQualified}}?, {{tagTypeFullQualified}}>(ref value));
                     }
                     else
                     {
-                        value = reader.{{method}}<{{ToUnionTagTypeFullyQualifiedToString(x.Type)}}>();
+                        value = {{castString}}reader.{{method}}<{{tagTypeFullQualified}}>();
                     }
                     break;
 """;
