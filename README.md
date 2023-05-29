@@ -976,6 +976,7 @@ public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
     {
         if (reader.PeekIsNull())
         {
+            reader.Advance(1); // skip null block
             value = null;
             return;
         }
