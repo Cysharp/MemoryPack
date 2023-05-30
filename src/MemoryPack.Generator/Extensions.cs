@@ -5,6 +5,8 @@ namespace MemoryPack.Generator;
 
 internal static class Extensions
 {
+    private const string UnderScorePrefix = "_";
+
     public static string NewLine(this IEnumerable<string> source)
     {
         return string.Join(Environment.NewLine, source);
@@ -185,4 +187,23 @@ internal static class Extensions
             while (enumerator.MoveNext());
         }
     }
+
+    public static bool TryGetConstructorParameter(this IMethodSymbol constructor, ISymbol member, out string? constructorParameterName)
+    {
+        var constructorParameter = GetConstructorParameter(constructor, member.Name);
+        if (constructorParameter == null && member.Name.StartsWith(UnderScorePrefix))
+        {
+            constructorParameter = GetConstructorParameter(constructor, member.Name.Substring(UnderScorePrefix.Length));
+        }
+
+        constructorParameterName = constructorParameter?.Name;
+        return constructorParameter != null;
+
+        static IParameterSymbol? GetConstructorParameter(IMethodSymbol constructor, string name) => constructor.Parameters.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static bool ContainsConstructorParameter(this IEnumerable<MemberMeta> members, IParameterSymbol constructorParameter) =>
+        members.Any(x =>
+            x.IsConstructorParameter &&
+            string.Equals(constructorParameter.Name, x.ConstructorParameterName, StringComparison.OrdinalIgnoreCase));
 }
