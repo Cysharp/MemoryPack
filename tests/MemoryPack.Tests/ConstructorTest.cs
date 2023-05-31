@@ -44,3 +44,17 @@ public partial class Beta
         this.Value1 = value1;
     }
 }
+
+// support underscore private/internal convention
+
+[MemoryPackable]
+public partial class Gamma
+{
+    [MemoryPackInclude]
+    private readonly string _test;
+
+    public Gamma(string test)
+    {
+        _test = test;
+    }
+}

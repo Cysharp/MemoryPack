@@ -52,7 +52,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ConstructorHasNoMatchedParameter = new(
         id: "MEMPACK006",
         title: "MemoryPackObject's constructor has no matched parameter",
-        messageFormat: "The MemoryPackable object '{0}' constructor's all parameters must match serialized member name(case-insensitive)",
+        messageFormat: "The MemoryPackable object '{0}' constructor's parameter '{1}' must match a serialized member name(case-insensitive)",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

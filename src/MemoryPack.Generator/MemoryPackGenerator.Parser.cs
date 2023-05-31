@@ -356,14 +356,15 @@ public partial class TypeMeta
             // check ctor members
             if (this.Constructor != null)
             {
-                var nameDict = new HashSet<string>(Members.Where(x => x.IsConstructorParameter).Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
-                var allParameterExists = this.Constructor.Parameters.All(x => nameDict.Contains(x.Name));
-                if (!allParameterExists)
+                foreach (var parameter in Constructor.Parameters)
                 {
-                    var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
+                    if (!Members.ContainsConstructorParameter(parameter))
+                    {
+                        var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
 
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, location, Symbol.Name));
-                    noError = false;
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorHasNoMatchedParameter, location, Symbol.Name, parameter.Name));
+                        noError = false;
+                    }
                 }
             }
 
@@ -604,6 +605,7 @@ partial class MemberMeta
     public bool IsSettable { get; }
     public bool IsAssignable { get; }
     public bool IsConstructorParameter { get; }
+    public string ConstructorParameterName { get; }
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
@@ -636,7 +638,8 @@ partial class MemberMeta
 
         if (constructor != null)
         {
-            this.IsConstructorParameter = constructor.Parameters.Any(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
+            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameterName);
+            this.ConstructorParameterName = constructorParameterName;
         }
         else
         {
