@@ -15,7 +15,7 @@ namespace MemoryPack.Tests;
 public class CompressionTest
 {
     [Fact]
-    public void CompressDecompress()
+    public async Task CompressDecompress()
     {
         // pattern1, huge compression
         var pattern1 = Enumerable.Range(1, 1000).Select(_ => string.Concat(Enumerable.Repeat("http://", 1000)))
@@ -47,6 +47,10 @@ public class CompressionTest
 
             // check BrotliCompressor ToArray()/CopyTo returns same result.
             array1.AsSpan().SequenceEqual(array2.Span).Should().BeTrue();
+
+            var stream = new MemoryStream();
+            await brotli.CopyToAsync(stream);
+            stream.ToArray().AsSpan().SequenceEqual(array2.Span).Should().BeTrue();
 
             using var decompressor = new BrotliDecompressor();
 

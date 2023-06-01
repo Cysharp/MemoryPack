@@ -148,6 +148,47 @@ public
         }
     }
 
+    public async ValueTask CopyToAsync(Stream stream, int bufferSize = 65535, CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+
+        using var encoder = new BrotliEncoder(quality, window);
+
+        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        try
+        {
+            foreach (var item in bufferWriter)
+            {
+                var source = item;
+                var lastResult = OperationStatus.DestinationTooSmall;
+                while (lastResult == OperationStatus.DestinationTooSmall)
+                {
+                    lastResult = encoder.Compress(source.Span, buffer, out int bytesConsumed, out int bytesWritten, isFinalBlock: false);
+                    if (lastResult == OperationStatus.InvalidData) MemoryPackSerializationException.ThrowCompressionFailed();
+                    if (bytesWritten > 0)
+                    {
+                        await stream.WriteAsync(buffer.AsMemory(0, bytesWritten), cancellationToken).ConfigureAwait(false);
+                    }
+                    if (bytesConsumed > 0)
+                    {
+                        source = source.Slice(bytesConsumed);
+                    }
+                }
+            }
+
+            // call BrotliEncoderOperation.Finish
+            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
+            if (written > 0)
+            {
+                await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
     public void CopyTo(ref MemoryPackWriter memoryPackWriter)
 #if NET7_0_OR_GREATER
         
