@@ -2,7 +2,7 @@
     "name": "com.cysharp.memorypack",
     "displayName": "MemoryPack",
     "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
-    "version": "1.9.14",
+    "version": "1.9.15",
     "unity": "2021.3",
     "description": "Zero encoding extreme performance binary serializer for C#.",
     "keywords": [ "Serialization" ],
