@@ -77,11 +77,11 @@ import { MemoryPackReader } from "./MemoryPackReader{{typeScriptGenerateOptions.
         // add import(enum, union, memorypackable)
         foreach (var item in collector.GetEnums())
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\";");
         }
         foreach (var item in collector.GetMemoryPackableTypes(reference).Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol)))
         {
-            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\"; ");
+            sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\";");
         }
         sb.AppendLine();
 

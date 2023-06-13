@@ -605,7 +605,7 @@ partial class MemberMeta
     public bool IsSettable { get; }
     public bool IsAssignable { get; }
     public bool IsConstructorParameter { get; }
-    public string ConstructorParameterName { get; }
+    public string? ConstructorParameterName { get; }
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }

@@ -446,6 +446,7 @@ export class MemoryPackWriter {
         return this.buffer.slice(0, this.offset);
     }
 }
+
 """;
 
     public static readonly string MemoryPackReader = """
@@ -838,5 +839,6 @@ export class MemoryPackReader {
         return new Uint8Array(span);
     }
 }
+
 """;
 }
