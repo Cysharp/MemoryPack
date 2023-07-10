@@ -26,7 +26,6 @@ namespace MemoryPack
             UnityRegister<UnityEngine.Color>();
             UnityRegister<UnityEngine.Bounds>();
             UnityRegister<UnityEngine.Rect>();
-            UnityRegister<UnityEngine.Keyframe>();
             Register(new UnmanagedFormatter<UnityEngine.WrapMode>());
             UnityRegister<UnityEngine.Matrix4x4>();
             UnityRegister<UnityEngine.GradientColorKey>();
@@ -39,6 +38,16 @@ namespace MemoryPack
             UnityRegister<UnityEngine.RangeInt>();
             UnityRegister<UnityEngine.RectInt>();
             UnityRegister<UnityEngine.BoundsInt>();
+#if UNITY_EDITOR
+            if (!IsRegistered<Keyframe>())
+            {
+                Register(new KeyframeFormatter());
+                Register(new ArrayFormatter<Keyframe>());
+                Register(new ListFormatter<Keyframe>());
+            }
+#else
+            UnityRegister<UnityEngine.Keyframe>();
+#endif
 
             // class
             if (!IsRegistered<AnimationCurve>())

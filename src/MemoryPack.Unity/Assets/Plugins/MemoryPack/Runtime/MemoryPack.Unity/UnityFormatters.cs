@@ -1,10 +1,36 @@
 ﻿#nullable enable
 
+using System;
 using MemoryPack.Internal;
 using UnityEngine;
 
 namespace MemoryPack
 {
+#if UNITY_EDITOR
+    [Preserve]
+    internal sealed class KeyframeFormatter : MemoryPackFormatter<Keyframe>
+    {
+        [Preserve]
+        public override void Serialize(ref MemoryPackWriter writer, ref Keyframe value)
+        {
+            writer.WriteUnmanaged(value.time, value.value, value.inTangent, value.outTangent, value.weightedMode, value.inWeight, value.outWeight);
+        }
+
+        [Preserve]
+        public override void Deserialize(ref MemoryPackReader reader, ref Keyframe value)
+        {
+            reader.ReadUnmanaged(out float __time, out float __value, out float __inTangent, out float __outTangent, out WeightedMode __weightedMode, out float __inWeight, out float __outWeight);
+            value.time = __time;
+            value.value = __value;
+            value.inTangent = __inTangent;
+            value.outTangent = __outTangent;
+            value.weightedMode = __weightedMode;
+            value.inWeight = __inWeight;
+            value.outWeight = __outWeight;
+        }
+    }
+#endif
+
     [Preserve]
     internal sealed class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
     {
@@ -18,7 +44,22 @@ namespace MemoryPack
             }
 
             writer.WriteUnmanagedWithObjectHeader(3, value.@preWrapMode, value.@postWrapMode);
+#if UNITY_EDITOR
+            if (value.@keys == null)
+            {
+                writer.WriteNullCollectionHeader();
+                return;
+            }
+
+            var formatter = writer.GetFormatter<Keyframe>();
+            writer.WriteCollectionHeader(value.@keys.Length);
+            for (int i = 0; i < value.@keys.Length; i++)
+            {
+                formatter.Serialize(ref writer, ref value.@keys[i]);
+            }
+#else
             writer.WriteUnmanagedArray(value.@keys);
+#endif
         }
 
         [Preserve]
@@ -33,7 +74,28 @@ namespace MemoryPack
             if (count != 3) MemoryPackSerializationException.ThrowInvalidPropertyCount(3, count);
 
             reader.ReadUnmanaged(out WrapMode preWrapMode, out WrapMode postWrapMode);
+#if UNITY_EDITOR
+            Keyframe[]? keys;
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                keys = null;
+            }
+            else if (length == 0)
+            {
+                keys = Array.Empty<Keyframe>();
+            }
+            else
+            {
+                keys = new Keyframe[length];
+                var formatter = reader.GetFormatter<Keyframe>();
+                for (int i = 0; i < length; i++)
+                {
+                    formatter.Deserialize(ref reader, ref keys[i]);
+                }
+            }
+#else
             var keys = reader.ReadUnmanagedArray<global::UnityEngine.Keyframe>();
+#endif
 
             if (value == null)
             {
