@@ -79,7 +79,8 @@ import { MemoryPackReader } from "./MemoryPackReader{{typeScriptGenerateOptions.
         {
             sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\";");
         }
-        foreach (var item in collector.GetMemoryPackableTypes(reference).Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol)))
+        foreach (var item in collector.GetMemoryPackableTypes(reference)
+            .Where(x => !SymbolEqualityComparer.Default.Equals(x, typeSymbol) && !x.IsMemoryPackableNoGenerate(reference)))
         {
             sb.AppendLine($"import {{ {item.Name} }} from \"./{item.Name}{typeScriptGenerateOptions.ImportExtension}\";");
         }

@@ -138,6 +138,50 @@ internal static class Extensions
         return true;
     }
 
+    public static bool IsMemoryPackableNoGenerate(this ITypeSymbol symbol, ReferenceSymbols references)
+    {
+        var memPackAttr = symbol.GetAttribute(references.MemoryPackableAttribute);
+        var packableCtorArgs = memPackAttr?.ConstructorArguments;
+        if (memPackAttr == null || packableCtorArgs == null)
+        {
+            return false;
+        }
+        else if (packableCtorArgs.Value.Length != 0)
+        {
+            // MemoryPackable has three attribtues
+            // [GenerateType generateType]
+            // [SerializeLayout serializeLayout]
+            // [GenerateType generateType, SerializeLayout serializeLayout]
+
+            if (packableCtorArgs.Value.Length == 1)
+            {
+                var ctorValue = packableCtorArgs.Value[0];
+
+                // check which constructor was used
+                var attrConstructor = memPackAttr.AttributeConstructor;
+                var isSerializeLayout = attrConstructor!.Parameters[0].Type.Name == nameof(SerializeLayout);
+                if (isSerializeLayout)
+                {
+                    return false;
+                }
+                else
+                {
+
+                    var generateType = (GenerateType)(ctorValue.Value!);
+                    return generateType is GenerateType.NoGenerate;
+                }
+            }
+            else
+            {
+                var generateType = (GenerateType)(packableCtorArgs.Value[0].Value ?? GenerateType.Object);
+
+                return generateType is GenerateType.NoGenerate;
+            }
+        }
+
+        return false;
+    }
+
     public static bool IsWillImplementMemoryPackUnion(this ITypeSymbol symbol, ReferenceSymbols references)
     {
         return symbol.IsAbstract && symbol.ContainsAttribute(references.MemoryPackUnionAttribute);
