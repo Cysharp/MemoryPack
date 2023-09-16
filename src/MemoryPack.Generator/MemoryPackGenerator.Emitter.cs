@@ -735,7 +735,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     // toTempWriter is VersionTolerant
     public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader)
     {
-        // members are guarantied writable.
+        // members are guaranteed to be writable.
         if (members.Length == 0 && writeObjectHeader)
         {
             return $"{indent}writer.WriteObjectHeader(0);";

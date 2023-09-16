@@ -650,7 +650,7 @@ namespace MemoryPack.Formatters
             }
 
             // note: serializing ConcurrentCollection(Queue/Stack/Bag/Dictionary) is not thread-safe.
-            // operate Add/Remove in iterating in other thread, not guarantied correct result
+            // operate Add/Remove in iterating in other thread, not guaranteed correct result
 
             var formatter = writer.GetFormatter<T?>();
             var count = value.Count;
