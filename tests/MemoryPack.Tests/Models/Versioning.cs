@@ -1,13 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MemoryPack.Tests.Models;
+﻿namespace MemoryPack.Tests.Models;
 
 [MemoryPackable]
 public partial class Versioning0

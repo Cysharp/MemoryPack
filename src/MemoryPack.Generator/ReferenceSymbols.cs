@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace MemoryPack.Generator;
 

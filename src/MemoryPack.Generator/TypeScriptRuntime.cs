@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MemoryPack.Generator;
+﻿namespace MemoryPack.Generator;
 
 public static class TypeScriptRuntime
 {

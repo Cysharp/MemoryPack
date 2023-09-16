@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-// namespaced
+﻿// namespaced
 namespace MemoryPack.Tests.Models
 {
     // MEMPACK001 must be partial

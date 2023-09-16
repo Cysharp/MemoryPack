@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using MemoryPack.Internal;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace MemoryPack {
 

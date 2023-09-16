@@ -1,5 +1,4 @@
-﻿
-using MemoryPack;
+﻿using MemoryPack;
 
 [MemoryPackable]
 public partial class Stat

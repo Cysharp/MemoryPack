@@ -1,13 +1,11 @@
 ﻿using MemoryPack.Compression;
 using MemoryPack.Tests.Models;
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Numerics;
 using System.Text;
+using System.Linq;
+using System.Buffers;
+using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace MemoryPack.Tests;

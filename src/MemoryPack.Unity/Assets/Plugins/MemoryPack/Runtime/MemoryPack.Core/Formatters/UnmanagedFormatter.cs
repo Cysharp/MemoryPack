@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 #nullable enable
 using MemoryPack.Internal;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters {

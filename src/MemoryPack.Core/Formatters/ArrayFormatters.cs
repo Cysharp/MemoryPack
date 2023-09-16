@@ -1,9 +1,6 @@
 ﻿using MemoryPack.Formatters;
 using MemoryPack.Internal;
 using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 
 // Array and Array-like type formatters
 // T[]

@@ -1,14 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Operations;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace MemoryPack.Tests.Models;
-
 
 [MemoryPackable]
 public partial class StandardBase

@@ -1,11 +1,10 @@
 ﻿using MemoryPack.Streaming;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipelines;
 using System.Linq;
-using System.Text;
+using System.IO.Pipelines;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MemoryPack.Tests.Streaming;
 

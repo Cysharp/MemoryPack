@@ -1,13 +1,7 @@
-﻿using MemoryPack.Formatters;
-using MemoryPack.Tests.Models;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
+﻿using MemoryPack.Tests.Models;
 using System.Diagnostics;
-using System.Linq;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MemoryPack.Tests;
 
