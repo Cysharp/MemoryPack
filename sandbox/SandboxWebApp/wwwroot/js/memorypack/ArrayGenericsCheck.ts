@@ -1,8 +1,8 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-import { NoMarkByteEnum } from "./NoMarkByteEnum.js"; 
-import { NestedObject } from "./NestedObject.js"; 
-import { IMogeUnion } from "./IMogeUnion.js"; 
+import { NoMarkByteEnum } from "./NoMarkByteEnum.js";
+import { NestedObject } from "./NestedObject.js";
+import { IMogeUnion } from "./IMogeUnion.js";
 
 export class ArrayGenericsCheck {
     array1: (NestedObject | null)[] | null;

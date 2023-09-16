@@ -27,7 +27,7 @@ public partial class MemoryPackGenerator : ISourceGenerator
             logPath = null;
         }
 
-        var compiation = context.Compilation;
+        var compilation = context.Compilation;
         var generateContext = new GeneratorContext(context);
 
         if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_DebugNonUnityMode", out var nonUnity))
@@ -37,7 +37,7 @@ public partial class MemoryPackGenerator : ISourceGenerator
 
         foreach (var syntax in receiver.ClassDeclarations)
         {
-            Generate(syntax, compiation, logPath, generateContext);
+            Generate(syntax, compilation, logPath, generateContext);
         }
     }
 

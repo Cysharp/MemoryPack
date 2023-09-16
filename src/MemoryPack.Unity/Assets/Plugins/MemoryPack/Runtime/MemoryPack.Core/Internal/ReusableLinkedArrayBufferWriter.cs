@@ -50,7 +50,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     const int InitialBufferSize = 262144; // 256K(32768, 65536, 131072, 262144)
     static readonly byte[] noUseFirstBufferSentinel = new byte[0];
 
-    List<BufferSegment> buffers; // add freezed buffer.
+    List<BufferSegment> buffers; // add frozen buffer.
 
     byte[] firstBuffer; // cache firstBuffer to avoid call ArrayPoo.Rent/Return
     int firstBufferWritten;

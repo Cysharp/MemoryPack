@@ -182,7 +182,7 @@ using MemoryPack;
         {
             if (type.IsUnmanagedType)
             {
-                sb.Append("GanerateType unmanaged ");
+                sb.Append("GenerateType unmanaged ");
             }
             else
             {
@@ -342,7 +342,7 @@ public partial class TypeMeta
 """;
             }
         }
-        var serializeMethodSignarture = context.IsForUnity
+        var serializeMethodSignature = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
@@ -371,7 +371,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{
     }
 
     [global::MemoryPack.Internal.Preserve]
-    {{staticMemoryPackableMethod}}{{serializeMethodSignarture}} writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
+    {{staticMemoryPackableMethod}}{{serializeMethodSignature}} writer, {{scopedRef}} {{TypeName}}{{nullable}} value) {{constraint}}
     {
 {{OnSerializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{serializeBody}}
@@ -403,7 +403,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     sealed class {{Symbol.Name}}Formatter : MemoryPackFormatter<{{TypeName}}>
     {
         [global::MemoryPack.Internal.Preserve]
-        public override void {{serializeMethodSignarture}} writer,  {{scopedRef}} {{TypeName}} value)
+        public override void {{serializeMethodSignature}} writer,  {{scopedRef}} {{TypeName}} value)
         {
             {{TypeName}}.Serialize(ref writer, ref value);
         }
@@ -609,11 +609,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.Enum or MemberKind.UnmanagedArray or MemberKind.UnmanagedNullable or MemberKind.Blank))
             {
-                return EmitVersionTorelantSerializeBodyOptimized(isForUnity);
+                return EmitVersionTolerantSerializeBodyOptimized(isForUnity);
             }
             else
             {
-                return EmitVersionTorelantSerializeBody(isForUnity);
+                return EmitVersionTolerantSerializeBody(isForUnity);
             }
         }
 
@@ -630,7 +630,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
     }
 
-    string EmitVersionTorelantSerializeBody(bool isForUnity)
+    string EmitVersionTolerantSerializeBody(bool isForUnity)
     {
         var newTempWriter = isForUnity
             ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
@@ -693,7 +693,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     }
 
     // Optimized is all member is fixed size
-    string EmitVersionTorelantSerializeBodyOptimized(bool isForUnity)
+    string EmitVersionTolerantSerializeBodyOptimized(bool isForUnity)
     {
         static string EmitLengthHeader(MemberMeta[] members)
         {
@@ -737,7 +737,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     // toTempWriter is VersionTolerant
     public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader)
     {
-        // members is guranteed writable.
+        // members are guarantied writable.
         if (members.Length == 0 && writeObjectHeader)
         {
             return $"{indent}writer.WriteObjectHeader(0);";
@@ -914,7 +914,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     string EmitDeserializeConstruction(string indent)
     {
-        // all value is deserialized, __Name is exsits.
+        // all value is deserialized, __Name exists.
         return string.Join("," + Environment.NewLine, Members
             .Where(x => x.IsSettable && !x.IsConstructorParameter)
             .Select(x => $"{indent}@{x.Name} = __{x.Name}"));
@@ -933,7 +933,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
-        string serializeMethodSignarture = context.IsForUnity
+        string serializeMethodSignature = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
@@ -965,7 +965,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
 {{EmitUnionTypeToTagField()}}
 
         [global::MemoryPack.Internal.Preserve]
-        public override void {{serializeMethodSignarture}} writer, {{scopedRef}} {{TypeName}}? value)
+        public override void {{serializeMethodSignature}} writer, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}
@@ -991,7 +991,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
-        string serializeMethodSignarture = context.IsForUnity
+        string serializeMethodSignature = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
@@ -1022,7 +1022,7 @@ partial class {{TypeName}} : MemoryPackFormatter<{{symbolFullQualified}}>
 {{EmitUnionTypeToTagField()}}
 
         [global::MemoryPack.Internal.Preserve]
-        public override void {{serializeMethodSignarture}} writer, {{scopedRef}} {{symbolFullQualified}}? value)
+        public override void {{serializeMethodSignature}} writer, {{scopedRef}} {{symbolFullQualified}}? value)
         {
 {{OnSerializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionSerializeBody()}}

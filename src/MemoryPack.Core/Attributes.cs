@@ -109,7 +109,7 @@ public abstract class MemoryPackCustomFormatterAttribute<TFormatter, T> : Attrib
 
 #endif
 
-// similar naming as System.Text.Json attribtues
+// similar naming as System.Text.Json attributes
 // https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonattribute
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]

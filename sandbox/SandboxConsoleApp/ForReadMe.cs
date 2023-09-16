@@ -33,7 +33,7 @@ public partial class Person
     public readonly int Age;
     public readonly string Name;
 
-    // You can use parametarized constructor
+    // You can use parameterized constructor
     public Person(int age, string name)
     {
         this.Age = age;

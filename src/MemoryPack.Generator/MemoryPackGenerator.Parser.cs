@@ -39,7 +39,7 @@ public enum MemberKind
     RefLike, // not allowed
     NonSerializable, // not allowed
     Blank, // blank marker
-    CustomFormatter, // used [MemoryPackCustomFormatterAttribtue]
+    CustomFormatter, // used [MemoryPackCustomFormatterAttribute]
 }
 
 public partial class TypeMeta
@@ -133,9 +133,9 @@ public partial class TypeMeta
     }
 
     // MemoryPack choose class/struct as same rule.
-    // If has no explicit constrtucotr, use parameterless one(includes private).
+    // If has no explicit constructors, use parameterless one(includes private).
     // If has a one parameterless/parameterized constructor, choose it.
-    // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+    // If has multiple constructors, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
     IMethodSymbol? ChooseConstructor(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
         var ctors = symbol.InstanceConstructors
@@ -158,7 +158,7 @@ public partial class TypeMeta
         {
             if (ctorWithAttrs.Length != 0)
             {
-                ctorInvalid = DiagnosticDescriptors.UnamangedStructMemoryPackCtor;
+                ctorInvalid = DiagnosticDescriptors.UnmanagedStructMemoryPackCtor;
             }
             return null;
         }
@@ -269,9 +269,9 @@ public partial class TypeMeta
             }
         }
 
-        // GenerateType.Objector VersionTorelant validation
+        // GenerateType.Objector VersionTolerant validation
 
-        // ref strcut
+        // ref struct
         if (this.Symbol.IsRefLikeType)
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.TypeIsRefStruct, syntax.Identifier.GetLocation(), Symbol.Name));
@@ -281,7 +281,7 @@ public partial class TypeMeta
         // interface/abstract but not union
         if (IsInterfaceOrAbstract && !IsUnion)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AbstractMustUnion, syntax.Identifier.GetLocation(), Symbol.Name));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AbstractMustBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
             noError = false;
         }
 
@@ -345,7 +345,7 @@ public partial class TypeMeta
 
                     if (!context.IsNet7OrGreater)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnamangedStructWithLayoutAutoField, syntax.Identifier.GetLocation(), Symbol.Name, autoTypes));
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnmanagedStructWithLayoutAutoField, syntax.Identifier.GetLocation(), Symbol.Name, autoTypes));
                         noError = false;
                     }
                 }
@@ -382,11 +382,11 @@ public partial class TypeMeta
         foreach (var item in OnSerializing.Concat(OnSerialized).Concat(OnDeserializing).Concat(OnDeserialized))
         {
             // diagnostics location should be method identifier
-            // however methodsymbol -> methodsyntax is slightly hard so use type identifier instead.
+            // however, MethodSymbol -> MethodSyntax is slightly hard so use type identifier instead.
 
             if (IsUnmanagedType)
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnmanagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
                 noError = false;
                 continue;
             }
@@ -509,7 +509,7 @@ public partial class TypeMeta
                 {
                     if (item.Order != expectedOrder)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AllMembersMustBeContinuousNumber, item.GetLocation(syntax), Symbol.Name, item.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AllMembersMustBeConsecutiveNumber, item.GetLocation(syntax), Symbol.Name, item.Name));
                         noError = false;
                         break;
                     }
@@ -740,7 +740,7 @@ partial class MemberMeta
                 }
                 if (unmanagedNts.EqualsUnconstructedGenericType(references.KnownTypes.System_Nullable_T))
                 {
-                    // unamanged nullable<T> can not pass to where T:unmanaged constraint
+                    // unmanaged nullable<T> can not pass to where T:unmanaged constraint
                     if (unmanagedNts.TypeArguments[0].IsUnmanagedType)
                     {
                         return MemberKind.UnmanagedNullable;

@@ -24,7 +24,7 @@ namespace MemoryPack {
 
 public static partial class MemoryPackFormatterProvider
 {
-    // for nongenerics methods
+    // for non-generic methods
     static readonly ConcurrentDictionary<Type, IMemoryPackFormatter> formatters = new ConcurrentDictionary<Type, IMemoryPackFormatter>(Environment.ProcessorCount, 150);
 
     // custom generic formatters
@@ -137,7 +137,7 @@ public static partial class MemoryPackFormatterProvider
         }
     }
 
-    // almostly get from Writer/Reader
+    // mostly get from Writer/Reader
     // in future, will change static provider to instance provider.
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

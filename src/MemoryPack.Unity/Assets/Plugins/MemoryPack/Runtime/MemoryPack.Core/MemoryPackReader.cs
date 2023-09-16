@@ -738,7 +738,7 @@ public ref partial struct MemoryPackReader
         DangerousReadUnmanagedSpan<T>(ref value);
     }
 
-    // T: should be unamanged type
+    // T: should be unmanaged type
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe T[]? DangerousReadUnmanagedArray<T>()
     {

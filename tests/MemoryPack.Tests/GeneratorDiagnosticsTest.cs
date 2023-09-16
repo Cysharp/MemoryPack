@@ -528,7 +528,7 @@ public partial class Hoge
     }
 
     [Fact]
-    public void MEMPACK034_UnamangedStructWithLayoutAutoField()
+    public void MEMPACK034_UnmanagedStructWithLayoutAutoField()
     {
         var code = """
 using System;
@@ -555,7 +555,7 @@ public partial struct Hoge
     }
 
     [Fact]
-    public void MEMPACK035_UnamangedStructMemoryPackCtor()
+    public void MEMPACK035_UnmanagedStructMemoryPackCtor()
     {
         Compile(35, """
 using MemoryPack;

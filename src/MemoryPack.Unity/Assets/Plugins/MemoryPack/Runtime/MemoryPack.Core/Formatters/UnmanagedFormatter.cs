@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters {
 
-// for unamanged types( https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types )
+// for unmanaged types( https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types )
 // * sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool
 // * Any enum type
 // * Any pointer type

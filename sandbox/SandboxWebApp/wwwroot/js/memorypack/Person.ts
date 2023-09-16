@@ -1,6 +1,6 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-import { Gender } from "./Gender.js"; 
+import { Gender } from "./Gender.js";
 
 export class Person {
     id: string;

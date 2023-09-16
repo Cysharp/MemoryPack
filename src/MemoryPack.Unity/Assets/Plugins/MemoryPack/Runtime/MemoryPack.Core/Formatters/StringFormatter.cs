@@ -107,7 +107,7 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
     [ThreadStatic]
     static StrongBox<int>? threadStaticConsumedBox;
 
-    internal const int DefaultDecompssionSizeLimit = 1024 * 1024 * 128; // 128MB
+    internal const int DefaultDecompressionSizeLimit = 1024 * 1024 * 128; // 128MB
 
     public static readonly BrotliStringFormatter Default = new BrotliStringFormatter();
 
@@ -128,7 +128,7 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
     }
 
     public BrotliStringFormatter(System.IO.Compression.CompressionLevel compressionLevel, int window)
-        : this(compressionLevel, window, DefaultDecompssionSizeLimit)
+        : this(compressionLevel, window, DefaultDecompressionSizeLimit)
     {
     }
 

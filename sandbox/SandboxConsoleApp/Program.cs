@@ -446,7 +446,7 @@ public partial class HogeHoge
     public KeyValuePair<int, int> P11;
     public Lazy<int> P12;
     public Nullable<int> P13;
-    // collecition
+    // collection
     public ArraySegment<int> P14;
     public Memory<int> P15;
     public ReadOnlyMemory<int> P16;
