@@ -941,9 +941,12 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
 partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
 {
+    static partial void StaticConstructor();
+
     static {{Symbol.Name}}()
     {
         {{register}}
+        StaticConstructor();
     }
 
     [global::MemoryPack.Internal.Preserve]
