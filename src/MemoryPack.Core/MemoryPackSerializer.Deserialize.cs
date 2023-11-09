@@ -53,7 +53,7 @@ public static partial class MemoryPackSerializer
     public static T? Deserialize<T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         T? value = default;
-        Deserialize<T>(buffer, ref value);
+        Deserialize<T>(buffer, ref value, options);
         return value;
     }
 
