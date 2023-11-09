@@ -283,6 +283,11 @@ export class MemoryPackWriter {
             return;
         }
 
+        if (value.length == 0) {
+            this.writeCollectionHeader(0);
+            return;
+        }
+
         // (int ~utf8-byte-count, int utf16-length, utf8-bytes)
         this.ensureCapacity(8 + ((value.length + 1) * 3));
 

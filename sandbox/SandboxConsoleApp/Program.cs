@@ -47,11 +47,26 @@ MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref value);
 
 var span = CollectionsMarshal.AsSpan(value.Payload);
 
+
+[MemoryPackable]
+public partial class CctorSample
+{
+    static partial void StaticConstructor()
+    {
+    }
+}
+
 [MemoryPackable]
 public partial class ListBytesSample
 {
     public int Id { get; set; }
     public List<byte> Payload { get; set; }
+
+    static partial void StaticConstructor()
+    {
+        Console.WriteLine("foo");
+        // throw new NotImplementedException();
+    }
 }
 
 [MemoryPackable]

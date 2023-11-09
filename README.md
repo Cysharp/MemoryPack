@@ -335,6 +335,20 @@ public partial class MyStringDictionary<TValue> : Dictionary<string, TValue>
 }
 ```
 
+Static constructor
+---
+MemoryPackable class can not define static constructor because generated partial class uses it. Instead, you can define a `static partial void StaticConstructor()` to do the same thing.
+
+```csharp
+[MemoryPackable]
+public partial class CctorSample
+{
+    static partial void StaticConstructor()
+    {
+    }
+}
+```
+
 Polymorphism (Union)
 ---
 MemoryPack supports serializing interface and abstract class objects for polymorphism serialization. In MemoryPack this feature is called Union. Only interfaces and abstracts classes are allowed to be annotated with `[MemoryPackUnion]` attributes. Unique union tags are required.
