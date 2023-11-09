@@ -35,7 +35,7 @@ public class ArrayFormatterTest
             Convert(xs).ToArray().Should().Equal(xs.ToArray());
         }
         {
-            var xs =new ReadOnlyMemory<int>(new int[] { 1, 10, 100 });
+            var xs = new ReadOnlyMemory<int>(new int[] { 1, 10, 100 });
             Convert(xs).ToArray().Should().Equal(xs.ToArray());
         }
         //{
@@ -51,6 +51,15 @@ public class ArrayFormatterTest
             var xs2 = MemoryPackSerializer.Deserialize<ReadOnlySequence<byte>>(bin);
             Convert(xs2).ToArray().Should().Equal(xs.ToArray());
         }
+    }
+
+    [Fact]
+    public void CharArrayTest()
+    {
+        var input = new[] { 'a', 'b', 'c' };
+        var bytes = MemoryPackSerializer.Serialize(input);
+        var output = MemoryPackSerializer.Deserialize<char[]>(bytes)!;
+        Assert.True(input.SequenceEqual(output));
     }
 
     [Theory]

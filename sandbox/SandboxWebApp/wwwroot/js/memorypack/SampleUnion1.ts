@@ -1,6 +1,6 @@
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-import { IMogeUnion } from "./IMogeUnion.js"; 
+import { IMogeUnion } from "./IMogeUnion.js";
 
 export class SampleUnion1 implements IMogeUnion {
     myProperty: number | null;

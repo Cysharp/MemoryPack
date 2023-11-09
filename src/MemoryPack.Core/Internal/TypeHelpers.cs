@@ -7,6 +7,7 @@ namespace MemoryPack.Internal;
 internal static class TypeHelpers
 {
     static readonly MethodInfo isReferenceOrContainsReferences = typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences")!;
+    static readonly MethodInfo unsafeSizeOf = typeof(Unsafe).GetMethod("SizeOf")!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsReferenceOrNullable<T>()
@@ -67,7 +68,7 @@ internal static class TypeHelpers
                     if (!containsReference)
                     {
                         IsUnmanagedSZArray = true;
-                        UnmanagedSZArrayElementSize = Marshal.SizeOf(elementType!);
+                        UnmanagedSZArrayElementSize = (int)unsafeSizeOf.MakeGenericMethod(elementType!).Invoke(null, null)!;
                     }
                 }
 #if NET7_0_OR_GREATER
