@@ -31,10 +31,6 @@ jobs:
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            6.0.x
-            7.0.x
       # pack nuget
       - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
       - run: dotnet test -c Release --no-build
