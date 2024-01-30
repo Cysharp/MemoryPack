@@ -92,11 +92,8 @@ namespace Assets.Tests
             };
 
             var raw = MemoryPackSerializer.Serialize(curve);
-#if UNITY_EDITOR
-            Assert.AreEqual("03-02-00-00-00-08-00-00-00-03-00-00-00-A4-70-9D-3F-85-EB-91-40-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-00-00-00-00-03-00-00-00-00-00-80-3F-00-00-60-40", BitConverter.ToString(raw));
-#else
+            //Assert.AreEqual("03-02-00-00-00-08-00-00-00-03-00-00-00-A4-70-9D-3F-85-EB-91-40-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-00-00-00-00-03-00-00-00-00-00-80-3F-00-00-60-40", BitConverter.ToString(raw));
             Assert.AreEqual("03-02-00-00-00-08-00-00-00-03-00-00-00-A4-70-9D-3F-85-EB-91-40-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-00-00-00-00-00-00-00-00-00-00-00-00-A4-70-9D-3F-85-EB-91-40-9A-99-F9-40-66-66-66-3F-03-00-00-00-00-00-80-3F-00-00-60-40", BitConverter.ToString(raw));
-#endif
             
             var curve1 = MemoryPackSerializer.Deserialize<AnimationCurve>(raw);
             Assert.NotNull(curve1);
@@ -104,7 +101,12 @@ namespace Assets.Tests
             Assert.AreEqual(WrapMode.ClampForever, curve1.postWrapMode);
 
             Assert.AreEqual(3, curve1.keys.Length);
-            Assert.AreEqual(4.56f, curve1.keys[curve1!.keys.Length - 1].value, 0.001);
+            Assert.AreEqual(1.23, curve1.keys[curve1!.keys.Length - 1].time, 0.001);
+            Assert.AreEqual(4.56, curve1.keys[curve1!.keys.Length - 1].value, 0.001);
+            Assert.AreEqual(7.8, curve1.keys[curve1!.keys.Length - 1].inTangent, 0.001);
+            Assert.AreEqual(0.9, curve1.keys[curve1!.keys.Length - 1].outTangent, 0.001);
+            Assert.AreEqual(1, curve1.keys[curve1!.keys.Length - 1].inWeight, 0.001);
+            Assert.AreEqual(3.5, curve1.keys[curve1!.keys.Length - 1].outWeight, 0.001);
         }
     }
 }
