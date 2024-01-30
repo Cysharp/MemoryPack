@@ -310,8 +310,8 @@ public partial struct Rect
 [MemoryPackable]
 public sealed partial class AnimationCurve
 {
-    public WrapMode postWrapMode;
     public WrapMode preWrapMode;
+    public WrapMode postWrapMode;
     public Keyframe[] keys = default!;
 
     [MemoryPack.MemoryPackIgnore]
@@ -332,12 +332,21 @@ public partial struct Keyframe
 
     public float outTangent;
 
+    public int weightedMode;
+
+    public float inWeight;
+
+    public float outWeight;
+
     public Keyframe(float time, float value)
     {
         this.time = time;
         this.value = value;
         this.inTangent = 0f;
         this.outTangent = 0f;
+        this.weightedMode = 0;
+        this.inWeight = 0f;
+        this.outWeight = 0f;
     }
 
     public Keyframe(float time, float value, float inTangent, float outTangent)
@@ -346,6 +355,20 @@ public partial struct Keyframe
         this.value = value;
         this.inTangent = inTangent;
         this.outTangent = outTangent;
+        this.weightedMode = 0;
+        this.inWeight = 0f;
+        this.outWeight = 0f;
+    }
+
+    public Keyframe(float time, float value, float inTangent, float outTangent, float inWeight, float outWeight)
+    {
+        this.time = time;
+        this.value = value;
+        this.inTangent = inTangent;
+        this.outTangent = outTangent;
+        this.weightedMode = 3;
+        this.inWeight = inWeight;
+        this.outWeight = outWeight;
     }
 }
 
