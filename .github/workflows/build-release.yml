@@ -16,7 +16,8 @@ jobs:
   update-packagejson:
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
     with:
-      file-path: ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
+      file-path: |
+        ./src/MemoryPack.Unity/Assets/Plugins/MemoryPack/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
       push-tag: false
@@ -85,10 +86,8 @@ jobs:
       dry-run: ${{ inputs.dry-run }}
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
       tag: ${{ inputs.tag }}
-      push-tag: true
       nuget-push: true
       unitypackage-upload: true
-      unitypackage-name: MemoryPack.${{ inputs.tag }}.unitypackage
       unitypackage-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
     secrets: inherit
 
