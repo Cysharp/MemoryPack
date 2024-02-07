@@ -87,12 +87,12 @@ jobs:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
       tag: ${{ inputs.tag }}
       nuget-push: true
-      unitypackage-upload: true
-      unitypackage-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
+      release-upload: true
+      release-asset-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
     secrets: inherit
 
   cleanup:
-    if: needs.update-packagejson.outputs.is-branch-created == 'true'
+    if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
     needs: [update-packagejson, create-release]
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
     with:
