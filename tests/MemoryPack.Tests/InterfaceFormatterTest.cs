@@ -102,8 +102,8 @@ public class InterfaceFormatterTest
         {
             (1, 2), (1, 100), (3, 42), (45, 30), (3, 10)
         };
-        var lookup = seq.ToLookup(x => x.Item1, x => x.Item2);
 
+        var lookup = seq.ToLookup(x => x.Item1, x => x.Item2);
         {
             var bin = MemoryPackSerializer.Serialize(lookup);
             MemoryPackSerializer.Deserialize<ILookup<int, int>>(bin)
@@ -115,7 +115,14 @@ public class InterfaceFormatterTest
             var bin = MemoryPackSerializer.Serialize(grouping);
             var g2 = MemoryPackSerializer.Deserialize<IGrouping<int, int>>(bin);
             g2!.Key.Should().Be(grouping.Key);
-            g2!.AsEnumerable().Should().BeEquivalentTo(grouping.AsEnumerable());
+            g2.AsEnumerable().Should().BeEquivalentTo(grouping.AsEnumerable());
+        }
+
+        var emptyLookup = Array.Empty<int>().ToLookup(x => x, x => x);
+        {
+            var bin = MemoryPackSerializer.Serialize(emptyLookup);
+            var deserialized = MemoryPackSerializer.Deserialize<ILookup<int, int>>(bin);
+            deserialized![0].Should().BeEmpty();
         }
     }
 
