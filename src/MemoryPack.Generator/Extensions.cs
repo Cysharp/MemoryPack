@@ -92,7 +92,16 @@ internal static class Extensions
             serializeLayout = SerializeLayout.Sequential;
             return false;
         }
-        else if (packableCtorArgs.Value.Length != 0)
+
+        var memPackUnionFormatterAttr = symbol.GetAttribute(references.MemoryPackUnionFormatterAttribute);
+        if (memPackUnionFormatterAttr != null)
+        {
+            generateType = GenerateType.Union;
+            serializeLayout = SerializeLayout.Sequential;
+            return false;
+        }
+
+        if (packableCtorArgs.Value.Length != 0)
         {
             // MemoryPackable has three attribtues
             // [GenerateType generateType]

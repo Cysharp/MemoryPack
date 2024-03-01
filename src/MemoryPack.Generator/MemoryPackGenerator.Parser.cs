@@ -534,6 +534,12 @@ public partial class TypeMeta
                 noError = false;
             }
 
+            if (GenerateType != GenerateType.Union)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenerateTypeCannotSpeciyToUnionBaseType, syntax.Identifier.GetLocation(), Symbol.Name, GenerateType));
+                noError = false;
+            }
+
             if (UnionTags.Select(x => x.Tag).HasDuplicate())
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTagDuplicate, syntax.Identifier.GetLocation(), Symbol.Name));

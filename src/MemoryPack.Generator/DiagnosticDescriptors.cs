@@ -316,4 +316,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeCannotSpeciyToUnionBaseType = new(
+        id: "MEMPACK039",
+        title: "GenerateType cannot be specified for the Union base type itself",
+        messageFormat: "The MemoryPackable object '{0}' cannot specify '{1}'. Because it is Union base type.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
