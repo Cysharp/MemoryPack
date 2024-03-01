@@ -86,17 +86,11 @@ internal static class Extensions
         var packableCtorArgs = memPackAttr?.ConstructorArguments;
         generateType = GenerateType.Object;
         serializeLayout = SerializeLayout.Sequential;
+
         if (memPackAttr == null || packableCtorArgs == null)
         {
-            generateType = GenerateType.NoGenerate;
-            serializeLayout = SerializeLayout.Sequential;
-            return false;
-        }
-
-        var memPackUnionFormatterAttr = symbol.GetAttribute(references.MemoryPackUnionFormatterAttribute);
-        if (memPackUnionFormatterAttr != null)
-        {
-            generateType = GenerateType.Union;
+            var memPackUnionFormatterAttr = symbol.GetAttribute(references.MemoryPackUnionFormatterAttribute);
+            generateType = memPackUnionFormatterAttr != null ? GenerateType.Union : GenerateType.NoGenerate;
             serializeLayout = SerializeLayout.Sequential;
             return false;
         }
