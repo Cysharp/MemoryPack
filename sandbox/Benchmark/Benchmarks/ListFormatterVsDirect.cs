@@ -47,7 +47,7 @@ public class ListFormatterVsDirect
     public void SerializePackable()
     {
         var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
-        MemoryPack.Formatters.ListFormatter.SerializePackable(ref writer, ref value!);
+        MemoryPack.Formatters.ListFormatter.SerializePackable(ref writer, value!);
         writer.Flush();
         buffer.Clear();
     }

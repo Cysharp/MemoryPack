@@ -53,7 +53,7 @@ namespace MemoryPack.Formatters
     {
         [Preserve]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SerializePackable<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref List<T?>? value)
+        public static void SerializePackable<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, List<T?>? value)
             where T : IMemoryPackable<T>
 #if NET7_0_OR_GREATER
             where TBufferWriter : IBufferWriter<byte>

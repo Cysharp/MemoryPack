@@ -1261,7 +1261,7 @@ public partial class MemberMeta
             case MemberKind.MemoryPackableArray:
                 return $"{writer}.WritePackableArray(value.@{Name});";
             case MemberKind.MemoryPackableList:
-                return $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, ref System.Runtime.CompilerServices.Unsafe.AsRef(value.@{Name}));";
+                return $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, value.@{Name});";
             case MemberKind.Array:
                 return $"{writer}.WriteArray(value.@{Name});";
             case MemberKind.Blank:
