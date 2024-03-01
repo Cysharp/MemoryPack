@@ -485,7 +485,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 {{circularReferenceBody}}
 {{readBeginBody}}
-{{circularReferenceBody2}}        
+{{circularReferenceBody2}}
 {{Members.Where(x => x.Symbol != null).Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
 
         {{(!isVersionTolerant ? "" : "var readCount = " + count + ";")}}
@@ -532,7 +532,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
                 goto NEW;
             }
-{{(IsValueType ? "#if false" : "            else")}}            
+{{(IsValueType ? "#if false" : "            else")}}
             {
                 goto SET;
             }
@@ -669,7 +669,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{EmitSerializeMembers(Members, "            ", toTempWriter: true, writeObjectHeader: false)}}
 
             tempWriter.Flush();
-            
+
             writer.WriteObjectHeader({{Members.Length}});
             for (int i = 0; i < {{Members.Length}}; i++)
             {
@@ -898,7 +898,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         else
         {
-            var nameDict = Members.Where(x => x.Symbol != null && x.IsConstructorParameter).ToDictionary(x => x.ConstructorParameterName, x => x.Name, StringComparer.OrdinalIgnoreCase);
+            var nameDict = Members.Where(x => x.IsConstructorParameter).ToDictionary(x => x.ConstructorParameterName, x => x.Name, StringComparer.OrdinalIgnoreCase);
             var parameters = this.Constructor.Parameters
                 .Select(x =>
                 {
@@ -982,7 +982,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}
-{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}            
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
         }
     }
 }
@@ -1039,7 +1039,7 @@ partial class {{TypeName}} : MemoryPackFormatter<{{symbolFullQualified}}>
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}
-{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}            
+{{OnDeserialized.Select(x => "            " + x.Emit()).NewLine()}}
         }
 }
 
@@ -1051,7 +1051,7 @@ public static class {{initializerName}}
     public static void RegisterFormatter()
     {
 {{registerFormatterCode}}
-    }    
+    }
 }
 """;
 
@@ -1112,7 +1112,7 @@ public static class {{initializerName}}
 
                 switch (tag)
                 {
-{{writeBody}}                
+{{writeBody}}
                     default:
                         break;
                 }
@@ -1162,7 +1162,7 @@ public static class {{initializerName}}
 {{OnDeserialized.Select(x => "                " + x.Emit()).NewLine()}}
                 return;
             }
-        
+
             switch (tag)
             {
 {{readBody}}
