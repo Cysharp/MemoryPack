@@ -301,6 +301,11 @@ public static partial class MemoryPackFormatterProvider
         if (formatterType != null) goto CREATE;
 #endif
 
+#if NET8_0_OR_GREATER
+        formatterType = TryCreateGenericFormatterType(type, FrozenCollectionFormatters);
+        if (formatterType != null) goto CREATE;
+#endif
+
         formatterType = TryCreateGenericFormatterType(type, InterfaceCollectionFormatters);
         if (formatterType != null) goto CREATE;
 
@@ -371,7 +376,7 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
-#endif        
+#endif
     {
         Throw();
     }
