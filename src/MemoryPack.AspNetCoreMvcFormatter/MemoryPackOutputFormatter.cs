@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Formatters;
+﻿using System.Net.Mime;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace MemoryPack.AspNetCoreMvcFormatter;
 
 public class MemoryPackOutputFormatter : OutputFormatter
 {
-    const string ContentType = "application/x-memorypack";
     readonly MemoryPackSerializerOptions? options;
     readonly bool checkContentType = false;
 
@@ -17,14 +17,14 @@ public class MemoryPackOutputFormatter : OutputFormatter
     public MemoryPackOutputFormatter(MemoryPackSerializerOptions options)
     {
         this.options = options;
-        SupportedMediaTypes.Add(ContentType);
+        SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationMemoryPack);
     }
 
     public override bool CanWriteResult(OutputFormatterCanWriteContext context)
     {
         if (checkContentType)
         {
-            return (context.ContentType == ContentType);
+            return MediaTypeHeaderValues.ApplicationMemoryPack.MatchesMediaType(context.ContentType);
         }
         else
         {
@@ -34,7 +34,7 @@ public class MemoryPackOutputFormatter : OutputFormatter
 
     public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
     {
-        context.HttpContext.Response.ContentType = ContentType;
+        context.ContentType = MediaTypeHeaderValues.ApplicationMemoryPack.MediaType;
 
         if (context.Object == null)
         {
