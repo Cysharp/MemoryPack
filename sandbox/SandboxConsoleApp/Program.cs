@@ -28,6 +28,21 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
 
+using MemoryPack;
+using System.Runtime.InteropServices;
+
+Console.WriteLine($"{RuntimeInformation.FrameworkDescription}");
+
+//var r = new MemPackTestObj() { Strings = new[] { "a", "b", "c" } };
+//var bytes = MemoryPackSerializer.Serialize(r);
+
+var bytes = Convert.FromBase64String("AwMAAAD+////AQAAAGH+////AQAAAGL+////AQAAAGMAAAAAAAAAAP////8=");
+Console.WriteLine(Convert.ToBase64String(bytes));
+var r2 = MemoryPackSerializer.Deserialize<MemPackTestObj>(bytes);
+foreach (var s in r2!.Strings)
+{
+    Console.WriteLine(s);
+}
 
 var value = new ListBytesSample();
 
@@ -46,6 +61,15 @@ MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref value);
 
 
 var span = CollectionsMarshal.AsSpan(value.Payload);
+
+
+[MemoryPackable]
+public partial record MemPackTestObj
+{
+    public string[] Strings { get; set; }
+    public DateTime Date { get; set; }
+    public string Name { get; set; }
+}
 
 
 [MemoryPackable]
@@ -206,7 +230,7 @@ public partial struct BrotliValue<T>
 
 
 
-//BrotliDecoder.TryDecompress(written, 
+//BrotliDecoder.TryDecompress(written,
 
 
 
