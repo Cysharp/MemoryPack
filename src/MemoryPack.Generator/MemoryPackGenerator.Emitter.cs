@@ -516,7 +516,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             {{(IsValueType ? "" : "if (value == null)")}}
             {
-{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = default!;").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = {x.DefaultValueExpression};").NewLine()}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
@@ -1365,6 +1365,23 @@ public partial class MemberMeta
             default:
                 return $"{pre}reader.ReadValue(ref __{Name});";
         }
+    }
+
+    string EmitConstantValue(object? constantValue)
+    {
+        if (constantValue != null)
+        {
+            return constantValue switch
+            {
+                string x => $"\"{x}\"",
+                char x => $"'{x}'",
+                float x => $"{x}f",
+                decimal x => $"{x}D",
+                bool x => x ? "true" : "false",
+                _ => constantValue.ToString()
+            };
+        }
+        return "null";
     }
 }
 

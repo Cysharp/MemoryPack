@@ -609,6 +609,7 @@ partial class MemberMeta
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
+    public string DefaultValueExpression { get; } = "default!";
 
     MemberMeta(int order)
     {
@@ -638,8 +639,12 @@ partial class MemberMeta
 
         if (constructor != null)
         {
-            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameterName);
-            this.ConstructorParameterName = constructorParameterName;
+            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameter);
+            this.ConstructorParameterName = constructorParameter?.Name;
+            if (constructorParameter?.HasExplicitDefaultValue == true)
+            {
+                DefaultValueExpression = EmitConstantValue(constructorParameter.ExplicitDefaultValue);
+            }
         }
         else
         {
@@ -657,7 +662,10 @@ partial class MemberMeta
 #endif
                 ;
             MemberType = f.Type;
-
+            if (f.HasConstantValue)
+            {
+                DefaultValueExpression = EmitConstantValue(f.ConstantValue);
+            }
         }
         else if (symbol is IPropertySymbol p)
         {
@@ -670,6 +678,16 @@ partial class MemberMeta
 #endif
                 && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
             MemberType = p.Type;
+
+            // Detect default value
+            foreach (var syntaxReference in p.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax() is PropertyDeclarationSyntax { Initializer: { } initializer })
+                {
+                    DefaultValueExpression = initializer.Value.ToString();
+                    break;
+                }
+            }
         }
         else
         {
