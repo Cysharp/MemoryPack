@@ -1,5 +1,5 @@
 {
-    "name": "MemoryPack",
+    "name": "MemoryPack.Unity",
     "rootNamespace": "MemoryPack",
     "references": [],
     "includePlatforms": [],
@@ -7,7 +7,7 @@
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
-        "System.Runtime.CompilerServices.Unsafe.dll"
+        "MemoryPack.Core.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -16,9 +16,9 @@ namespace MemoryPack.Tests.Models
         public int A; // public field
         [MemoryPackInclude]
         private int B; // private field
-        public readonly int C; // public readonly field
-        [MemoryPackInclude]
-        private readonly int D; // readonly field
+        // public readonly int C; // public readonly field
+        // [MemoryPackInclude]
+        // private readonly int D; // readonly field
 
         public int E { get; set; } // public property
         public int F { private get; set; } // private get

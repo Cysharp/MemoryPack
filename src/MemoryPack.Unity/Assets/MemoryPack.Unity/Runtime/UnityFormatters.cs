@@ -9,7 +9,7 @@ namespace MemoryPack
     internal sealed class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
     {
         [Preserve]
-        public override void Serialize(ref MemoryPackWriter writer, ref AnimationCurve? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref AnimationCurve? value)
         {
             if (value == null)
             {
@@ -50,7 +50,7 @@ namespace MemoryPack
     internal sealed class GradientFormatter : MemoryPackFormatter<Gradient>
     {
         [Preserve]
-        public override void Serialize(ref MemoryPackWriter writer, ref Gradient? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref Gradient? value)
         {
             if (value == null)
             {
@@ -94,7 +94,7 @@ namespace MemoryPack
     internal sealed class RectOffsetFormatter : MemoryPackFormatter<RectOffset>
     {
         [Preserve]
-        public override void Serialize(ref MemoryPackWriter writer, ref RectOffset? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref RectOffset? value)
         {
             if (value == null)
             {

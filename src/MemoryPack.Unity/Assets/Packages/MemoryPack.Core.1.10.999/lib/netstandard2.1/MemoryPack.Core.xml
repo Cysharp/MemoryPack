@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MemoryPack.Core</name>
+    </assembly>
+    <members>
+        <member name="M:MemoryPack.MemoryPackableAttribute.#ctor(MemoryPack.GenerateType)">
+            <summary>
+            [generateType, (VersionTolerant or CircularReference) ? SerializeLayout.Explicit : SerializeLayout.Sequential]
+            </summary>
+            <param name="generateType"></param>
+        </member>
+        <member name="M:MemoryPack.MemoryPackableAttribute.#ctor(MemoryPack.SerializeLayout)">
+            <summary>
+            [GenerateType.Object, serializeLayout]
+            </summary>
+        </member>
+        <member name="M:MemoryPack.MemoryPackReader.DangerousTryReadCollectionHeader(System.Int32@)">
+            <summary>
+            no validate collection size, be careful to use.
+            </summary>
+        </member>
+    </members>
+</doc>
