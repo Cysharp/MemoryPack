@@ -21,9 +21,9 @@ jobs:
 
   build-unity:
     if: "((github.event_name == 'push' && github.repository_owner == 'Cysharp') || startsWith(github.event.pull_request.head.label, 'Cysharp:'))"
-    strategy:
-      matrix:
-        unity: ["2021.3.11f1"]
+    # strategy:
+    #   matrix:
+    #     unity: ["2021.3.11f1"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
