@@ -43,9 +43,6 @@ jobs:
 
   build-unity:
     needs: [update-packagejson]
-    strategy:
-      matrix:
-        unity: ["2021.3.11f1"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,30 +50,30 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
-      # Execute scripts: Export Package
-      # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
-      - name: Build Unity (.unitypacakge)
-        uses: Cysharp/Actions/.github/actions/unity-builder@main
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-        with:
-          projectPath: src/MemoryPack.Unity
-          unityVersion: ${{ matrix.unity }}
-          targetPlatform: StandaloneLinux64
-          buildMethod: PackageExporter.Export
+      # # Execute scripts: Export Package
+      # # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
+      # - name: Build Unity (.unitypacakge)
+      #   uses: Cysharp/Actions/.github/actions/unity-builder@main
+      #   env:
+      #     UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      #     UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      #     UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+      #   with:
+      #     projectPath: src/MemoryPack.Unity
+      #     unityVersion: ${{ matrix.unity }}
+      #     targetPlatform: StandaloneLinux64
+      #     buildMethod: PackageExporter.Export
 
       # check meta files
       - uses: Cysharp/Actions/.github/actions/check-metas@main
         with:
           directory: src/MemoryPack.Unity
       # Store artifacts.
-      - uses: actions/upload-artifact@v3
-        with:
-          name: MemoryPack.${{ inputs.tag }}.unitypackage
-          path: ./src/MemoryPack.Unity/MemoryPack.${{ inputs.tag }}.unitypackage
-          if-no-files-found: error
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: MemoryPack.${{ inputs.tag }}.unitypackage
+      #     path: ./src/MemoryPack.Unity/MemoryPack.${{ inputs.tag }}.unitypackage
+      #     if-no-files-found: error
 
   # release
   create-release:
