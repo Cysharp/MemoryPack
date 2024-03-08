@@ -67,19 +67,4 @@
         </Compile>
     </ItemGroup>
 
-    <!-- Copy files for Unity -->
-    <PropertyGroup>
-        <DestinationRoot>$(MSBuildProjectDirectory)\..\MemoryPack.Unity\Assets\Plugins\MemoryPack\Runtime\MemoryPack.Core</DestinationRoot>
-    </PropertyGroup>
-    <ItemGroup>
-        <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;**\CollectionsMarshalEx.cs;**\ImmutableCollectionFormatters.cs" />
-    </ItemGroup>
-
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net7.0'">
-        <Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
-
-        <!-- After copy, replace for unity codes -->
-        <Exec Command="dotnet run -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\PostBuildUtility\PostBuildUtility.csproj -- $(DestinationRoot)" />
-    </Target>
-
 </Project>

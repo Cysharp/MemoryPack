@@ -1,5 +1,4 @@
-﻿using MemoryPack;
-using MemoryPack.Compression;
+﻿using MemoryPack.Compression;
 using System;
 
 namespace MemoryPack.Tests;

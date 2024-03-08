@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "MemoryPack.Generator.Roslyn3.11": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\..\\tests\\MemoryPack.Tests.Roslyn3\\MemoryPack.Tests.Roslyn3.csproj"
-    }
-  }
-}
