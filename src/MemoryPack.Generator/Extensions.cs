@@ -1,12 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MemoryPack.Generator;
 
 internal static class Extensions
 {
-    private const string UnderScorePrefix = "_";
-
     public static string NewLine(this IEnumerable<string> source)
     {
         return string.Join(Environment.NewLine, source);
@@ -248,22 +245,27 @@ internal static class Extensions
         }
     }
 
-    public static bool TryGetConstructorParameter(this IMethodSymbol constructor, ISymbol member, out string? constructorParameterName)
+    public static bool TryGetConstructorParameter(this IMethodSymbol constructor, string name, out string? foundName)
     {
-        var constructorParameter = GetConstructorParameter(constructor, member.Name);
-        if (constructorParameter == null && member.Name.StartsWith(UnderScorePrefix))
-        {
-            constructorParameter = GetConstructorParameter(constructor, member.Name.Substring(UnderScorePrefix.Length));
-        }
-
-        constructorParameterName = constructorParameter?.Name;
-        return constructorParameter != null;
-
-        static IParameterSymbol? GetConstructorParameter(IMethodSymbol constructor, string name) => constructor.Parameters.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        // Find case-insensitive match
+        var found = constructor.Parameters.FirstOrDefault(param
+            => param.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        // Else find underscore-ignoring match
+        found ??= constructor.Parameters.FirstOrDefault(param
+            => param.Name.Replace("_", "").Equals(name.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+        // Return found
+        foundName = found?.Name;
+        return found != null;
     }
-
-    public static bool ContainsConstructorParameter(this IEnumerable<MemberMeta> members, IParameterSymbol constructorParameter) =>
-        members.Any(x =>
-            x.IsConstructorParameter &&
-            string.Equals(constructorParameter.Name, x.ConstructorParameterName, StringComparison.OrdinalIgnoreCase));
+    public static bool ContainsConstructorParameter(this IEnumerable<MemberMeta> members, string name)
+    {
+        // Find case-insensitive match
+        var found = members.FirstOrDefault(param
+            => param.IsConstructorParameter && param.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        // Else find underscore-ignoring match
+        found ??= members.FirstOrDefault(param
+            => param.IsConstructorParameter && param.Name.Replace("_", "").Equals(name.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+        // Return found
+        return found != null;
+    }
 }

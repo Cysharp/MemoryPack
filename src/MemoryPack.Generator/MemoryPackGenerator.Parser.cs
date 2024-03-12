@@ -358,7 +358,7 @@ public partial class TypeMeta
             {
                 foreach (var parameter in Constructor.Parameters)
                 {
-                    if (!Members.ContainsConstructorParameter(parameter))
+                    if (!Members.ContainsConstructorParameter(parameter.Name))
                     {
                         var location = Constructor.Locations.FirstOrDefault() ?? syntax.Identifier.GetLocation();
 
@@ -638,7 +638,7 @@ partial class MemberMeta
 
         if (constructor != null)
         {
-            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameterName);
+            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol.Name, out var constructorParameterName);
             this.ConstructorParameterName = constructorParameterName;
         }
         else
