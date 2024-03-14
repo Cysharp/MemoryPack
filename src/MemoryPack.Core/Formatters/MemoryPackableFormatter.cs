@@ -12,7 +12,7 @@ public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
     {
-        T.Serialize(ref writer, ref Unsafe.AsRef(value));
+        T.Serialize(ref writer, ref Unsafe.AsRef(in value));
     }
 
     [Preserve]

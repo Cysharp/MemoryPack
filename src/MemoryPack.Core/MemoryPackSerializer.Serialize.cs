@@ -141,7 +141,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(bufferWriter), state);
+            var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(in bufferWriter), state);
             Serialize(ref writer, value);
         }
         finally

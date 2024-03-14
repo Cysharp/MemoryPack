@@ -306,7 +306,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Unsafe.WriteUnaligned(ref dest, value.Length);
 
 #if NET7_0_OR_GREATER
-        ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(value.GetPinnableReference()));
+        ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(in value.GetPinnableReference()));
         Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
 #else
         MemoryMarshal.AsBytes(value.AsSpan()).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dest, 4), copyByteCount));
@@ -405,7 +405,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         depth++;
         if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));
-        T.Serialize(ref this, ref Unsafe.AsRef(value));
+        T.Serialize(ref this, ref Unsafe.AsRef(in value));
         depth--;
     }
 
@@ -426,7 +426,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     {
         depth++;
         if (depth == DepthLimit) MemoryPackSerializationException.ThrowReachedDepthLimit(typeof(T));
-        GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(value));
+        GetFormatter<T>().Serialize(ref this, ref Unsafe.AsRef(in value));
         depth--;
     }
 
@@ -444,7 +444,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         where TFormatter : IMemoryPackFormatter<T>
     {
         depth++;
-        formatter.Serialize(ref this, ref Unsafe.AsRef(value));
+        formatter.Serialize(ref this, ref Unsafe.AsRef(in value));
         depth--;
     }
 
@@ -503,7 +503,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
-            formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+            formatter.Serialize(ref this, ref Unsafe.AsRef(in value[i]));
         }
     }
 
@@ -575,7 +575,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         WriteCollectionHeader(value.Length);
         for (int i = 0; i < value.Length; i++)
         {
-            T.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+            T.Serialize(ref this, ref Unsafe.AsRef(in value[i]));
         }
 #endif
     }
@@ -697,7 +697,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             var formatter = GetFormatter<T>();
             for (int i = 0; i < value.Length; i++)
             {
-                formatter.Serialize(ref this, ref Unsafe.AsRef(value[i]));
+                formatter.Serialize(ref this, ref Unsafe.AsRef(in value[i]));
             }
         }
     }
