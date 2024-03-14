@@ -132,12 +132,12 @@ public
             var writtenNotAdvanced = 0;
             foreach (var item in bufferWriter)
             {
-                writtenNotAdvanced = CompressCore(ref encoder, item.Span, ref Unsafe.AsRef(destBufferWriter), initialLength: null, isFinalBlock: false);
+                writtenNotAdvanced = CompressCore(ref encoder, item.Span, ref Unsafe.AsRef(in destBufferWriter), initialLength: null, isFinalBlock: false);
             }
 
             // call BrotliEncoderOperation.Finish
             var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
-            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref Unsafe.AsRef(destBufferWriter), initialLength: finalBlockLength, isFinalBlock: true);
+            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref Unsafe.AsRef(in destBufferWriter), initialLength: finalBlockLength, isFinalBlock: true);
         }
         finally
         {

@@ -129,3 +129,5 @@ src/MemoryPack.Unity/Logs/*
 src/MemoryPack.Unity/*.csproj
 src/MemoryPack.Unity/*.sln
 src/MemoryPack.Unity/MemoryPack.*.unitypackage
+
+.DS_Store

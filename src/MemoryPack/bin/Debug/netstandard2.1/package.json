@@ -1,0 +1,13 @@
+{
+    "name": "com.cysharp.memorypack.internal",
+    "displayName": "MemoryPack Internal",
+    "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
+    "version": "1.0.0",
+    "unity": "2022.3",
+    "unityRelease": "12f1",
+    "description": "Internal Package of R3 for development time.",
+    "keywords": ["Serialization"],
+    "license": "MIT",
+    "category": "Scripting",
+    "dependencies": {}
+}
