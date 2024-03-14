@@ -144,6 +144,7 @@ public partial class ForExternalUnionFormatter3
 public partial class NoraType
 {
     public IForExternalUnion? ExtUnion { get; set; }
+    public UnionAbstractClass? AbstractUnion { get; set; }
 }
 
 // Union for record

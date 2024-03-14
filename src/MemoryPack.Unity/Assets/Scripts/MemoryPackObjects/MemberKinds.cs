@@ -38,6 +38,12 @@ namespace MemoryPack.Tests.Models
 
         int[] kArray = new int[1];
 
+        public MemberKindsAllUnmanaged(int c, int d)
+        {
+            this.C = c;
+            this.D = d;
+        }
+
         public ref int K
         {
             get { return ref kArray[0]; }
