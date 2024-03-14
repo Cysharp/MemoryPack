@@ -412,7 +412,8 @@ public static partial class UnitTestBuilder
         }
 
         // MemoryPack changed:
-        EditorUserBuildSettings.il2CppCodeGeneration = Il2CppCodeGeneration.OptimizeSpeed; //runtime
+        var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(targetGroup);
+        PlayerSettings.SetIl2CppCodeGeneration(namedBuildTarget, Il2CppCodeGeneration.OptimizeSpeed);
 
         var buildOptions = new BuildPlayerOptions
         {
@@ -471,7 +472,7 @@ public static partial class UnitTestBuilder
             case BuildTarget.StandaloneWindows64:
             case BuildTarget.WSAPlayer:
                 return ".exe";
-            case BuildTarget.StandaloneOSX:                
+            case BuildTarget.StandaloneOSX:
                 return ".app";
             case BuildTarget.Android:
                 return ".apk";
