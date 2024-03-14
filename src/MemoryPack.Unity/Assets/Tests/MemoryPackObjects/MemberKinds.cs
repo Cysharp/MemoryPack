@@ -49,12 +49,6 @@ namespace MemoryPack.Tests.Models
             get { return ref kArray[0]; }
         }
 
-        public MemberKindsAllUnmanaged(int c, int d)
-        {
-            this.C = c;
-            this.D = d;
-        }
-
         public void SetH(int h)
         {
             this.H = h;
