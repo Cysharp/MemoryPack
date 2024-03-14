@@ -662,9 +662,24 @@ partial class MemberMeta
 #endif
                 ;
             MemberType = f.Type;
-            if (f.HasConstantValue)
+
+            // Detect default value
+            foreach (var syntaxReference in f.DeclaringSyntaxReferences)
             {
-                DefaultValueExpression = EmitConstantValue(f.ConstantValue);
+                var syntax = syntaxReference.GetSyntax();
+                if (syntax is FieldDeclarationSyntax { Declaration.Variables: { Count: > 0 } variables })
+                {
+                    if (variables.First().Initializer is { } initializer)
+                    {
+                        DefaultValueExpression = initializer.Value.ToString();
+                        break;
+                    }
+                }
+                if (syntax is VariableDeclaratorSyntax  { Initializer: { } initializer2 })
+                {
+                    DefaultValueExpression = initializer2.Value.ToString();
+                    break;
+                }
             }
         }
         else if (symbol is IPropertySymbol p)
