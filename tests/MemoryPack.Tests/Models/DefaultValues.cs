@@ -27,12 +27,21 @@ partial class PropertyDefaultValue
 }
 
 [MemoryPackable]
-[method: MemoryPackConstructor]
-partial class CtorParamDefaultValue(int x, int y = 12345, float z = 678.9f, string s = "aaaaaa", bool b = true)
+partial class CtorParamDefaultValue
 {
-    public int X = x;
-    public int Y = y;
-    public float Z = z;
-    public string S = s;
-    public bool B = b;
+    public int X;
+    public int Y;
+    public float Z;
+    public string S;
+    public bool B;
+
+    [MemoryPackConstructor]
+    public CtorParamDefaultValue(int x, int y = 12345, float z = 678.9f, string s = "aaaaaa", bool b = true)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+        S = s;
+        B = b;
+    }
 }
