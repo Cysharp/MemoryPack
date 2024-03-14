@@ -3,6 +3,7 @@ using MemoryPack.Internal;
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 // Immutable Collections formatters
 
@@ -63,10 +64,14 @@ namespace MemoryPack.Formatters
                 return;
             }
 
+#if NET8_0_OR_GREATER
+            value = ImmutableCollectionsMarshal.AsImmutableArray(array);
+#else
             // create Empty and replace inner T[] field(avoid defensive copy of Create)
             value = ImmutableArray.Create<T?>();
             ref var view = ref Unsafe.As<ImmutableArray<T?>, ImmutableArrayView<T?>>(ref value);
             view.array = array;
+#endif
         }
     }
 
@@ -348,7 +353,7 @@ namespace MemoryPack.Formatters
 
             var keyFormatter = writer.GetFormatter<TKey>();
             var valueFormatter = writer.GetFormatter<TValue>();
-            
+
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
@@ -879,7 +884,7 @@ namespace MemoryPack.Formatters
 
             var keyFormatter = writer.GetFormatter<TKey>();
             var valueFormatter = writer.GetFormatter<TValue>();
-            
+
             writer.WriteCollectionHeader(value.Count);
             foreach (var item in value)
             {
