@@ -65,7 +65,6 @@ jobs:
       tag: ${{ inputs.tag }}
       nuget-push: true
       release-upload: true
-      release-asset-path: ./MemoryPack.${{ inputs.tag }}.unitypackage/MemoryPack.${{ inputs.tag }}.unitypackage
     secrets: inherit
 
   cleanup:
