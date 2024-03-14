@@ -686,7 +686,7 @@ namespace MemoryPack.Formatters
         {
             get
             {
-                return this.groupings[key];
+                return this.groupings.TryGetValue(key, out var value) ? value : Enumerable.Empty<TElement>();
             }
         }
 
