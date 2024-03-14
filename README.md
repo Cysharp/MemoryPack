@@ -1348,15 +1348,6 @@ In Unity performance, MemoryPack is x3~x10 faster than JsonUtility.
 
 ![image](https://user-images.githubusercontent.com/46207/209254561-79ec18fe-c421-4d8c-9c86-b55276dd1a45.png)
 
-
-Unity version's MemoryPack does not compatible with .NET MemoryPack in NuGet so can't do creating netstandard 2.1 dll in .NET and use in Unity. If you want to share type between .NET and Unity, share source-code, for example place source code in Unity directory and .NET project reference by code link.
-
-```xml
-<ItemGroup>
-  <Compile Include="..\ChatApp.Unity\Assets\Scripts\ServerShared\**\*.cs" />
-</ItemGroup>
-```
-
 If shared code has Unity's type(`Vector2`, etc...), MemoryPack provides `MemoryPack.UnityShims` package in NuGet.
 
 The `MemoryPack.UnityShims` package provides shims for Unity's standard structs (`Vector2`, `Vector3`, `Vector4`, `Quaternion`, `Color`, `Bounds`, `Rect`, `Keyframe`, `WrapMode`, `Matrix4x4`, `GradientColorKey`, `GradientAlphaKey`, `GradientMode`, `Color32`, `LayerMask`, `Vector2Int`, `Vector3Int`, `RangeInt`, `RectInt`, `BoundsInt`) and some classes(`AnimationCurve`, `Gradient`, `RectOffset`).
