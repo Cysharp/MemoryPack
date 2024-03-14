@@ -79,6 +79,12 @@ public
         return bufferWriter.GetSpan(sizeHint);
     }
 
+    public int GetMaxCompressedLength()
+    {
+        ThrowIfDisposed();
+        return BrotliUtils.BrotliEncoderMaxCompressedSize(bufferWriter.TotalWritten);
+    }
+
     public byte[] ToArray()
     {
         ThrowIfDisposed();
