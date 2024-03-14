@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.cysharp.memorypack.internal": "file:../../MemoryPack/bin/Debug/netstandard2.1",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.unity.ai.navigation": "1.1.5",
     "com.unity.collab-proxy": "2.2.0",

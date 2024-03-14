@@ -10,18 +10,18 @@ namespace Models
     [MemoryPackable]
     public partial class MyContainer
     {
-        public Dictionary<int, string> Dict = new Dictionary<int, string>();
+        public Dictionary<int, string> Dict = new();
     }
 
     [MemoryPackable]
     public partial class MyContainer2
     {
-        public List<int> List = new List<int>();
+        public List<int> List = new();
     }
 
     [MemoryPackable]
     public partial class MyContainer3
     {
-        public HashSet<long> Set = new HashSet<long>();
+        public HashSet<long> Set = new();
     }
 }

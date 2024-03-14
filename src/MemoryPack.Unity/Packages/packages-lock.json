@@ -1,11 +1,17 @@
 {
   "dependencies": {
+    "com.cysharp.memorypack.internal": {
+      "version": "file:../../MemoryPack/bin/Debug/netstandard2.1",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "25dcde8a309d6f273c82699af7967ef46048e5a1"
+      "hash": "b93741e2b5fe9073e169853ade0039c7cf2595f0"
     },
     "com.unity.2d.animation": {
       "version": "9.0.4",
