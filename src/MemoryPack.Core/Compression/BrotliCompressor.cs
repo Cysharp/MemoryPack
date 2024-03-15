@@ -151,17 +151,20 @@ public
 
         using var encoder = new BrotliEncoder(quality, window);
 
+        foreach (var item in bufferWriter)
+        {
+            if (item.Length > bufferSize)
+            {
+                bufferSize = item.Length;
+            }
+        }
+
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         try
         {
             foreach (var item in bufferWriter)
             {
                 var source = item;
-                if (source.Length > buffer.Length)
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    buffer = ArrayPool<byte>.Shared.Rent(source.Length);
-                }
                 var lastResult = OperationStatus.DestinationTooSmall;
                 while (lastResult == OperationStatus.DestinationTooSmall)
                 {
