@@ -38,7 +38,7 @@ partial class MemoryPackGenerator
             return null;
         }
 
-        var typeMeta = new TypeMeta(typeSymbol, reference);
+        var typeMeta = new TypeMeta(semanticModel, typeSymbol, reference);
 
         if (typeMeta.GenerateType is not (GenerateType.Object or GenerateType.Union))
         {
