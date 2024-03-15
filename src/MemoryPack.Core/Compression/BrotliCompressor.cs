@@ -174,10 +174,18 @@ public
             }
 
             // call BrotliEncoderOperation.Finish
-            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
-            if (written > 0)
+            var finalStatus = OperationStatus.DestinationTooSmall;
+            while (finalStatus == OperationStatus.DestinationTooSmall)
             {
-                await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
+                finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
+                if (written > 0)
+                {
+                    await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
+                }
+            }
+            if (finalStatus != OperationStatus.Done)
+            {
+                MemoryPackSerializationException.ThrowCompressionFailed(finalStatus);
             }
         }
         finally
