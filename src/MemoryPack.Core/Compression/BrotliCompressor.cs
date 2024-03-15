@@ -157,6 +157,11 @@ public
             foreach (var item in bufferWriter)
             {
                 var source = item;
+                if (source.Length > buffer.Length)
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                    buffer = ArrayPool<byte>.Shared.Rent(source.Length);
+                }
                 var lastResult = OperationStatus.DestinationTooSmall;
                 while (lastResult == OperationStatus.DestinationTooSmall)
                 {
@@ -175,6 +180,10 @@ public
 
             // call BrotliEncoderOperation.Finish
             var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
+            if (finalStatus != OperationStatus.Done)
+            {
+                MemoryPackSerializationException.ThrowCompressionFailed(finalStatus);
+            }
             if (written > 0)
             {
                 await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
