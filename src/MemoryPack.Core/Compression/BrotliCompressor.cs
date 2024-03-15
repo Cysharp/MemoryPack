@@ -151,14 +151,6 @@ public
 
         using var encoder = new BrotliEncoder(quality, window);
 
-        foreach (var item in bufferWriter)
-        {
-            if (item.Length > bufferSize)
-            {
-                bufferSize = item.Length;
-            }
-        }
-
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         try
         {
@@ -182,14 +174,18 @@ public
             }
 
             // call BrotliEncoderOperation.Finish
-            var finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
+            var finalStatus = OperationStatus.DestinationTooSmall;
+            while (finalStatus == OperationStatus.DestinationTooSmall)
+            {
+                finalStatus = encoder.Compress(ReadOnlySpan<byte>.Empty, buffer, out var consumed, out var written, isFinalBlock: true);
+                if (written > 0)
+                {
+                    await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
+                }
+            }
             if (finalStatus != OperationStatus.Done)
             {
                 MemoryPackSerializationException.ThrowCompressionFailed(finalStatus);
-            }
-            if (written > 0)
-            {
-                await stream.WriteAsync(buffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
             }
         }
         finally
