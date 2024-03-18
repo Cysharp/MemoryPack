@@ -27,6 +27,7 @@
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
         <ProjectReference Include="..\..\src\MemoryPack.Streaming\MemoryPack.Streaming.csproj" />
+        <ProjectReference Include="..\MemoryPack.Tests.Aux\MemoryPack.Tests.Aux.csproj" />
     </ItemGroup>
 
     <ItemGroup>

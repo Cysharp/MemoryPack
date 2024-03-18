@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MemoryPack.Tests.Aux.Models;
 
 // namespaced
 namespace MemoryPack.Tests.Models
@@ -69,6 +70,11 @@ namespace MemoryPack.Tests.Models
         public StandardTypeOne[]? One { get; set; }
     }
 
+    [MemoryPackable]
+    public partial class WithEnum
+    {
+        public ExternalEnum MyProperty { get; set; } = ExternalEnum.A;
+    }
 }
 
 // another namespace, same type name
