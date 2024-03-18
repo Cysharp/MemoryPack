@@ -1,4 +1,11 @@
+using System.Collections.Generic;
+
 namespace MemoryPack.Tests.Models;
+
+enum TestEnum
+{
+    A, B, C
+}
 
 [MemoryPackable]
 partial class DefaultValuePlaceholder
@@ -24,6 +31,9 @@ partial class PropertyDefaultValue
     public float Z { get; set; } = 678.9f;
     public string S { get; set; } = "aaaaaaaaa";
     public bool B { get; set; } = true;
+    public List<string> Alpha { get; set; } = new List<string>(new HashSet<string>());
+    public TestEnum TestEnum { get; set; } = TestEnum.A;
+    public (TestEnum, List<string>) Tuple { get; set; } = (TestEnum.A, new List<string>(new HashSet<string>()));
 }
 
 [MemoryPackable]

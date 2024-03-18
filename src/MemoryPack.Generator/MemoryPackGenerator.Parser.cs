@@ -66,7 +66,7 @@ public partial class TypeMeta
     public (ushort Tag, INamedTypeSymbol Type)[] UnionTags { get; }
     public bool IsUseEmptyConstructor => Constructor == null || Constructor.Parameters.IsEmpty;
 
-    public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
+    public TypeMeta(SemanticModel semanticModel, INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
         this.reference = reference;
         this.Symbol = symbol;
@@ -104,7 +104,7 @@ public partial class TypeMeta
                 }
                 return true;
             })
-            .Select((x, i) => new MemberMeta(x, Constructor, reference, i))
+            .Select((x, i) => new MemberMeta(semanticModel, x, Constructor, reference, i))
             .OrderBy(x => x.Order)
             .ToArray();
 
@@ -616,6 +616,7 @@ partial class MemberMeta
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
     public string DefaultValueExpression { get; } = "default!";
+    readonly SemanticModel semanticModel;
 
     MemberMeta(int order)
     {
@@ -626,8 +627,9 @@ partial class MemberMeta
         this.Kind = MemberKind.Blank;
     }
 
-    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
+    public MemberMeta(SemanticModel semanticModel, ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
     {
+        this.semanticModel = semanticModel;
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.Order = sequentialOrder;
@@ -677,13 +679,13 @@ partial class MemberMeta
                 {
                     if (variables.First().Initializer is { } initializer)
                     {
-                        DefaultValueExpression = initializer.Value.ToString();
+                        DefaultValueExpression = EmitExpression(initializer.Value);
                         break;
                     }
                 }
                 if (syntax is VariableDeclaratorSyntax  { Initializer: { } initializer2 })
                 {
-                    DefaultValueExpression = initializer2.Value.ToString();
+                    DefaultValueExpression = EmitExpression(initializer2.Value);
                     break;
                 }
             }
@@ -705,7 +707,7 @@ partial class MemberMeta
             {
                 if (syntaxReference.GetSyntax() is PropertyDeclarationSyntax { Initializer: { } initializer })
                 {
-                    DefaultValueExpression = initializer.Value.ToString();
+                    DefaultValueExpression = EmitExpression(initializer.Value);
                     break;
                 }
             }

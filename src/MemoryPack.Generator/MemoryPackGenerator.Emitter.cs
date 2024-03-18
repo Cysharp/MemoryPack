@@ -46,7 +46,7 @@ partial class MemoryPackGenerator
         }
         var unionFormatter = (unionSymbol != null);
 
-        var typeMeta = new TypeMeta(typeSymbol, reference);
+        var typeMeta = new TypeMeta(semanticModel, typeSymbol, reference);
         if (unionFormatter)
         {
             // replace original symbol
@@ -1383,5 +1383,53 @@ public partial class MemberMeta
         }
         return "null";
     }
-}
 
+    string EmitExpression(ExpressionSyntax expression)
+    {
+        switch (expression.Kind())
+        {
+            case SyntaxKind.SimpleMemberAccessExpression:
+            {
+                var memberAccess = (MemberAccessExpressionSyntax)expression;
+                var memberSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
+                if (memberSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.TypeKind == TypeKind.Enum)
+                {
+                    return $"{GetTypeFullName(namedTypeSymbol, semanticModel)}.{memberAccess.Name}";
+                }
+                if (memberSymbol is IFieldSymbol fieldSymbol && fieldSymbol.ContainingType.TypeKind == TypeKind.Enum)
+                {
+                    return $"{GetTypeFullName(fieldSymbol.ContainingType, semanticModel)}.{fieldSymbol.Name}";
+                }
+                break;
+            }
+
+            case SyntaxKind.ObjectCreationExpression:
+            {
+                var objectCreation = (ObjectCreationExpressionSyntax)expression;
+                var symbolInfo = semanticModel.GetSymbolInfo(objectCreation.Type);
+                if (symbolInfo.Symbol is INamedTypeSymbol x)
+                {
+                    var arguments = string.Join(", ",
+                        objectCreation.ArgumentList?.Arguments.Select(arg =>
+                            EmitExpression(arg.Expression)) ?? Enumerable.Empty<string>());
+                    return $"new {x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}({arguments})";
+                }
+                break;
+            }
+
+            case SyntaxKind.TupleExpression:
+                var tupleExpression = (TupleExpressionSyntax)expression;
+                var tupleElements = string.Join(", ",
+                    tupleExpression.Arguments.Select(arg => EmitExpression(arg.Expression)));
+                return $"({tupleElements})";
+        }
+        return expression.ToString();
+    }
+
+    string GetTypeFullName(ITypeSymbol typeSymbol, SemanticModel semanticModel)
+    {
+        var containingType = typeSymbol.ContainingType;
+        var containingTypeFullName = containingType == null ? "" : GetTypeFullName(containingType, semanticModel) + ".";
+        return containingTypeFullName + typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+    }
+}
