@@ -1430,6 +1430,6 @@ public partial class MemberMeta
     {
         var containingType = typeSymbol.ContainingType;
         var containingTypeFullName = containingType == null ? "" : GetTypeFullName(containingType, semanticModel) + ".";
-        return containingTypeFullName + typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        return containingTypeFullName + typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 }
