@@ -211,7 +211,7 @@ public
             {
                 var span = item.Span;
                 if (span.Length <= 0) continue;
-                bytesWritten += CompressCore(ref encoder, item.Span, ref memoryPackWriter, initialLength: null, isFinalBlock: false);
+                bytesWritten += CompressCore(ref encoder, span, ref memoryPackWriter, initialLength: null, isFinalBlock: false);
             }
 
             // call BrotliEncoderOperation.Finish
