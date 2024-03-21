@@ -206,15 +206,17 @@ public
         var encoder = new BrotliEncoder(quality, window);
         try
         {
-            var writtenNotAdvanced = 0;
+            var bytesWritten = 0;
             foreach (var item in bufferWriter)
             {
-                writtenNotAdvanced = CompressCore(ref encoder, item.Span, ref memoryPackWriter, initialLength: null, isFinalBlock: false);
+                var span = item.Span;
+                if (span.Length <= 0) continue;
+                bytesWritten += CompressCore(ref encoder, span, ref memoryPackWriter, initialLength: null, isFinalBlock: false);
             }
 
             // call BrotliEncoderOperation.Finish
-            var finalBlockLength = (writtenNotAdvanced == 0) ? null : (int?)(writtenNotAdvanced + 10);
-            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref memoryPackWriter, initialLength: finalBlockLength, isFinalBlock: true);
+            var finalBlockMaxLength = BrotliUtils.BrotliEncoderMaxCompressedSize(bytesWritten) - bytesWritten;
+            CompressCore(ref encoder, ReadOnlySpan<byte>.Empty, ref memoryPackWriter, initialLength: finalBlockMaxLength, isFinalBlock: true);
         }
         finally
         {
@@ -257,7 +259,7 @@ public
         where TBufferWriter : class, IBufferWriter<byte>
 #endif
     {
-        var writtenNotAdvanced = 0;
+        var totalWritten = 0;
 
         var lastResult = OperationStatus.DestinationTooSmall;
         while (lastResult == OperationStatus.DestinationTooSmall)
@@ -266,13 +268,12 @@ public
             var dest = MemoryMarshal.CreateSpan(ref spanRef, destBufferWriter.BufferLength);
 
             lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
-            writtenNotAdvanced += bytesConsumed;
+            totalWritten += bytesWritten;
 
             if (lastResult == OperationStatus.InvalidData) MemoryPackSerializationException.ThrowCompressionFailed();
             if (bytesWritten > 0)
             {
                 destBufferWriter.Advance(bytesWritten);
-                writtenNotAdvanced = 0;
             }
             if (bytesConsumed > 0)
             {
@@ -280,7 +281,7 @@ public
             }
         }
 
-        return writtenNotAdvanced;
+        return totalWritten;
     }
 
     public void Dispose()
