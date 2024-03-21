@@ -46,7 +46,7 @@ partial class CtorParamDefaultValue
     public bool B;
 
     [MemoryPackConstructor]
-    public CtorParamDefaultValue(int x, int y = 12345, float z = 678.9f, string s = "aaaaaa", bool b = true)
+    public CtorParamDefaultValue(int x, int y = 12345, float z = 678.9f, string s = "aaaaaa", bool b = true, decimal d = 99M)
     {
         X = x;
         Y = y;

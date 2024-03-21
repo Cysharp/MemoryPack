@@ -1376,7 +1376,7 @@ public partial class MemberMeta
                 string x => $"\"{x}\"",
                 char x => $"'{x}'",
                 float x => $"{x}f",
-                decimal x => $"{x}D",
+                decimal x => $"{x}M",
                 bool x => x ? "true" : "false",
                 _ => constantValue.ToString()
             };
