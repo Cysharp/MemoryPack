@@ -1339,9 +1339,6 @@ For more information on Unity and Source Generator, please refer to the [Unity d
 
 Source Generator is also used officially by Unity by [com.unity.properties](https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html) and [com.unity.entities](https://docs.unity3d.com/Packages/com.unity.properties@2.0/changelog/CHANGELOG.html). In other words, it is the standard for code generation in the next generation of Unity.
 
-> [!WARNING]
-> Unity version does not support CustomFormatter.
-
 You can serialize all unmanaged types (such as `Vector3`, `Rect`, etc...) and some classes(`AnimationCurve`, `Gradient`, `RectOffset`). If you want to serialize other Unity-specific types, see [Serialize external types](#serialize-external-types) section.
 
 In Unity performance, MemoryPack is x3~x10 faster than JsonUtility.
@@ -1351,6 +1348,19 @@ In Unity performance, MemoryPack is x3~x10 faster than JsonUtility.
 If shared code has Unity's type(`Vector2`, etc...), MemoryPack provides `MemoryPack.UnityShims` package in NuGet.
 
 The `MemoryPack.UnityShims` package provides shims for Unity's standard structs (`Vector2`, `Vector3`, `Vector4`, `Quaternion`, `Color`, `Bounds`, `Rect`, `Keyframe`, `WrapMode`, `Matrix4x4`, `GradientColorKey`, `GradientAlphaKey`, `GradientMode`, `Color32`, `LayerMask`, `Vector2Int`, `Vector3Int`, `RangeInt`, `RectInt`, `BoundsInt`) and some classes(`AnimationCurve`, `Gradient`, `RectOffset`).
+
+> [!WARNING]
+> Currently, the following limitations exist for use in Unity
+
+
+1. Unity version does not support CustomFormatter.
+2. If you are using .NET7 or later, MemoryPack binary format is not fully compatible with Unity.
+    - This problem occurs with value types that `[StructLayout(LayoutKind.Auto)]` is explicitly specified. (The default for struct is `LayoutKind.Sequencil`.) For such types, binaries serialized in .NET cannot be deserialized in Untiy. Similarly, a binary serialized in Unity cannot be serialized in .NET side.
+    - The affected types typically include the following types.
+        - `DateTimeOffset`
+        - `ValueTuple`
+    - Currently, the simple solution is to not use these types.
+
 
 Native AOT
 ---
