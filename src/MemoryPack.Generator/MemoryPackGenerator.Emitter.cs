@@ -1376,12 +1376,12 @@ public partial class MemberMeta
                 string x => $"\"{x}\"",
                 char x => $"'{x}'",
                 float x => $"{x}f",
-                decimal x => $"{x}D",
+                decimal x => $"{x}M",
                 bool x => x ? "true" : "false",
                 _ => constantValue.ToString()
             };
         }
-        return "null";
+        return "default!";
     }
 
     string EmitExpression(ExpressionSyntax expression)
@@ -1392,13 +1392,13 @@ public partial class MemberMeta
             {
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
                 var memberSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
-                if (memberSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.TypeKind == TypeKind.Enum)
+                if (memberSymbol is INamedTypeSymbol { TypeKind: TypeKind.Enum } namedTypeSymbol)
                 {
-                    return $"{GetTypeFullName(namedTypeSymbol, semanticModel)}.{memberAccess.Name}";
+                    return $"{GetTypeFullName(namedTypeSymbol)}.{memberAccess.Name}";
                 }
-                if (memberSymbol is IFieldSymbol fieldSymbol && fieldSymbol.ContainingType.TypeKind == TypeKind.Enum)
+                if (memberSymbol is IFieldSymbol { Type.TypeKind: TypeKind.Enum } fieldSymbol)
                 {
-                    return $"{GetTypeFullName(fieldSymbol.ContainingType, semanticModel)}.{fieldSymbol.Name}";
+                    return $"{GetTypeFullName(fieldSymbol.Type)}.{fieldSymbol.Name}";
                 }
                 break;
             }
@@ -1412,7 +1412,7 @@ public partial class MemberMeta
                     var arguments = string.Join(", ",
                         objectCreation.ArgumentList?.Arguments.Select(arg =>
                             EmitExpression(arg.Expression)) ?? Enumerable.Empty<string>());
-                    return $"new {x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}({arguments})";
+                    return $"new {GetTypeFullName(x)}({arguments})";
                 }
                 break;
             }
@@ -1426,10 +1426,15 @@ public partial class MemberMeta
         return expression.ToString();
     }
 
-    string GetTypeFullName(ITypeSymbol typeSymbol, SemanticModel semanticModel)
+    static string GetTypeFullName(ITypeSymbol typeSymbol)
     {
-        var containingType = typeSymbol.ContainingType;
-        var containingTypeFullName = containingType == null ? "" : GetTypeFullName(containingType, semanticModel) + ".";
-        return containingTypeFullName + typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        if (typeSymbol.ContainingType is { } containingType)
+        {
+            // nested type
+            var containingTypeFullName = containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            return $"{containingTypeFullName}.{typeName}";
+        }
+        return typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 }
