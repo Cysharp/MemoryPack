@@ -1381,7 +1381,7 @@ public partial class MemberMeta
                 _ => constantValue.ToString()
             };
         }
-        return "null";
+        return "default!";
     }
 
     string EmitExpression(ExpressionSyntax expression)
@@ -1431,9 +1431,9 @@ public partial class MemberMeta
         if (typeSymbol.ContainingType is { } containingType)
         {
             // nested type
-            var containgTypeFullName = containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var containingTypeFullName = containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            return $"{containgTypeFullName}.{typeName}";
+            return $"{containingTypeFullName}.{typeName}";
         }
         return typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
