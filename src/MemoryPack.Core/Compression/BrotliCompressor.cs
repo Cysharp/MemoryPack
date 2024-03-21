@@ -262,7 +262,7 @@ public
         var lastResult = OperationStatus.DestinationTooSmall;
         while (lastResult == OperationStatus.DestinationTooSmall)
         {
-            ref var spanRef = ref destBufferWriter.GetSpanReference(initialLength ?? source.Length);
+            ref var spanRef = ref destBufferWriter.GetSpanReference(Math.Max(initialLength ?? source.Length, 1));
             var dest = MemoryMarshal.CreateSpan(ref spanRef, destBufferWriter.BufferLength);
 
             lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);

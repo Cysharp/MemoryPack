@@ -1,5 +1,7 @@
 ﻿using MemoryPack.Compression;
 using System;
+using System.Buffers;
+using System.IO.Compression;
 
 namespace MemoryPack.Tests;
 
@@ -14,6 +16,44 @@ public class BrotliTest
         data.MemDecmpDeserialize(bin);
     }
 
+    [Fact]
+    public void EncodeEmptyCntent()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        using var state = MemoryPackWriterOptionalStatePool.Rent(null);
+        var writer = new MemoryPackWriter<ArrayBufferWriter<byte>>(ref buffer, state);
+
+        using var compressor = new BrotliCompressor(CompressionLevel.Fastest);
+        compressor.CopyTo(ref writer);
+
+        using var decompressor = new BrotliDecompressor();
+        decompressor.Decompress(compressor.ToArray()).ToArray().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void EncodeEmptyFinalBlock()
+    {
+        using var state = MemoryPackWriterOptionalStatePool.Rent(null);
+
+        var compressor = new BrotliCompressor(CompressionLevel.Fastest);
+        var coWriter = new MemoryPackWriter<BrotliCompressor>(ref compressor, state);
+
+        var bytes = new byte[248];
+        Random.Shared.NextBytes(bytes);
+        coWriter.WriteUnmanagedArray(bytes);
+        coWriter.Flush();
+
+        var buffer = new ArrayBufferWriter<byte>();
+        compressor.CopyTo(buffer);
+
+        using var readerState = MemoryPackReaderOptionalStatePool.Rent(null);
+        using var decompressor = new BrotliDecompressor();
+        var decompressed = decompressor.Decompress(compressor.ToArray());
+        var reader = new MemoryPackReader(in decompressed, readerState);
+
+        reader.ReadArray<byte>().Should().BeEquivalentTo(bytes);
+        compressor.Dispose();
+    }
 }
 
 [MemoryPackable]
