@@ -47,7 +47,7 @@ public class ReferenceSymbols
         MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializedAttribute");
         MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializingAttribute");
         MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializedAttribute");
-        SkipOverwriteDefaultAttribute = GetTypeByMetadataName("MemoryPack.SkipOverwriteByDefaultAttribute");
+        SkipOverwriteDefaultAttribute = GetTypeByMetadataName("MemoryPack.SuppressDefaultInitialization");
         GenerateTypeScriptAttribute = GetTypeByMetadataName(MemoryPackGenerator.GenerateTypeScriptAttributeFullName);
         IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
         KnownTypes = new WellKnownTypes(this);

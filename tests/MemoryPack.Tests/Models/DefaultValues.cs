@@ -23,10 +23,10 @@ partial class FieldDefaultValue
     public int X;
     public int Y = 12345;
 
-    [SkipOverwriteByDefault]
+    [SuppressDefaultInitialization]
     public float Z = 678.9f;
 
-    [SkipOverwriteByDefault]
+    [SuppressDefaultInitialization]
     public int FromMethod = StaticMethod.GetNumber();
 }
 
@@ -36,12 +36,12 @@ partial class PropertyDefaultValue
     public int X { get; init; }
     public int Y { get; set; } = 12345;
 
-    [SkipOverwriteByDefault]
+    [SuppressDefaultInitialization]
     public float Z { get; set; } = 678.9f;
 
-    [SkipOverwriteByDefault]
+    [SuppressDefaultInitialization]
     public float W { get; init; } = 678.9f;
 
-    [SkipOverwriteByDefault]
+    [SuppressDefaultInitialization]
     public int FromMethod { get; set; } = StaticMethod.GetNumber();
 }

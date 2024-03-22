@@ -155,4 +155,4 @@ public sealed class GenerateTypeScriptAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public sealed class SkipOverwriteByDefaultAttribute : Attribute;
+public sealed class SuppressDefaultInitialization : Attribute;
