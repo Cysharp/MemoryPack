@@ -213,7 +213,7 @@ public partial class Person3
 When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. 
 
 ```csharp
-[MemoryPackable]
+    [MemoryPackable]
 public partial class MethodCallSample
 {
     // method call order is static -> instance
@@ -545,6 +545,28 @@ public partial class VersionCheck
 ```
 
 In use-case, store old data (to file, to redis, etc...) and read to new schema is always ok. In the RPC scenario, schema exists both on the client and the server side, the client must be updated before the server. An updated client has no problem connecting to the old server but an old client can not connect to a new server.
+
+
+By default, when the old data read to new schema, any members not on the data side are initialized with the `default` literal.
+If you want to avoid this and use initial values of field/properties, you can use `[SuppressDefaultInitialization]`.
+
+```cs
+[MemoryPackable]
+public partial class DefaultValue
+{
+    public string Prop1 { get; set; }
+
+    [SuppressDefaultInitialization]
+    public int Prop2 { get; set; } = 111; // < if old data is missing, set `111`.
+    
+    public int Prop3 { get; set; } = 222; // < if old data is missing, set `default`.
+}
+```
+
+ `[SuppressDefaultInitialization]` has following disadvantages:
+- Cannot be used with readonly, init-only, and required modifier.
+=- May not be the best performance due to increased conditional branching. (But it would be negligible.)
+
 
 The next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
