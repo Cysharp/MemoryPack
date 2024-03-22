@@ -66,7 +66,7 @@ public partial class TypeMeta
     public (ushort Tag, INamedTypeSymbol Type)[] UnionTags { get; }
     public bool IsUseEmptyConstructor => Constructor == null || Constructor.Parameters.IsEmpty;
 
-    public TypeMeta(SemanticModel semanticModel, INamedTypeSymbol symbol, ReferenceSymbols reference)
+    public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
         this.reference = reference;
         this.Symbol = symbol;
@@ -104,7 +104,7 @@ public partial class TypeMeta
                 }
                 return true;
             })
-            .Select((x, i) => new MemberMeta(semanticModel, x, Constructor, reference, i))
+            .Select((x, i) => new MemberMeta(x, Constructor, reference, i))
             .OrderBy(x => x.Order)
             .ToArray();
 
@@ -615,8 +615,6 @@ partial class MemberMeta
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
-    public string DefaultValueExpression { get; } = "default!";
-    readonly SemanticModel semanticModel;
 
     MemberMeta(int order)
     {
@@ -627,9 +625,8 @@ partial class MemberMeta
         this.Kind = MemberKind.Blank;
     }
 
-    public MemberMeta(SemanticModel semanticModel, ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
+    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
     {
-        this.semanticModel = semanticModel;
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.Order = sequentialOrder;
@@ -649,10 +646,6 @@ partial class MemberMeta
         {
             this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameter);
             this.ConstructorParameterName = constructorParameter?.Name;
-            if (constructorParameter?.HasExplicitDefaultValue == true)
-            {
-                DefaultValueExpression = EmitConstantValue(constructorParameter.ExplicitDefaultValue);
-            }
         }
         else
         {
@@ -670,25 +663,6 @@ partial class MemberMeta
 #endif
                 ;
             MemberType = f.Type;
-
-            // Detect default value
-            foreach (var syntaxReference in f.DeclaringSyntaxReferences)
-            {
-                var syntax = syntaxReference.GetSyntax();
-                if (syntax is FieldDeclarationSyntax { Declaration.Variables: { Count: > 0 } variables })
-                {
-                    if (variables.First().Initializer is { } initializer)
-                    {
-                        DefaultValueExpression = EmitExpression(initializer.Value);
-                        break;
-                    }
-                }
-                if (syntax is VariableDeclaratorSyntax  { Initializer: { } initializer2 })
-                {
-                    DefaultValueExpression = EmitExpression(initializer2.Value);
-                    break;
-                }
-            }
         }
         else if (symbol is IPropertySymbol p)
         {
@@ -701,16 +675,6 @@ partial class MemberMeta
 #endif
                 && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
             MemberType = p.Type;
-
-            // Detect default value
-            foreach (var syntaxReference in p.DeclaringSyntaxReferences)
-            {
-                if (syntaxReference.GetSyntax() is PropertyDeclarationSyntax { Initializer: { } initializer })
-                {
-                    DefaultValueExpression = EmitExpression(initializer.Value);
-                    break;
-                }
-            }
         }
         else
         {
