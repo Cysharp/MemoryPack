@@ -679,13 +679,13 @@ partial class MemberMeta
                 {
                     if (variables.First().Initializer is { } initializer)
                     {
-                        DefaultValueExpression = EmitExpression(initializer.Value);
+                        DefaultValueExpression = EmitInitializerValueExpression(initializer.Value);
                         break;
                     }
                 }
                 if (syntax is VariableDeclaratorSyntax  { Initializer: { } initializer2 })
                 {
-                    DefaultValueExpression = EmitExpression(initializer2.Value);
+                    DefaultValueExpression = EmitInitializerValueExpression(initializer2.Value);
                     break;
                 }
             }
@@ -707,7 +707,7 @@ partial class MemberMeta
             {
                 if (syntaxReference.GetSyntax() is PropertyDeclarationSyntax { Initializer: { } initializer })
                 {
-                    DefaultValueExpression = EmitExpression(initializer.Value);
+                    DefaultValueExpression = EmitInitializerValueExpression(initializer.Value);
                     break;
                 }
             }

@@ -8,6 +8,29 @@ enum TestEnum
     A, B, C
 }
 
+
+static class StaticMethods1<T>
+{
+    public static int GetHoge(ref int x, scoped ref int y, in int z, out int w)
+    {
+        w = default;
+        return 10;
+    }
+}
+
+static class Constants
+{
+    public static int X = 100;
+    public static int Y = 100;
+    public static int Z = 100;
+    public static int W = 100;
+}
+
+static class StaticMethods2<T1, T2>
+{
+    public static int X => 200;
+}
+
 [MemoryPackable]
 partial class DefaultValuePlaceholder
 {
@@ -22,6 +45,7 @@ partial class FieldDefaultValue
     public float Z = 678.9f;
     public string S = "aaaaaaaaa";
     public bool B = true;
+    public int FromStaticMethod = StaticMethods1<int>.GetHoge(ref Constants.X, ref Constants.Y, in Constants.Z, out var hoge);
 }
 
 [MemoryPackable]
@@ -42,6 +66,7 @@ partial class PropertyDefaultValue
     public NestedEnum E2 { get; set; } = NestedEnum.A;
     public (TestEnum, List<string>) Tuple { get; set; } = (TestEnum.A, new List<string>(new HashSet<string>()));
     public DateTime Struct { get; set; } = default!;
+    public int FromStaticMethod { get; set; } = StaticMethods1<int>.GetHoge(ref Constants.X, ref Constants.Y, in Constants.Z, out var hoge);
 }
 
 [MemoryPackable]

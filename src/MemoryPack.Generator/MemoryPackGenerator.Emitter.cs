@@ -1384,7 +1384,7 @@ public partial class MemberMeta
         return "default!";
     }
 
-    string EmitExpression(ExpressionSyntax expression)
+    string EmitInitializerValueExpression(ExpressionSyntax expression)
     {
         switch (expression.Kind())
         {
@@ -1396,34 +1396,73 @@ public partial class MemberMeta
                 {
                     return $"{GetTypeFullName(namedTypeSymbol)}.{memberAccess.Name}";
                 }
-                if (memberSymbol is IFieldSymbol { Type.TypeKind: TypeKind.Enum } fieldSymbol)
+                if (memberSymbol is IFieldSymbol { Type.TypeKind: TypeKind.Enum } enumSymbol)
                 {
-                    return $"{GetTypeFullName(fieldSymbol.Type)}.{fieldSymbol.Name}";
+                    return $"{GetTypeFullName(enumSymbol.Type)}.{enumSymbol.Name}";
+                }
+
+                if (memberSymbol is IFieldSymbol fieldSymbol)
+                {
+                    return $"{GetTypeFullName(fieldSymbol.ContainingType)}.{fieldSymbol.Name}";
+                }
+                if (memberSymbol is IPropertySymbol propertySymbol)
+                {
+                    return $"{GetTypeFullName(propertySymbol.ContainingType)}.{propertySymbol.Name}";
                 }
                 break;
             }
-
+            // ctor
             case SyntaxKind.ObjectCreationExpression:
             {
                 var objectCreation = (ObjectCreationExpressionSyntax)expression;
                 var symbolInfo = semanticModel.GetSymbolInfo(objectCreation.Type);
                 if (symbolInfo.Symbol is INamedTypeSymbol x)
                 {
-                    var arguments = string.Join(", ",
-                        objectCreation.ArgumentList?.Arguments.Select(arg =>
-                            EmitExpression(arg.Expression)) ?? Enumerable.Empty<string>());
+                    var arguments = objectCreation.ArgumentList != null ? EmitArguments(objectCreation.ArgumentList) : "";
                     return $"new {GetTypeFullName(x)}({arguments})";
                 }
                 break;
             }
-
+            // static method
+            case SyntaxKind.InvocationExpression:
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    var symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+                    if (symbolInfo.Symbol is IMethodSymbol { IsStatic: true } methodSymbol)
+                    {
+                        var typeName = GetTypeFullName(methodSymbol.ContainingType);
+                        var arguments = EmitArguments(invocation.ArgumentList);
+                        return $"{typeName}.{methodSymbol.Name}({arguments})";
+                    }
+                }
+                break;
+            }
             case SyntaxKind.TupleExpression:
                 var tupleExpression = (TupleExpressionSyntax)expression;
                 var tupleElements = string.Join(", ",
-                    tupleExpression.Arguments.Select(arg => EmitExpression(arg.Expression)));
+                    tupleExpression.Arguments.Select(arg => EmitInitializerValueExpression(arg.Expression)));
                 return $"({tupleElements})";
         }
+
         return expression.ToString();
+
+        string EmitArguments(ArgumentListSyntax argumentList)
+        {
+            return string.Join(", ", argumentList.Arguments.Select(arg =>
+            {
+                var prefix = "";
+                if (arg.RefKindKeyword.IsKind(SyntaxKind.RefKeyword))
+                    prefix = "ref ";
+                if (arg.RefKindKeyword.IsKind(SyntaxKind.OutKeyword))
+                    prefix = "out ";
+                if (arg.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
+                    prefix = "in ";
+
+                return prefix + EmitInitializerValueExpression(arg.Expression);
+            }));
+        }
     }
 
     static string GetTypeFullName(ITypeSymbol typeSymbol)
