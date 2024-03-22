@@ -324,4 +324,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SuppressDefaultInitializationMustBeSettable = new(
+        id: "MEMPACK040",
+        title: "Readonly member cannot specify [SuppressDefaultInitialization]",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' has [SuppressDefaultInitialization], it cannot be readonly, init-only and required.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

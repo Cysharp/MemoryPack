@@ -642,6 +642,22 @@ public partial class Tester
 
 """);
     }
+
+    [Fact]
+    public void MEMPACK040_SuppressDefaultInitializationMustBeSettable()
+    {
+        Compile(40, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Tester
+{
+    [SuppressDefaultInitialization]
+    public required int I1 { get; init; }
+}
+
+""");
+    }
 }
 
 

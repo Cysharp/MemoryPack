@@ -547,7 +547,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
 {{EmitDeserializeConstruction("            ")}}
         };
-{{Members.Select((x, i) => (x, i)).Where(v => v.x.SkipOverwriteByDefault && v.x.IsAssignable).Select(v => $"        if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};").NewLine()}}
+{{EmitDeserializeConstructionWithBranching("        ")}}
     READ_END:
 {{readEndBody}}
 """;
@@ -917,8 +917,26 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         // all value is deserialized, __Name is exsits.
         return string.Join("," + Environment.NewLine, Members
-            .Where(x => x is { IsSettable: true, IsConstructorParameter: false, SkipOverwriteByDefault: false })
+            .Where(x => x is { IsSettable: true, IsConstructorParameter: false, SuppressDefaultInitialization: false })
             .Select(x => $"{indent}@{x.Name} = __{x.Name}"));
+    }
+
+    string EmitDeserializeConstructionWithBranching(string indent)
+    {
+        var members = Members
+            .Select((x, i) => (x, i))
+            .Where(v => v.x.SuppressDefaultInitialization);
+
+        if (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
+        {
+            return members
+                .Select(v => $"{indent}if (deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
+                .NewLine();
+        }
+
+        return members
+            .Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};")
+            .NewLine();
     }
 
     string EmitUnionTemplate(IGeneratorContext context)
