@@ -7,6 +7,12 @@ partial class DefaultValuePlaceholder
 }
 
 [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
+partial class DefaultValuePlaceholderWithVersionTolerant
+{
+    public int X { get; set; }
+}
+
+[MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
 partial class HasDefaultValueWithVersionTolerant
 {
     public int X;

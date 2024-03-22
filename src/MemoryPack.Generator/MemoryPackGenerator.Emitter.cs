@@ -927,16 +927,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             .Select((x, i) => (x, i))
             .Where(v => v.x.SuppressDefaultInitialization);
 
-        if (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
-        {
-            return members
-                .Select(v => $"{indent}if (deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
-                .NewLine();
-        }
+        var lines = GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference
+            ? members.Select(v => $"{indent}if (deltas.Length > {v.i} && deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
+            : members.Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};");
 
-        return members
-            .Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};")
-            .NewLine();
+        return lines.NewLine();
     }
 
     string EmitUnionTemplate(IGeneratorContext context)
