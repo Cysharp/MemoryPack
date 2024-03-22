@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -46,7 +44,7 @@ partial class MemoryPackGenerator
         }
         var unionFormatter = (unionSymbol != null);
 
-        var typeMeta = new TypeMeta(semanticModel, typeSymbol, reference);
+        var typeMeta = new TypeMeta(typeSymbol, reference);
         if (unionFormatter)
         {
             // replace original symbol
@@ -516,7 +514,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             {{(IsValueType ? "" : "if (value == null)")}}
             {
-{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = {x.DefaultValueExpression};").NewLine()}}
+{{Members.Where(x => x.Symbol != null).Select(x => $"               __{x.Name} = default!;").NewLine()}}
             }
 {{(IsValueType ? "#if false" : "            else")}}
             {
@@ -1365,76 +1363,5 @@ public partial class MemberMeta
             default:
                 return $"{pre}reader.ReadValue(ref __{Name});";
         }
-    }
-
-    string EmitConstantValue(object? constantValue)
-    {
-        if (constantValue != null)
-        {
-            return constantValue switch
-            {
-                string x => $"\"{x}\"",
-                char x => $"'{x}'",
-                float x => $"{x}f",
-                decimal x => $"{x}M",
-                bool x => x ? "true" : "false",
-                _ => constantValue.ToString()
-            };
-        }
-        return "default!";
-    }
-
-    string EmitExpression(ExpressionSyntax expression)
-    {
-        switch (expression.Kind())
-        {
-            case SyntaxKind.SimpleMemberAccessExpression:
-            {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                var memberSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
-                if (memberSymbol is INamedTypeSymbol { TypeKind: TypeKind.Enum } namedTypeSymbol)
-                {
-                    return $"{GetTypeFullName(namedTypeSymbol)}.{memberAccess.Name}";
-                }
-                if (memberSymbol is IFieldSymbol { Type.TypeKind: TypeKind.Enum } fieldSymbol)
-                {
-                    return $"{GetTypeFullName(fieldSymbol.Type)}.{fieldSymbol.Name}";
-                }
-                break;
-            }
-
-            case SyntaxKind.ObjectCreationExpression:
-            {
-                var objectCreation = (ObjectCreationExpressionSyntax)expression;
-                var symbolInfo = semanticModel.GetSymbolInfo(objectCreation.Type);
-                if (symbolInfo.Symbol is INamedTypeSymbol x)
-                {
-                    var arguments = string.Join(", ",
-                        objectCreation.ArgumentList?.Arguments.Select(arg =>
-                            EmitExpression(arg.Expression)) ?? Enumerable.Empty<string>());
-                    return $"new {GetTypeFullName(x)}({arguments})";
-                }
-                break;
-            }
-
-            case SyntaxKind.TupleExpression:
-                var tupleExpression = (TupleExpressionSyntax)expression;
-                var tupleElements = string.Join(", ",
-                    tupleExpression.Arguments.Select(arg => EmitExpression(arg.Expression)));
-                return $"({tupleElements})";
-        }
-        return expression.ToString();
-    }
-
-    static string GetTypeFullName(ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol.ContainingType is { } containingType)
-        {
-            // nested type
-            var containingTypeFullName = containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            return $"{containingTypeFullName}.{typeName}";
-        }
-        return typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 }
