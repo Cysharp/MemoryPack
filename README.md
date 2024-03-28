@@ -213,7 +213,7 @@ public partial class Person3
 When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. 
 
 ```csharp
-    [MemoryPackable]
+[MemoryPackable]
 public partial class MethodCallSample
 {
     // method call order is static -> instance
@@ -563,10 +563,8 @@ public partial class DefaultValue
 }
 ```
 
- `[SuppressDefaultInitialization]` has following disadvantages:
+ `[SuppressDefaultInitialization]` has following limitation:
 - Cannot be used with readonly, init-only, and required modifier.
-=- May not be the best performance due to increased conditional branching. (But it would be negligible.)
-
 
 The next [Serialization info](#serialization-info) section shows how to check for schema changes, e.g., by CI, to prevent accidents.
 
