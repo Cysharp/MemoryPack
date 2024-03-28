@@ -22,6 +22,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackOnSerializedAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializingAttribute { get; }
     public INamedTypeSymbol MemoryPackOnDeserializedAttribute { get; }
+    public INamedTypeSymbol SkipOverwriteDefaultAttribute { get; }
     public INamedTypeSymbol GenerateTypeScriptAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
 
@@ -46,6 +47,7 @@ public class ReferenceSymbols
         MemoryPackOnSerializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnSerializedAttribute");
         MemoryPackOnDeserializingAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializingAttribute");
         MemoryPackOnDeserializedAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOnDeserializedAttribute");
+        SkipOverwriteDefaultAttribute = GetTypeByMetadataName("MemoryPack.SuppressDefaultInitialization");
         GenerateTypeScriptAttribute = GetTypeByMetadataName(MemoryPackGenerator.GenerateTypeScriptAttributeFullName);
         IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
         KnownTypes = new WellKnownTypes(this);
@@ -161,7 +163,7 @@ public class ReferenceSymbols
 
             { "System.Collections.Generic.KeyValuePair<,>", "global::MemoryPack.Formatters.KeyValuePairFormatter<TREPLACE>" },
             { "System.Lazy<>", "global::MemoryPack.Formatters.LazyFormatter<TREPLACE>" },
-            
+
             // TupleFormatters
             { "System.Tuple<>", "global::MemoryPack.Formatters.TupleFormatter<TREPLACE>" },
             { "System.Tuple<,>", "global::MemoryPack.Formatters.TupleFormatter<TREPLACE>" },

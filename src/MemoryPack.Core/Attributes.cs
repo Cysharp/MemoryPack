@@ -153,3 +153,6 @@ public sealed class MemoryPackOnDeserializedAttribute : Attribute
 public sealed class GenerateTypeScriptAttribute : Attribute
 {
 }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class SuppressDefaultInitialization : Attribute;

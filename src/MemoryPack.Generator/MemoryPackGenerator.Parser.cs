@@ -375,6 +375,11 @@ public partial class TypeMeta
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ReadOnlyFieldMustBeConstructorMember, item.GetLocation(syntax), Symbol.Name, item.Name));
                     noError = false;
                 }
+                else if (item is { SuppressDefaultInitialization: true, IsAssignable: false })
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SuppressDefaultInitializationMustBeSettable, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    noError = false;
+                }
             }
         }
 
@@ -615,6 +620,7 @@ partial class MemberMeta
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
+    public bool SuppressDefaultInitialization { get; }
 
     MemberMeta(int order)
     {
@@ -630,6 +636,7 @@ partial class MemberMeta
         this.Symbol = symbol;
         this.Name = symbol.Name;
         this.Order = sequentialOrder;
+        this.SuppressDefaultInitialization = symbol.ContainsAttribute(references.SkipOverwriteDefaultAttribute);
         var orderAttr = symbol.GetAttribute(references.MemoryPackOrderAttribute);
         if (orderAttr != null)
         {

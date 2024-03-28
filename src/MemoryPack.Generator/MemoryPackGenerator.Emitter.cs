@@ -539,7 +539,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
-{{Members.Where(x => x.Symbol != null).Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.@{x.Name} = __{x.Name};").NewLine()}}
+{{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.@{x.Name} = __{x.Name};").NewLine()}}
         goto READ_END;
 
     NEW:
@@ -547,6 +547,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
 {{EmitDeserializeConstruction("            ")}}
         };
+{{EmitDeserializeConstructionWithBranching("        ")}}
     READ_END:
 {{readEndBody}}
 """;
@@ -916,8 +917,21 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         // all value is deserialized, __Name is exsits.
         return string.Join("," + Environment.NewLine, Members
-            .Where(x => x.IsSettable && !x.IsConstructorParameter)
+            .Where(x => x is { IsSettable: true, IsConstructorParameter: false, SuppressDefaultInitialization: false })
             .Select(x => $"{indent}@{x.Name} = __{x.Name}"));
+    }
+
+    string EmitDeserializeConstructionWithBranching(string indent)
+    {
+        var members = Members
+            .Select((x, i) => (x, i))
+            .Where(v => v.x.SuppressDefaultInitialization);
+
+        var lines = GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference
+            ? members.Select(v => $"{indent}if (deltas.Length > {v.i} && deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
+            : members.Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};");
+
+        return lines.NewLine();
     }
 
     string EmitUnionTemplate(IGeneratorContext context)

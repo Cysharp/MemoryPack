@@ -642,6 +642,53 @@ public partial class Tester
 
 """);
     }
+
+    [Fact]
+    public void MEMPACK040_SuppressDefaultInitializationMustBeSettable()
+    {
+        Compile(40, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Tester
+{
+    [SuppressDefaultInitialization]
+    public required int I1 { get; set; }
+}
+
+""");
+
+        Compile(40, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Tester
+{
+    [SuppressDefaultInitialization]
+    public int I1 { get; init; }
+}
+
+""");
+
+        Compile(40, """
+using MemoryPack;
+
+[MemoryPackable]
+public partial class Tester
+{
+    [SuppressDefaultInitialization]
+    public readonly int I1;
+
+    [MemoryPackConstructor]
+    public Tester(int i1)
+    {
+        I1 = i1;
+    }
+}
+
+""");
+
+    }
 }
 
 
