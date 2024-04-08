@@ -759,7 +759,7 @@ public sealed class OrdinalIgnoreCaseStringDictionaryFormatter<TValue> : MemoryP
 }
 ```
 
-`BitPackFormatter` compresses `bool[]` types only. `bool[]` is normally serialized as 1 byte per boolean value, however ``BitPackFormatter` serializes `bool[]` like a `BitArray` storing each bool as 1 bit. Using `BitPackFormatter`, 8 bools become 1 byte where they would normally be 8 bytes, resulting in a 8x smaller size.
+`BitPackFormatter` compresses `bool[]` types only. `bool[]` is normally serialized as 1 byte per boolean value, however `BitPackFormatter` serializes `bool[]` like a `BitArray` storing each bool as 1 bit. Using `BitPackFormatter`, 8 bools become 1 byte where they would normally be 8 bytes, resulting in a 8x smaller size.
 
 ```csharp
 [MemoryPackable]
