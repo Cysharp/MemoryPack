@@ -1255,51 +1255,34 @@ public partial class MemberMeta
 {
     public string EmitSerialize(string writer)
     {
-        switch (Kind)
+        return Kind switch
         {
-            case MemberKind.MemoryPackable:
-                return $"{writer}.WritePackable(value.@{Name});";
-            case MemberKind.Unmanaged:
-            case MemberKind.Enum:
-                return $"{writer}.WriteUnmanaged(value.@{Name});";
-            case MemberKind.UnmanagedNullable:
-                return $"{writer}.DangerousWriteUnmanaged(value.@{Name});";
-            case MemberKind.String:
-                return $"{writer}.WriteString(value.@{Name});";
-            case MemberKind.UnmanagedArray:
-                return $"{writer}.WriteUnmanagedArray(value.@{Name});";
-            case MemberKind.MemoryPackableArray:
-                return $"{writer}.WritePackableArray(value.@{Name});";
-            case MemberKind.MemoryPackableList:
-                return $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, value.@{Name});";
-            case MemberKind.Array:
-                return $"{writer}.WriteArray(value.@{Name});";
-            case MemberKind.Blank:
-                return "";
-            case MemberKind.CustomFormatter:
-                return $"{writer}.WriteValueWithFormatter(__{Name}Formatter, value.@{Name});";
-            default:
-                return $"{writer}.WriteValue(value.@{Name});";
-        }
+            MemberKind.MemoryPackable => $"{writer}.WritePackable(value.@{Name});",
+            MemberKind.Unmanaged or MemberKind.Enum => $"{writer}.WriteUnmanaged(value.@{Name});",
+            MemberKind.UnmanagedNullable => $"{writer}.DangerousWriteUnmanaged(value.@{Name});",
+            MemberKind.String => $"{writer}.WriteString(value.@{Name});",
+            MemberKind.UnmanagedArray => $"{writer}.WriteUnmanagedArray(value.@{Name});",
+            MemberKind.MemoryPackableArray => $"{writer}.WritePackableArray(value.@{Name});",
+            MemberKind.MemoryPackableList => $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, value.@{Name});",
+            MemberKind.Array => $"{writer}.WriteArray(value.@{Name});",
+            MemberKind.Blank => "",
+            MemberKind.CustomFormatter => $"{writer}.WriteValueWithFormatter(__{Name}Formatter, value.@{Name});",
+            _ => $"{writer}.WriteValue(value.@{Name});"
+        };
     }
 
     public string EmitVarIntLength()
     {
-        switch (Kind)
+        return Kind switch
         {
-            case MemberKind.Unmanaged:
-            case MemberKind.Enum:
-            case MemberKind.UnmanagedNullable:
-                return $"writer.WriteVarInt(System.Runtime.CompilerServices.Unsafe.SizeOf<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>());";
-            case MemberKind.String:
-                return $"writer.WriteVarInt(writer.GetStringWriteLength(value.@{Name}));";
-            case MemberKind.UnmanagedArray:
-                return $"writer.WriteVarInt(writer.GetUnmanageArrayWriteLength<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(value.@{Name}));";
-            case MemberKind.Blank:
-                return $"writer.WriteVarInt(0);";
-            default:
-                throw new InvalidOperationException("This MemberKind is not supported, Kind:" + Kind);
-        }
+            MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable =>
+                $"writer.WriteVarInt(System.Runtime.CompilerServices.Unsafe.SizeOf<{MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>());",
+            MemberKind.String => $"writer.WriteVarInt(writer.GetStringWriteLength(value.@{Name}));",
+            MemberKind.UnmanagedArray =>
+                $"writer.WriteVarInt(writer.GetUnmanageArrayWriteLength<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(value.@{Name}));",
+            MemberKind.Blank => $"writer.WriteVarInt(0);",
+            _ => throw new InvalidOperationException("This MemberKind is not supported, Kind:" + Kind)
+        };
     }
 
     public string EmitReadToDeserialize(int i, bool requireDeltaCheck)
