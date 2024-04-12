@@ -262,9 +262,11 @@ public
         var totalWritten = 0;
 
         var lastResult = OperationStatus.DestinationTooSmall;
+
+        var destLength = initialLength ?? BrotliUtils.BrotliEncoderMaxCompressedSize(source.Length);
         while (lastResult == OperationStatus.DestinationTooSmall)
         {
-            ref var spanRef = ref destBufferWriter.GetSpanReference(initialLength ?? source.Length);
+            ref var spanRef = ref destBufferWriter.GetSpanReference(destLength);
             var dest = MemoryMarshal.CreateSpan(ref spanRef, destBufferWriter.BufferLength);
 
             lastResult = encoder.Compress(source, dest, out int bytesConsumed, out int bytesWritten, isFinalBlock: isFinalBlock);
