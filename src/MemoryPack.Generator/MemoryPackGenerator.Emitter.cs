@@ -324,7 +324,7 @@ public partial class TypeMeta
             if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType && callbackCount == 0)
             {
                 var sizeOf = string.Join(" + ", Members.Select(x => $"System.Runtime.CompilerServices.Unsafe.SizeOf<{x.MemberType.FullyQualifiedToString()}>()"));
-                var headerPlus = (Members.Length == 0) ? "1" : "1 + ";
+                var headerPlus = Members.Length == 0 ? "1" : "1 + ";
                 fixedSizeInterface = ", global::MemoryPack.IFixedSizeMemoryPackable";
                 fixedSizeMethod = $"""
 
@@ -932,8 +932,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         var classOrInterfaceOrRecord = IsRecord ? "record" : (Symbol.TypeKind == TypeKind.Interface) ? "interface" : "class";
 
-        var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
-            ? $"static void IMemoryPackFormatterRegister."
+        var staticRegisterFormatterMethod = context.IsNet7OrGreater
+            ? "static void IMemoryPackFormatterRegister."
             : "public static void ";
         var register = (context.IsNet7OrGreater)
             ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
@@ -1228,7 +1228,7 @@ public partial class MethodMeta
 {
     public string Emit()
     {
-        var instance = (IsStatic) ? ""
+        var instance = IsStatic ? ""
             : (IsValueType) ? "value."
             : "value?.";
 
