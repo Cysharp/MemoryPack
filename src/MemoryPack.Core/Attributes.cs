@@ -16,7 +16,7 @@ public sealed class MemoryPackableAttribute : Attribute
     public MemoryPackableAttribute(GenerateType generateType = GenerateType.Object)
     {
         this.GenerateType = generateType;
-        this.SerializeLayout = (generateType == GenerateType.VersionTolerant || generateType == GenerateType.CircularReference)
+        this.SerializeLayout = generateType is GenerateType.VersionTolerant or GenerateType.CircularReference
             ? SerializeLayout.Explicit
             : SerializeLayout.Sequential;
     }
@@ -113,46 +113,30 @@ public abstract class MemoryPackCustomFormatterAttribute<TFormatter, T> : Attrib
 // https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonattribute
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackIgnoreAttribute : Attribute
-{
-}
+public sealed class MemoryPackIgnoreAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackIncludeAttribute : Attribute
-{
-}
+public sealed class MemoryPackIncludeAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackConstructorAttribute : Attribute
-{
-}
+public sealed class MemoryPackConstructorAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerializingAttribute : Attribute
-{
-}
+public sealed class MemoryPackOnSerializingAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnSerializedAttribute : Attribute
-{
-}
+public sealed class MemoryPackOnSerializedAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserializingAttribute : Attribute
-{
-}
+public sealed class MemoryPackOnDeserializingAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackOnDeserializedAttribute : Attribute
-{
-}
+public sealed class MemoryPackOnDeserializedAttribute : Attribute;
 
 // Others
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
-public sealed class GenerateTypeScriptAttribute : Attribute
-{
-}
+public sealed class GenerateTypeScriptAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public sealed class SuppressDefaultInitialization : Attribute;
+public sealed class SuppressDefaultInitializationAttribute : Attribute;
