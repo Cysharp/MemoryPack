@@ -77,9 +77,7 @@ public sealed class MemoryPackUnionFormatterAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class MemoryPackAllowSerializeAttribute : Attribute
-{
-}
+public sealed class MemoryPackAllowSerializeAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackOrderAttribute : Attribute
