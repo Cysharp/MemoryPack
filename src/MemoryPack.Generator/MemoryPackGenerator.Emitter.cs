@@ -298,7 +298,7 @@ public partial class TypeMeta
         string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef, constraint, registerBody, registerT;
         var fixedSizeInterface = "";
         var fixedSizeMethod = "";
-        scopedRef = (context.IsCSharp11OrGreater())
+        scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
         if (!context.IsNet7OrGreater)
@@ -318,11 +318,7 @@ public partial class TypeMeta
             registerT = $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();";
 
             // similar as VersionTolerantOptimized but not includes String, Array
-            var fixedSize = false;
-            if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable or MemberKind.Blank))
-            {
-                fixedSize = true;
-            }
+            bool fixedSize = Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable or MemberKind.Blank);
 
             var callbackCount = new[] { this.OnSerializing, this.OnSerialized, this.OnDeserialized, this.OnDeserializing }.Select(x => x.Length).Sum();
             if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType && callbackCount == 0)
@@ -1332,31 +1328,19 @@ public partial class MemberMeta
             ? $"if (deltas[{i}] != 0) "
             : "";
 
-        switch (Kind)
+        return Kind switch
         {
-            case MemberKind.MemoryPackable:
-                return $"{pre}reader.ReadPackable(ref __{Name});";
-            case MemberKind.Unmanaged:
-            case MemberKind.Enum:
-                return $"{pre}reader.ReadUnmanaged(out __{Name});";
-            case MemberKind.UnmanagedNullable:
-                return $"{pre}reader.DangerousReadUnmanaged(out __{Name});";
-            case MemberKind.String:
-                return $"{pre}__{Name} = reader.ReadString();";
-            case MemberKind.UnmanagedArray:
-                return $"{pre}reader.ReadUnmanagedArray(ref __{Name});";
-            case MemberKind.MemoryPackableArray:
-                return $"{pre}reader.ReadPackableArray(ref __{Name});";
-            case MemberKind.MemoryPackableList:
-                return $"{pre}global::MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});";
-            case MemberKind.Array:
-                return $"{pre}reader.ReadArray(ref __{Name});";
-            case MemberKind.Blank:
-                return $"{pre}reader.Advance(deltas[{i}]);";
-            case MemberKind.CustomFormatter:
-                return $"{pre}reader.ReadValueWithFormatter(__{Name}Formatter, ref __{Name});";
-            default:
-                return $"{pre}reader.ReadValue(ref __{Name});";
-        }
+            MemberKind.MemoryPackable => $"{pre}reader.ReadPackable(ref __{Name});",
+            MemberKind.Unmanaged or MemberKind.Enum => $"{pre}reader.ReadUnmanaged(out __{Name});",
+            MemberKind.UnmanagedNullable => $"{pre}reader.DangerousReadUnmanaged(out __{Name});",
+            MemberKind.String => $"{pre}__{Name} = reader.ReadString();",
+            MemberKind.UnmanagedArray => $"{pre}reader.ReadUnmanagedArray(ref __{Name});",
+            MemberKind.MemoryPackableArray => $"{pre}reader.ReadPackableArray(ref __{Name});",
+            MemberKind.MemoryPackableList => $"{pre}global::MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});",
+            MemberKind.Array => $"{pre}reader.ReadArray(ref __{Name});",
+            MemberKind.Blank => $"{pre}reader.Advance(deltas[{i}]);",
+            MemberKind.CustomFormatter => $"{pre}reader.ReadValueWithFormatter(__{Name}Formatter, ref __{Name});",
+            _ => $"{pre}reader.ReadValue(ref __{Name});"
+        };
     }
 }
