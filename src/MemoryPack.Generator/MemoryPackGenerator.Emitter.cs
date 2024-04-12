@@ -608,7 +608,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             }
             else
             {
-                return EmitVersionTorelantSerializeBody(isForUnity);
+                return EmitVersionTolerantSerializeBody(isForUnity);
             }
         }
 
@@ -625,7 +625,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
     }
 
-    string EmitVersionTorelantSerializeBody(bool isForUnity)
+    string EmitVersionTolerantSerializeBody(bool isForUnity)
     {
         var newTempWriter = isForUnity
             ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"

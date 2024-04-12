@@ -133,9 +133,9 @@ public partial class TypeMeta
     }
 
     // MemoryPack choose class/struct as same rule.
-    // If has no explicit constrtucotr, use parameterless one(includes private).
+    // If has no explicit constructor, use parameterless one(includes private).
     // If has a one parameterless/parameterized constructor, choose it.
-    // If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+    // If has multiple constructors, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
     IMethodSymbol? ChooseConstructor(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
         var ctors = symbol.InstanceConstructors
@@ -224,7 +224,7 @@ public partial class TypeMeta
             return (CollectionKind.Collection, collection);
         }
 
-    NONE:
+        NONE:
         return (CollectionKind.None, null);
     }
 
@@ -242,7 +242,7 @@ public partial class TypeMeta
                 return false;
             }
 
-            var (kind, symbol) = ParseCollectionKind(Symbol, reference);
+            var (kind, _) = ParseCollectionKind(Symbol, reference);
             if (kind == CollectionKind.None)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CollectionGenerateNotImplementedInterface, syntax.Identifier.GetLocation(), Symbol.Name));
@@ -269,9 +269,9 @@ public partial class TypeMeta
             }
         }
 
-        // GenerateType.Objector VersionTorelant validation
+        // GenerateType.Objector VersionTolerant validation
 
-        // ref strcut
+        // ref struct
         if (this.Symbol.IsRefLikeType)
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.TypeIsRefStruct, syntax.Identifier.GetLocation(), Symbol.Name));
