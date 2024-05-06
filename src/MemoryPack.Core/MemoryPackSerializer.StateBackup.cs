@@ -5,82 +5,60 @@ namespace MemoryPack;
 public static partial class MemoryPackSerializer
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StateBackup BackupState() => new(true);
+    public static StateSnapshot ResetState(bool resetReaderState = true, bool resetWriterState = true)
+        => new(resetReaderState, resetWriterState);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SerializerStateBackup BackupSerializerState() => new(true);
+    public static StateSnapshot ResetReaderState()
+        => new(true, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DeserializerStateBackup BackupDeserializerState() => new(true);
+    public static StateSnapshot ResetWriterState()
+        => new(false, true);
 
     // Nested types
 
-    public readonly struct StateBackup : IDisposable
+    public readonly struct StateSnapshot : IDisposable
     {
+        readonly bool _resetReaderState;
+        readonly bool _resetWriterState;
         readonly SerializerWriterThreadStaticState? _threadStaticState;
         readonly MemoryPackWriterOptionalState? _threadStaticWriterOptionalState;
         readonly MemoryPackReaderOptionalState? _threadStaticReaderOptionalState;
-        readonly bool _isValid;
 
-        internal StateBackup(bool isValid)
+        internal StateSnapshot(bool resetReaderState, bool resetWriterState)
         {
-            _threadStaticState = threadStaticState;
-            _threadStaticWriterOptionalState = threadStaticWriterOptionalState;
-            _threadStaticReaderOptionalState = threadStaticReaderOptionalState;
-            _isValid = isValid;
+            _resetReaderState = resetReaderState;
+            _resetWriterState = resetWriterState;
+
+            if (resetReaderState)
+            {
+                _threadStaticReaderOptionalState = threadStaticReaderOptionalState;
+                threadStaticReaderOptionalState = null;
+
+            }
+
+            if (resetWriterState)
+            {
+                _threadStaticState = threadStaticState;
+                threadStaticState = null;
+                _threadStaticWriterOptionalState = threadStaticWriterOptionalState;
+                threadStaticWriterOptionalState = null;
+            }
         }
 
         public void Dispose()
         {
-            if (!_isValid)
-                return;
+            if (_resetReaderState)
+            {
+                threadStaticReaderOptionalState = _threadStaticReaderOptionalState;
+            }
 
-            threadStaticState = _threadStaticState;
-            threadStaticWriterOptionalState = _threadStaticWriterOptionalState;
-            threadStaticReaderOptionalState = _threadStaticReaderOptionalState;
-        }
-    }
-
-    public readonly struct SerializerStateBackup : IDisposable
-    {
-        readonly SerializerWriterThreadStaticState? _threadStaticState;
-        readonly MemoryPackWriterOptionalState? _threadStaticWriterOptionalState;
-        readonly bool _isValid;
-
-        internal SerializerStateBackup(bool isValid)
-        {
-            _threadStaticState = threadStaticState;
-            _threadStaticWriterOptionalState = threadStaticWriterOptionalState;
-            _isValid = isValid;
-        }
-
-        public void Dispose()
-        {
-            if (!_isValid)
-                return;
-
-            threadStaticState = _threadStaticState;
-            threadStaticWriterOptionalState = _threadStaticWriterOptionalState;
-        }
-    }
-
-    public readonly struct DeserializerStateBackup : IDisposable
-    {
-        readonly MemoryPackReaderOptionalState? _threadStaticReaderOptionalState;
-        readonly bool _isValid;
-
-        internal DeserializerStateBackup(bool isValid)
-        {
-            _threadStaticReaderOptionalState = threadStaticReaderOptionalState;
-            _isValid = isValid;
-        }
-
-        public void Dispose()
-        {
-            if (!_isValid)
-                return;
-
-            threadStaticReaderOptionalState = _threadStaticReaderOptionalState;
+            if (_resetWriterState)
+            {
+                threadStaticState = _threadStaticState;
+                threadStaticWriterOptionalState = _threadStaticWriterOptionalState;
+            }
         }
     }
 }
