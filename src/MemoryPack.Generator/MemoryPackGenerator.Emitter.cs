@@ -1089,7 +1089,7 @@ public static class {{initializerName}}
         var elements = UnionTags.Select(x => $"            {{ typeof({ToUnionTagTypeFullyQualifiedToString(x.Type)}), {x.Tag} }},").NewLine();
 
         return $$"""
-        static readonly System.Collections.Generic.Dictionary<Type, ushort> __typeToTag = new({{UnionTags.Length}})
+        static readonly System.Collections.Generic.Dictionary<Type, ushort> __typeToTag = new System.Collections.Generic.Dictionary<Type, ushort>({{UnionTags.Length}})
         {
 {{elements}}
         };
