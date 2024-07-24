@@ -8,6 +8,7 @@
         <NoWarn>$(NoWarn);NU5128</NoWarn>
         <PackageTags>serializer</PackageTags>
         <Description>Zero encoding extreme performance binary serializer for C#.</Description>
+        <Version>1.21.2</Version>
     </PropertyGroup>
 
     <ItemGroup>
