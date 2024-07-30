@@ -181,7 +181,7 @@ using MemoryPack;
         {
             if (type.IsUnmanagedType)
             {
-                sb.Append("GanerateType unmanaged ");
+                sb.Append("GenerateType unmanaged ");
             }
             else
             {
