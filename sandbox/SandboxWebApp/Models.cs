@@ -190,3 +190,11 @@ public partial class Rec
 {
     public required Rec Id { get; init; }
 }
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class NullableFloatTest
+{
+    public float? NullableFloat { get; set; }
+    public double? NullableDouble { get; set; }
+}
