@@ -57,7 +57,7 @@ _ReSharper*
 *.ncrunch*
 .*crunch*.local.xml
 
-# Installshield output folder 
+# Installshield output folder
 [Ee]xpress
 
 # DocProject is a documentation generator add-in
@@ -121,13 +121,12 @@ sandbox/SandboxConsoleApp/MemoryPackLogs/
 /sandbox/SandboxWebApp/node_modules
 
 # Unity
-
+.vsconfig
 src/MemoryPack.Unity/Library/*
 src/MemoryPack.Unity/Temp/*
 src/MemoryPack.Unity/Logs/*
-
-src/MemoryPack.Unity/*.csproj
+src/MemoryPack.Unity/[Uu]ser[Ss]ettings/
 src/MemoryPack.Unity/*.sln
-src/MemoryPack.Unity/MemoryPack.*.unitypackage
-
-.DS_Store
+src/MemoryPack.Unity/*.csproj
+src/MemoryPack.Unity/*.unitypackage
+!src/MemoryPack.Unity/Packages/
