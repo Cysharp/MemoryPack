@@ -43,6 +43,9 @@ jobs:
 
   build-unity:
     needs: [update-packagejson]
+    strategy:
+      matrix:
+        unity: ["2021.3.41f1"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
