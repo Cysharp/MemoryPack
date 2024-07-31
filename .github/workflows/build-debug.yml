@@ -22,6 +22,7 @@ jobs:
   build-unity:
     if: ${{ ((github.event_name == 'push' && github.repository_owner == 'Cysharp') || startsWith(github.event.pull_request.head.label, 'Cysharp:')) && github.triggering_actor != 'dependabot[bot]' }}
     strategy:
+      fail-fast: false
       matrix:
         unity: ["2021.3.41f1", "2022.3.39f1", "6000.0.12f1"] # Test with LTS
     runs-on: ubuntu-latest
@@ -42,7 +43,7 @@ jobs:
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
       - run: dotnet build -c Debug # require build before run
       - name: Make sure generated files are exists.
-        run: ls -lR "MemoryPack/bin/Debug/netstandard2.1"
+        run: ls -lR "src/MemoryPack/bin/Debug/netstandard2.1"
 
       # Execute Unittest
       # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend IL2CPP /BuildTarget StandaloneLinux64
