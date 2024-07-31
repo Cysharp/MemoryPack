@@ -248,7 +248,7 @@ export class MemoryPackWriter {
             return;
         }
 
-        this.writeFloat32(1);
+        this.writeUint32(1);
         this.writeFloat32(value);
     }
 
@@ -264,13 +264,18 @@ export class MemoryPackWriter {
             return;
         }
 
-        this.writeFloat64(1);
+        this.writeUint64(1n);
         this.writeFloat64(value);
     }
 
     public writeString(value: string | null): void {
         if (value == null) {
             this.writeNullCollectionHeader();
+            return;
+        }
+
+        if (value.length == 0) {
+            this.writeCollectionHeader(0);
             return;
         }
 

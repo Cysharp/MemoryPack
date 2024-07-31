@@ -204,7 +204,7 @@ export class MemoryPackWriter {
             this.clearBuffer(8);
             return;
         }
-        this.writeFloat32(1);
+        this.writeUint32(1);
         this.writeFloat32(value);
     }
     writeFloat64(value) {
@@ -217,12 +217,16 @@ export class MemoryPackWriter {
             this.clearBuffer(16);
             return;
         }
-        this.writeFloat64(1);
+        this.writeUint64(1n);
         this.writeFloat64(value);
     }
     writeString(value) {
         if (value == null) {
             this.writeNullCollectionHeader();
+            return;
+        }
+        if (value.length == 0) {
+            this.writeCollectionHeader(0);
             return;
         }
         // (int ~utf8-byte-count, int utf16-length, utf8-bytes)

@@ -12,4 +12,18 @@ public class MemoryPackController : Controller
     {
         return value;
     }
+
+    [Route("nullableFloat")]
+    [HttpPost]
+    public NullableFloatTest PostNullableTest([FromBody] NullableFloatTest input)
+    {
+        var ret = new NullableFloatTest
+        {
+            // If you're curious about the '* 1.0' part, DM me :-)
+            NullableFloat = input.NullableFloat * 1.0F,
+            NullableDouble = input.NullableDouble * 1.0D
+        };
+
+        return ret;
+    }
 }

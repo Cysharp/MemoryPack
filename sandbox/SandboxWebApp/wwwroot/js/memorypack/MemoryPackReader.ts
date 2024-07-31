@@ -202,7 +202,7 @@ export class MemoryPackReader {
     }
 
     public readNullableFloat32(): number | null {
-        if (this.readFloat32() == FALSE) {
+        if (this.readUint32() == FALSE) {
             this.offset += 4;
             return null;
         }
@@ -217,7 +217,7 @@ export class MemoryPackReader {
     }
 
     public readNullableFloat64(): number | null {
-        if (this.readFloat64() == FALSE) {
+        if (this.readUint64() == 0n) {
             this.offset += 8;
             return null;
         }
