@@ -41,6 +41,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
       - run: dotnet build -c Debug # require build before run
+      - name: Make sure generated files are exists.
+        run: ls -lR "MemoryPack/bin/Debug/netstandard2.1"
 
       # Execute Unittest
       # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend IL2CPP /BuildTarget StandaloneLinux64
