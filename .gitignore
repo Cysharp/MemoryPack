@@ -128,5 +128,5 @@ src/MemoryPack.Unity/Logs/*
 src/MemoryPack.Unity/[Uu]ser[Ss]ettings/
 src/MemoryPack.Unity/*.sln
 src/MemoryPack.Unity/*.csproj
-src/MemoryPack.Unity/MemoryPack.*.unitypackage
+src/MemoryPack.Unity/*.unitypackage
 !src/MemoryPack.Unity/Packages/
