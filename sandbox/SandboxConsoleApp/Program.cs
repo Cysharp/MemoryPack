@@ -30,38 +30,88 @@ using System.Xml.Linq;
 
 using MemoryPack;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
-Console.WriteLine($"{RuntimeInformation.FrameworkDescription}");
+CollectionTest sourceCollection = new CollectionTest();
+sourceCollection.Collection.Add("1234");
+sourceCollection.Collection.Add("5678");
 
-//var r = new MemPackTestObj() { Strings = new[] { "a", "b", "c" } };
-//var bytes = MemoryPackSerializer.Serialize(r);
+Pipe bufferPipe = new Pipe();
+MemoryPackSerializer.Serialize(bufferPipe.Writer, sourceCollection);
+_ = await bufferPipe.Writer.FlushAsync().ConfigureAwait(false);
+ReadResult resultBuffer = await bufferPipe.Reader.ReadAsync().ConfigureAwait(false);
 
-var bytes = Convert.FromBase64String("AwMAAAD+////AQAAAGH+////AQAAAGL+////AQAAAGMAAAAAAAAAAP////8=");
-Console.WriteLine(Convert.ToBase64String(bytes));
-var r2 = MemoryPackSerializer.Deserialize<MemPackTestObj>(bytes);
-foreach (var s in r2!.Strings)
+
+//var newSource = new CollectionTest();
+var newSource = MemoryPackSerializer.Deserialize<CollectionTest>(resultBuffer.Buffer);
+Console.WriteLine(newSource.Collection.Count);
+
+
+
+
+[MemoryPackable]
+public partial class Region
 {
-    Console.WriteLine(s);
+    public int positionX;
+    public int positionY;
+    public int positionZ;
+    public Dictionary<Vector3, Chunk> chunks;
+}
+[MemoryPackable]
+public partial class Chunk
+{
+    public bool hasGeneratedBorders;
+    public int positionX;
+    public int positionY;
+    public int positionZ;
+    public List<Brush> brushes;
+    public Dictionary<ByteVector3, int> brushBBPositions;
+}
+[MemoryPackable]
+public partial class ByteVector3
+{
+    public byte x, y, z;
+
+    public override bool Equals(object obj)
+    {
+        // If the object is null, return false.
+        if (obj == null || GetType() != obj.GetType())
+        {
+            return false;
+        }
+
+        // Cast the object to ByteVector3 to compare values.
+        ByteVector3 other = (ByteVector3)obj;
+
+        // Check if all components are equal.
+        return x == other.x && y == other.y && z == other.z;
+    }
+    public override int GetHashCode()
+    {
+        return System.HashCode.Combine(x, y, z);
+    }
+}
+[MemoryPackable]
+public partial class Brush
+{
+    public byte[] vertices;
+    public uint[] textures = new uint[] { 0, 0, 0, 0, 0, 0 };
+    public bool hiddenFlag;
+    public bool borderFlag;
 }
 
-var value = new ListBytesSample();
 
-var bin = MemoryPackSerializer.Serialize(value);
-MemoryPackSerializer.Deserialize<ListBytesSample>(bin, ref value);
+[MemoryPackable]
+public partial class CollectionTest
+{
+    public Collection<string> Collection { get; } = new Collection<string>();
 
-// for efficient operation, you can get Span<T> by CollectionsMarshal
-
-//IServiceProvider provider = default!;
-
-//var a = MemoryPackSerializerOptions.Default with { ServiceProvider = provider };
-
-
-
-
-
-
-var span = CollectionsMarshal.AsSpan(value.Payload);
-
+    [MemoryPackOnSerializing]
+    void OnSerializing2()
+    {
+        Console.WriteLine(nameof(OnSerializing2));
+    }
+}
 
 [MemoryPackable]
 public partial record MemPackTestObj
@@ -75,9 +125,9 @@ public partial record MemPackTestObj
 [MemoryPackable]
 public partial class CctorSample
 {
-    static partial void StaticConstructor()
-    {
-    }
+    //static partial void StaticConstructor()
+    //{
+    //}
 }
 
 [MemoryPackable]
@@ -86,11 +136,11 @@ public partial class ListBytesSample
     public int Id { get; set; }
     public List<byte> Payload { get; set; }
 
-    static partial void StaticConstructor()
-    {
-        Console.WriteLine("foo");
-        // throw new NotImplementedException();
-    }
+    //static partial void StaticConstructor()
+    //{
+    //    Console.WriteLine("foo");
+    //    // throw new NotImplementedException();
+    //}
 }
 
 [MemoryPackable]
