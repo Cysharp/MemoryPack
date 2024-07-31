@@ -46,10 +46,43 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Load secrets
+        id: op-load-secret
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN_PUBLIC }}
+          UNITY_EMAIL: "op://GitHubActionsPublic/UNITY_LICENSE/username"
+          UNITY_PASSWORD: "op://GitHubActionsPublic/UNITY_LICENSE/credential"
+          UNITY_SERIAL: "op://GitHubActionsPublic/UNITY_LICENSE/serial"
+
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
+
+      # Run SourceGenerater to generate serialization code
+      - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
+      - run: dotnet build -c Debug # require build before run
+      - name: Make sure generated files are exists.
+        run: ls -lR "src/MemoryPack/bin/Debug/netstandard2.1"
+
+      # Execute Unittest
+      # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend IL2CPP /BuildTarget StandaloneLinux64
+      - name: Build UnitTest
+        uses: Cysharp/Actions/.github/actions/unity-builder@main
+        env:
+          UNITY_EMAIL: ${{ steps.op-load-secret.outputs.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ steps.op-load-secret.outputs.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ steps.op-load-secret.outputs.UNITY_SERIAL }}
+        with:
+          projectPath: src/MemoryPack.Unity
+          unityVersion: ${{ matrix.unity }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: UnitTestBuilder.BuildUnitTest
+          customParameters: "/headless /ScriptBackend IL2CPP"
+
       # check meta files
       - uses: Cysharp/Actions/.github/actions/check-metas@main
         with:

@@ -40,6 +40,8 @@ jobs:
           UNITY_SERIAL: "op://GitHubActionsPublic/UNITY_LICENSE/serial"
 
       - uses: actions/checkout@v4
+
+      # Run SourceGenerater to generate serialization code
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
       - run: dotnet build -c Debug # require build before run
       - name: Make sure generated files are exists.
