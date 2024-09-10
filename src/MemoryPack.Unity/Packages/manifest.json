@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.cysharp.memorypack.internal": "file:../../MemoryPack/bin/Debug/netstandard2.1",
-    "com.cysharp.runtimeunittesttoolkit": "https://github.com/Cysharp/RuntimeUnitTestToolkit.git?path=RuntimeUnitTestToolkit/Assets/RuntimeUnitTestToolkit#2.6.0",
+    "com.cysharp.runtimeunittesttoolkit": "https://github.com/Cysharp/RuntimeUnitTestToolkit.git?path=RuntimeUnitTestToolkit/Assets/RuntimeUnitTestToolkit#2.6.1",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.unity.collab-proxy": "2.4.3",
     "com.unity.ide.rider": "3.0.31",

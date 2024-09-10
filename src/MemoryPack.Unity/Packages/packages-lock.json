@@ -7,11 +7,11 @@
       "dependencies": {}
     },
     "com.cysharp.runtimeunittesttoolkit": {
-      "version": "https://github.com/Cysharp/RuntimeUnitTestToolkit.git?path=RuntimeUnitTestToolkit/Assets/RuntimeUnitTestToolkit#2.6.0",
+      "version": "https://github.com/Cysharp/RuntimeUnitTestToolkit.git?path=RuntimeUnitTestToolkit/Assets/RuntimeUnitTestToolkit#2.6.1",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "4e3dbfaa9c40b5cfdcb71a1d4e8bca0d45ca1055"
+      "hash": "eec2dd0bbf7a627cad80a529ba328585178e5747"
     },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
@@ -110,9 +110,9 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
+        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.director": "1.0.0",
         "com.unity.modules.animation": "1.0.0",
-        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
       },
       "url": "https://packages.unity.com"
