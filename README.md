@@ -422,12 +422,12 @@ public partial class UnionSampleFormatter
 Union can be assembled in code via `DynamicUnionFormatter<T>`.
 
 ```csharp
-var formatter = new DynamicUnionFormatter<IFooBarBaz>(new[]
-{
+// (ushort, Type)[]
+var formatter = new DynamicUnionFormatter<IFooBarBaz>(
     (0, typeof(Foo)),
     (1, typeof(Bar)),
     (2, typeof(Baz))
-});
+);
 
 MemoryPackFormatterProvider.Register(formatter);
 ```
