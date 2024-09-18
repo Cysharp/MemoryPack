@@ -10,6 +10,7 @@ import { Subset } from "./memorypack/Subset.js";
 import { SampleUnion2 } from "./memorypack/SampleUnion2.js";
 import { Person } from "./memorypack/Person.js";
 import { Gender } from "./memorypack/Gender.js";
+import { NullableFloatTest } from "./memorypack/NullableFloatTest.js";
 
 export async function hoge() {
 
@@ -207,6 +208,57 @@ export async function test2() {
     assertObject(v, v2!);
 }
 
+export async function testNullableFloatWithValues()
+{
+    const input = new NullableFloatTest();
+    input.nullableFloat = 31413.431251;
+    input.nullableDouble = 9932.425252;
+
+    const bin = NullableFloatTest.serialize(input);
+    const blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
+    const response = await fetch("http://localhost:5260/api/nullableFloat", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+
+    if (response.status != 200) {
+        console.log(response.status);
+        return;
+    }
+
+    const buffer = await response.arrayBuffer();
+    const output = NullableFloatTest.deserialize(buffer);
+    assertNullableFloat(input, output!);
+
+    console.log("testNullableFloatWithValues passed.");
+}
+
+export async function testNullableFloatWithNulls() {
+    const input = new NullableFloatTest();
+    input.nullableFloat = null;
+    input.nullableDouble = null;
+
+    const bin = NullableFloatTest.serialize(input);
+    const blob = new Blob([bin.buffer], { type: "application/x-memorypack" })
+    const response = await fetch("http://localhost:5260/api/nullableFloat", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+
+    if (response.status != 200) {
+        console.log(response.status);
+        return;
+    }
+
+    const buffer = await response.arrayBuffer();
+    const output = NullableFloatTest.deserialize(buffer);
+
+    assertIsNull(output!.nullableFloat);
+    assertIsNull(output!.nullableDouble);
+
+    console.log("testNullableFloatWithNulls passed.");
+}
+
+function assertNullableFloat(a: NullableFloatTest, b: NullableFloatTest): void
+{
+    ok(a.nullableFloat?.toFixed(1), b.nullableFloat?.toFixed(1))
+    ok(a.nullableDouble?.toFixed(1), b.nullableDouble?.toFixed(1))
+}
+
 function assertObject(v: AllConvertableType, v2: AllConvertableType): void {
     ok(v.myBool, v2.myBool);
     ok(v.myByte, v2.myByte);
@@ -278,6 +330,12 @@ function assertObject(v: AllConvertableType, v2: AllConvertableType): void {
     }
 
     console.log("test passed");
+}
+
+function assertIsNull(value: any) : void
+{
+    if (value !== null)
+        throw new Error("Invalid: value must be null.");
 }
 
 function ok(v1: any, v2: any): void {
