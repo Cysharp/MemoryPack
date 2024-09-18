@@ -294,6 +294,12 @@ public partial class TypeMeta
 
         if (this.IsUnmanagedType)
         {
+            if (GenerateType is GenerateType.VersionTolerant)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.VersionTolerantOnUnmanagedStruct, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+
             var structLayoutFields = this.Symbol.GetAllMembers()
                 .OfType<IFieldSymbol>()
                 .Select(x =>

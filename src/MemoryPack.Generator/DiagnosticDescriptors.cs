@@ -332,4 +332,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor VersionTolerantOnUnmanagedStruct = new(
+        id: "MEMPACK041",
+        title: "Invalid usage of VersionTolerant on unmanaged struct",
+        messageFormat: "The unmanaged struct '{0}' cannot be used for VersionTolerant serialization.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

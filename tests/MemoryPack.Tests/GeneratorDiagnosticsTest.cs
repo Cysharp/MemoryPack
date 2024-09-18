@@ -687,9 +687,22 @@ public partial class Tester
 }
 
 """);
+    }
 
+    [Fact]
+    public void MEMPACK041_UnmanagedStructCannotBeVersionTolerant()
+    {
+        Compile(41, """
+using MemoryPack;
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial struct Tester
+{
+    [MemoryPackOrder(0)]
+    public int I1 { get; init; }
+}
+""");
     }
 }
-
 
 #endif
