@@ -62,6 +62,27 @@ namespace MemoryPack.Tests.Models
         }
     }
 
+    public partial class NestedContainer
+    {
+        [MemoryPackable]
+        public partial class StandardTypeNested
+        {
+            public int One { get; set; }
+        }
+    }
+
+    public partial class DoublyNestedContainer
+    {
+        public partial class DoublyNestedContainerInner
+        {
+            [MemoryPackable]
+            public partial class StandardTypeDoublyNested
+            {
+                public int One { get; set; }
+            }
+        }
+    }
+
 
     [MemoryPackable]
     public partial class WithArray
