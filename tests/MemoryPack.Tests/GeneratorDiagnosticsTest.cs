@@ -18,7 +18,7 @@ public partial class GeneratorDiagnosticsTest
 {
     void Compile(int id, string code, bool allowMultipleError = false)
     {
-        var diagnostics = CSharpGeneratorRunner.RunGenerator(code);
+        var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code);
         if (!allowMultipleError)
         {
             diagnostics.Length.Should().Be(1);
@@ -528,11 +528,11 @@ public partial struct Hoge
 """;
 
         {
-            var diagnostics = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new[] { "NET7_0_OR_GREATER" });
+            var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new[] { "NET7_0_OR_GREATER" });
             diagnostics.Length.Should().Be(0);
         }
         {
-            var diagnostics = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new string[] { });
+            var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code, preprocessorSymbols: new string[] { });
             diagnostics.Length.Should().Be(1);
             diagnostics[0].Id.Should().Be("MEMPACK034");
         }

@@ -29,15 +29,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack.AspNetCoreMvcFor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxNet6", "sandbox\SandboxNet6\SandboxNet6.csproj", "{87C0CEAA-E511-46AA-93AB-AF742A1F8EE2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C56A9A52-EE3A-44A5-A8EA-AE36C79FFB6C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassLibrary", "sandbox\ClassLibrary\ClassLibrary.csproj", "{0ADCE3AF-C900-4FCB-938B-654211EDD6BE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeAot", "sandbox\NativeAot\NativeAot.csproj", "{6E18AECF-34B2-48F9-9694-54150FB156EB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Net6VsNet7", "sandbox\Net6VsNet7\Net6VsNet7.csproj", "{5612B811-586A-4EB3-9AE7-60CAD4969A1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemoryPack.UnityShims", "src\MemoryPack.UnityShims\MemoryPack.UnityShims.csproj", "{9339C66C-25E5-4130-A213-9BA1804AD562}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryPack.UnityShims", "src\MemoryPack.UnityShims\MemoryPack.UnityShims.csproj", "{9339C66C-25E5-4130-A213-9BA1804AD562}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
