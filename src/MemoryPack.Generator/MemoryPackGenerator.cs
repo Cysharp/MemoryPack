@@ -130,6 +130,9 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         var typeScriptEnabled = context.AnalyzerConfigOptionsProvider
             .Select((configOptions, token) =>
             {
+                // https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md
+                var isDesignTimeBuild = configOptions.GlobalOptions.TryGetValue("build_property.DesignTimeBuild", out var designTimeBuild) && designTimeBuild == "true";
+
                 string? path;
                 if (!configOptions.GlobalOptions.TryGetValue("build_property.MemoryPackGenerator_TypeScriptOutputDirectory", out path))
                 {
@@ -161,7 +164,8 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     OutputDirectory = path,
                     ImportExtension = ext,
                     ConvertPropertyName = convert,
-                    EnableNullableTypes = bool.TryParse(enableNullableTypes, out var enabledNullableTypesParsed) && enabledNullableTypesParsed
+                    EnableNullableTypes = bool.TryParse(enableNullableTypes, out var enabledNullableTypesParsed) && enabledNullableTypesParsed,
+                    IsDesignTimeBuild = isDesignTimeBuild
                 };
             });
 
@@ -193,6 +197,10 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             var unionMap = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default); // <impl, base>
             foreach (var item in source)
             {
+                var tsOptions = item.Right;
+                if (tsOptions == null) continue;
+                if (tsOptions.IsDesignTimeBuild) continue; // designtime build(in IDE), do nothing.
+
                 var syntax = item.Left.Item1;
                 var compilation = item.Left.Item2;
                 var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
@@ -203,7 +211,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                     reference = new ReferenceSymbols(compilation);
                 }
 
-                if (generatePath is null && item.Right is {} options)
+                if (generatePath is null && item.Right is { } options)
                 {
                     generatePath = options.OutputDirectory;
                 }
@@ -223,26 +231,26 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
             }
 
-            var collector = new TypeCollector();
-            foreach (var item in source)
-            {
-                var typeDeclaration = item.Left.Item1;
-                var compilation = item.Left.Item2;
-
-                if (reference == null)
-                {
-                    reference = new ReferenceSymbols(compilation);
-                }
-
-                var meta = GenerateTypeScript(typeDeclaration, compilation, item.Right!, context, reference, unionMap);
-                if (meta != null)
-                {
-                    collector.Visit(meta, false);
-                }
-            }
-
             if (generatePath != null)
             {
+                var collector = new TypeCollector();
+                foreach (var item in source)
+                {
+                    var typeDeclaration = item.Left.Item1;
+                    var compilation = item.Left.Item2;
+
+                    if (reference == null)
+                    {
+                        reference = new ReferenceSymbols(compilation);
+                    }
+
+                    var meta = GenerateTypeScript(typeDeclaration, compilation, item.Right!, context, reference, unionMap);
+                    if (meta != null)
+                    {
+                        collector.Visit(meta, false);
+                    }
+                }
+
                 GenerateEnums(collector.GetEnums(), generatePath);
 
                 // generate runtime

@@ -19,6 +19,7 @@
         <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptImportExtension" />
         <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptConvertPropertyName" />
         <CompilerVisibleProperty Include="MemoryPackGenerator_TypeScriptEnableNullableTypes" />
+        <CompilerVisibleProperty Include="DesignTimeBuild" />
     </ItemGroup>
     <PropertyGroup>
         <MemoryPackGenerator_TypeScriptOutputDirectory>$(MSBuildProjectDirectory)\wwwroot\js\memorypack</MemoryPackGenerator_TypeScriptOutputDirectory>

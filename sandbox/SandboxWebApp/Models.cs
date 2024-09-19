@@ -4,6 +4,13 @@ using System.Security.Principal;
 
 namespace SandboxWebApp;
 
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class FooBarBazDayonDattayon
+{
+    public int MyProperty { get; set; }
+}
+
 
 [MemoryPackable]
 [GenerateTypeScript]
