@@ -17,14 +17,6 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor NestedNotAllow = new(
-        id: "MEMPACK002",
-        title: "MemoryPackable object must not be nested type",
-        messageFormat: "The MemoryPackable object '{0}' must be not nested type",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
-
     public static readonly DiagnosticDescriptor AbstractMustUnion = new(
         id: "MEMPACK003",
         title: "abstract/interface type of MemoryPackable object must annotate with Union",
@@ -337,6 +329,14 @@ internal static class DiagnosticDescriptors
         id: "MEMPACK041",
         title: "Invalid usage of VersionTolerant on unmanaged struct",
         messageFormat: "The unmanaged struct '{0}' cannot be used for VersionTolerant serialization.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NestedContainingTypesMustBePartial = new(
+        id: "MEMPACK042",
+        title: "Nested MemoryPackable object's containing type(s) must be partial",
+        messageFormat: "The MemoryPackable object '{0}' containing type(s) must be partial",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

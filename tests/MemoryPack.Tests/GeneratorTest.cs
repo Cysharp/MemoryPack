@@ -51,6 +51,13 @@ public class GeneratorTest
     }
 
     [Fact]
+    public void Nested()
+    {
+        VerifyEquivalent(new NestedContainer.StandardTypeNested() { One = 9999 });
+        VerifyEquivalent(new DoublyNestedContainer.DoublyNestedContainerInner.StandardTypeDoublyNested() { One = 9999 });
+    }
+
+    [Fact]
     public void Null()
     {
         var bin = MemoryPackSerializer.Serialize<StandardTypeOne>(null);

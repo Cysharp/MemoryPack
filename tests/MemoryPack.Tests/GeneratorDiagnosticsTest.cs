@@ -44,22 +44,6 @@ public class Hoge
     }
 
     [Fact]
-    public void MEMPACK002_NestedNotAllow()
-    {
-        Compile(2, """
-using MemoryPack;
-
-public partial class Hoge
-{
-    [MemoryPackable]
-    public partial class Huga
-    {
-    }
-}
-""");
-    }
-
-    [Fact]
     public void MEMPACK003_AbstractMustUnion()
     {
         Compile(3, """
@@ -702,6 +686,23 @@ public partial struct Tester
     public int I1 { get; init; }
 }
 """);
+    }
+
+    [Fact]
+    public void MEMPACK042_NestedContainingTypesMustBePartial()
+    {
+        Compile(42, """
+                    using MemoryPack;
+
+                    public struct NestedContainer
+                    {
+                        [MemoryPackable]
+                        public partial struct NestedStruct
+                        {
+                            public int I1 { get; init; }
+                        }
+                    }
+                    """);
     }
 }
 
