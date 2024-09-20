@@ -12,6 +12,24 @@ internal static class Extensions
         return string.Join(Environment.NewLine, source);
     }
 
+    public static bool EqualsNamespaceAndName(this ITypeSymbol? left, ITypeSymbol? right)
+    {
+        if (left == null && right == null) return true;
+        if (left == null || right == null) return false;
+
+        var l = left.ContainingNamespace;
+        var r = right.ContainingNamespace;
+        while (l != null && r != null)
+        {
+            if (l.Name != r.Name) return false;
+
+            l = l.ContainingNamespace;
+            r = r.ContainingNamespace;
+        }
+
+        return (left.Name == right.Name);
+    }
+
     public static bool ContainsAttribute(this ISymbol symbol, INamedTypeSymbol attribtue)
     {
         return symbol.GetAttributes().Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attribtue));
@@ -211,6 +229,11 @@ internal static class Extensions
             yield return t;
             t = t.BaseType;
         }
+    }
+
+    internal static string ToFullyQualifiedFormatDisplayString(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
     public static string FullyQualifiedToString(this ISymbol symbol)

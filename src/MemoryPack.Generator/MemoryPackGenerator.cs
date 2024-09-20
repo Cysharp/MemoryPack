@@ -55,7 +55,18 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 }
 
                 return (string?)null;
-            });
+            })
+            .WithTrackingName("MemoryPack.MemoryPackable.0_AnalyzerConfigOptionsProvider"); // annotate for IncrementalGeneratorTest
+
+        var parseOptions = context.ParseOptionsProvider
+            .Select((parseOptions, token) =>
+            {
+                var csOptions = (CSharpParseOptions)parseOptions;
+                var langVersion = csOptions.LanguageVersion;
+                var net7 = csOptions.PreprocessorSymbolNames.Contains("NET7_0_OR_GREATER");
+                return (langVersion, net7);
+            })
+            .WithTrackingName("MemoryPack.MemoryPackable.0_ParseOptionsProvider");
 
         var typeDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
                 MemoryPackableAttributeFullName,
@@ -70,7 +81,8 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 transform: static (context, token) =>
                 {
                     return (TypeDeclarationSyntax)context.TargetNode;
-                });
+                })
+                .WithTrackingName("MemoryPack.MemoryPackable.1_ForAttributeMemoryPackableAttribute");
 
         var typeDeclarations2 = context.SyntaxProvider.ForAttributeWithMetadataName(
                 MemoryPackUnionFormatterAttributeFullName,
@@ -81,22 +93,16 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 transform: static (context, token) =>
                 {
                     return (TypeDeclarationSyntax)context.TargetNode;
-                });
-
-        var parseOptions = context.ParseOptionsProvider.Select((parseOptions, token) =>
-        {
-            var csOptions = (CSharpParseOptions)parseOptions;
-            var langVersion = csOptions.LanguageVersion;
-            var net7 = csOptions.PreprocessorSymbolNames.Contains("NET7_0_OR_GREATER");
-            return (langVersion, net7);
-        });
+                })
+                .WithTrackingName("MemoryPack.MemoryPackable.1_ForAttributeMemoryPackUnion");
 
         {
             var source = typeDeclarations
                 .Combine(context.CompilationProvider)
                 .WithComparer(Comparer.Instance)
                 .Combine(logProvider)
-                .Combine(parseOptions);
+                .Combine(parseOptions)
+                .WithTrackingName("MemoryPack.MemoryPackable.2_MemoryPackableCombined");
 
             context.RegisterSourceOutput(source, static (context, source) =>
             {
@@ -112,7 +118,8 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 .Combine(context.CompilationProvider)
                 .WithComparer(Comparer.Instance)
                 .Combine(logProvider)
-                .Combine(parseOptions);
+                .Combine(parseOptions)
+                .WithTrackingName("MemoryPack.MemoryPackable.2_MemoryPackUnionCombined");
 
             context.RegisterSourceOutput(source, static (context, source) =>
             {
