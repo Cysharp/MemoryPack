@@ -23,6 +23,11 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
         return new EquatableArray<T>(array);
     }
 
+    public static implicit operator ReadOnlySpan<T>(EquatableArray<T> self)
+    {
+        return self.array;
+    }
+
     public ref readonly T this[int index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -42,33 +42,55 @@ public enum MemberKind
     CustomFormatter, // used [MemoryPackCustomFormatterAttribtue]
 }
 
-public partial class TypeMeta
+public partial record TypeMeta
 {
-    DiagnosticDescriptor? ctorInvalid = null;
+    IgnoreEquality<DiagnosticDescriptor>? _ctorInvalid = null;
+    DiagnosticDescriptor? ctorInvalid
+    {
+        get => _ctorInvalid;
+        set => _ctorInvalid = (value == null) ? null : new IgnoreEquality<DiagnosticDescriptor>?(new(value));
+    }
 
-    readonly ReferenceSymbols reference;
-    public INamedTypeSymbol Symbol { get; set; }
+    readonly IgnoreEquality<ReferenceSymbols> _reference;
+    ReferenceSymbols reference
+    {
+        get => _reference.Value;
+    }
+
+    EquatableTypeSymbol _symbol = default!; // only for record equality compare
+    public INamedTypeSymbol Symbol
+    {
+        get => (INamedTypeSymbol)_symbol.Symbol;
+        set => _symbol = new EquatableTypeSymbol(value);
+    }
+
+    EquatableMethodSymbol? _constructor = default!;
+    public IMethodSymbol? Constructor
+    {
+        get => _constructor?.Symbol;
+        set => _constructor = (value == null) ? null : new EquatableMethodSymbol(value);
+    }
+
     public GenerateType GenerateType { get; }
     public SerializeLayout SerializeLayout { get; }
     /// <summary>MinimallyQualifiedFormat(include generics T)</summary>
     public string TypeName { get; }
-    public MemberMeta[] Members { get; private set; }
+    public EquatableArray<MemberMeta> Members { get; private set; }
     public bool IsValueType { get; set; }
     public bool IsUnmanagedType { get; }
     public bool IsUnion { get; }
     public bool IsRecord { get; }
     public bool IsInterfaceOrAbstract { get; }
-    public IMethodSymbol? Constructor { get; }
-    public MethodMeta[] OnSerializing { get; }
-    public MethodMeta[] OnSerialized { get; }
-    public MethodMeta[] OnDeserializing { get; }
-    public MethodMeta[] OnDeserialized { get; }
-    public (ushort Tag, INamedTypeSymbol Type)[] UnionTags { get; }
+    public EquatableArray<MethodMeta> OnSerializing { get; }
+    public EquatableArray<MethodMeta> OnSerialized { get; }
+    public EquatableArray<MethodMeta> OnDeserializing { get; }
+    public EquatableArray<MethodMeta> OnDeserialized { get; }
+    public EquatableArray<(ushort Tag, INamedTypeSymbol Type)> UnionTags { get; }
     public bool IsUseEmptyConstructor => Constructor == null || Constructor.Parameters.IsEmpty;
 
     public TypeMeta(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
-        this.reference = reference;
+        this._reference = reference;
         this.Symbol = symbol;
 
         symbol.TryGetMemoryPackableType(reference, out var generateType, out var serializeLayout);
@@ -610,7 +632,7 @@ public partial class TypeMeta
     }
 }
 
-partial class MemberMeta
+partial record MemberMeta
 {
     public ISymbol Symbol { get; }
     public string Name { get; }
@@ -888,7 +910,7 @@ partial class MemberMeta
     }
 }
 
-public partial class MethodMeta
+public partial record MethodMeta
 {
     public IMethodSymbol Symbol { get; }
     public string Name { get; }

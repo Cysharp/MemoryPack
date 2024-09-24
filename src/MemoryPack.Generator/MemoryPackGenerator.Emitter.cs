@@ -251,7 +251,7 @@ using MemoryPack;
     }
 }
 
-public partial class TypeMeta
+public partial record TypeMeta
 {
     public void Emit(StringBuilder writer, IGeneratorContext context)
     {
@@ -455,7 +455,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             writer.AppendLine(code);
         }
 
-        for(int i = 0; i < containingTypeDeclarations.Count; ++i)
+        for (int i = 0; i < containingTypeDeclarations.Count; ++i)
         {
             writer.AppendLine("}");
         }
@@ -736,7 +736,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     // Optimized is all member is fixed size
     string EmitVersionTorelantSerializeBodyOptimized(bool isForUnity)
     {
-        static string EmitLengthHeader(MemberMeta[] members)
+        static string EmitLengthHeader(ReadOnlySpan<MemberMeta> members)
         {
             var sb = new StringBuilder();
             foreach (var item in members)
@@ -776,7 +776,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     }
 
     // toTempWriter is VersionTolerant
-    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader)
+    public string EmitSerializeMembers(ReadOnlySpan<MemberMeta> members, string indent, bool toTempWriter, bool writeObjectHeader)
     {
         // members is guranteed writable.
         if (members.Length == 0 && writeObjectHeader)
@@ -872,7 +872,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     }
 
     // for optimize, can use same count, value == null.
-    public string EmitDeserializeMembers(MemberMeta[] members, string indent)
+    public string EmitDeserializeMembers(ReadOnlySpan<MemberMeta> members, string indent)
     {
         // {{Members.Select(x => "                " + x.EmitReadToDeserialize()).NewLine()}}
         var sb = new StringBuilder();
@@ -1270,7 +1270,7 @@ partial class {{TypeName}} : IMemoryPackFormatterRegister
     }
 }
 
-public partial class MethodMeta
+public partial record MethodMeta
 {
     public string Emit()
     {
@@ -1293,7 +1293,7 @@ public partial class MethodMeta
     }
 }
 
-public partial class MemberMeta
+public partial record MemberMeta
 {
     public string EmitSerialize(string writer)
     {

@@ -174,7 +174,7 @@ export const enum {{typeSymbol.Name}} {
     }
 }
 
-public partial class TypeMeta
+public partial record TypeMeta
 {
     public void EmitTypescript(StringBuilder sb, IReadOnlyDictionary<ITypeSymbol, ITypeSymbol> unionMap, TypeScriptGenerateOptions options)
     {
