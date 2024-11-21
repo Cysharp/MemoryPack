@@ -75,6 +75,51 @@ public static partial class MemoryPackSerializer
 #endif
         T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            int sizeOfT = Unsafe.SizeOf<T>();
+            if (buffer.Length < sizeOfT)
+            {
+                MemoryPackSerializationException.ThrowInvalidRange(Unsafe.SizeOf<T>(), (int)buffer.Length);
+            }
+
+            ReadOnlySequence<byte> sliced = buffer.Slice(0, sizeOfT);
+
+            if (sliced.IsSingleSegment)
+            {
+                value = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(sliced.FirstSpan));
+                return sizeOfT;
+            }
+            else
+            {
+                // We can't read directly from ReadOnlySequence<byte> to T, so we copy to a temp array.
+                // if less than 512 bytes, use stackalloc, otherwise use MemoryPool<byte>
+                byte[]? tempArray = null;
+
+                Span<byte> tempSpan = sizeOfT <= 512 ? stackalloc byte[sizeOfT] : default;
+
+                try
+                {
+                    if (sizeOfT > 512)
+                    {
+                        tempArray = ArrayPool<byte>.Shared.Rent(sizeOfT);
+                        tempSpan = tempArray;
+                    }
+
+                    sliced.CopyTo(tempSpan);
+                    value = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(tempSpan));
+                    return sizeOfT;
+                }
+                finally
+                {
+                    if (tempArray is not null)
+                    {
+                        ArrayPool<byte>.Shared.Return(tempArray);
+                    }
+                }
+            }
+        }
+
         var state = threadStaticReaderOptionalState;
         if (state == null)
         {
