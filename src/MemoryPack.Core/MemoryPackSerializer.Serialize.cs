@@ -92,11 +92,12 @@ public static partial class MemoryPackSerializer
         where TBufferWriter : class, IBufferWriter<byte>
 #endif
     {
+        ref var bufferWriterRef = ref Unsafe.AsRef(in bufferWriter);
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
-            var buffer = bufferWriter.GetSpan(Unsafe.SizeOf<T>());
+            var buffer = bufferWriterRef.GetSpan(Unsafe.SizeOf<T>());
             Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), value);
-            bufferWriter.Advance(Unsafe.SizeOf<T>());
+            bufferWriterRef.Advance(Unsafe.SizeOf<T>());
             return;
         }
 #if NET7_0_OR_GREATER
@@ -105,9 +106,9 @@ public static partial class MemoryPackSerializer
         {
             if (value == null)
             {
-                var span = bufferWriter.GetSpan(4);
+                var span = bufferWriterRef.GetSpan(4);
                 MemoryPackCode.NullCollectionData.CopyTo(span);
-                bufferWriter.Advance(4);
+                bufferWriterRef.Advance(4);
                 return;
             }
 
@@ -115,19 +116,20 @@ public static partial class MemoryPackSerializer
             var length = srcArray.Length;
             if (length == 0)
             {
-                var span = bufferWriter.GetSpan(4);
+                var span = bufferWriterRef.GetSpan(4);
                 MemoryPackCode.ZeroCollectionData.CopyTo(span);
-                bufferWriter.Advance(4);
+                bufferWriterRef.Advance(4);
                 return;
             }
+
             var dataSize = elementSize * length;
-            var destSpan = bufferWriter.GetSpan(dataSize + 4);
+            var destSpan = bufferWriterRef.GetSpan(dataSize + 4);
             ref var head = ref MemoryMarshal.GetReference(destSpan);
 
             Unsafe.WriteUnaligned(ref head, length);
             Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref head, 4), ref MemoryMarshal.GetArrayDataReference(srcArray), (uint)dataSize);
 
-            bufferWriter.Advance(dataSize + 4);
+            bufferWriterRef.Advance(dataSize + 4);
             return;
         }
 #endif
@@ -141,7 +143,7 @@ public static partial class MemoryPackSerializer
 
         try
         {
-            var writer = new MemoryPackWriter<TBufferWriter>(ref Unsafe.AsRef(in bufferWriter), state);
+            var writer = new MemoryPackWriter<TBufferWriter>(ref bufferWriterRef, state);
             Serialize(ref writer, value);
         }
         finally
