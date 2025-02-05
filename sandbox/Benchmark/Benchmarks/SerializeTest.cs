@@ -43,6 +43,7 @@ public class SerializeTest<T> : SerializerTestBase<T>
     Utf8JsonWriter jsonWriter;
     SerializerSession session;
     Serializer<T> orleansSerializer;
+    Nerdbank.MessagePack.MessagePackSerializer nerdbankMessagePackSerializer;
 
     public SerializeTest()
         : base()
@@ -65,6 +66,9 @@ public class SerializeTest<T> : SerializerTestBase<T>
         var serialize4 = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
         var serialize5 = MemoryPackSerializer.Serialize(value);
 
+        nerdbankMessagePackSerializer = new Nerdbank.MessagePack.MessagePackSerializer();
+        var serialize6 = nerdbankMessagePackSerializer.Serialize(value, PolyType.SourceGenerator.ShapeProvider_Benchmark.Default);
+
         writer = new ArrayBufferWriter<byte>(new[] { /* serialize1, */ serialize2, serialize3, serialize4, serialize5 }.Max(x => x.Length));
         jsonWriter = new Utf8JsonWriter(writer);
     }
@@ -79,6 +83,12 @@ public class SerializeTest<T> : SerializerTestBase<T>
     public byte[] MemoryPackSerialize()
     {
         return MemoryPackSerializer.Serialize(value, MemoryPackSerializerOptions.Default);
+    }
+
+    [Benchmark, BenchmarkCategory(Categories.Bytes)]
+    public byte[] NerdbankMessagePackSerialize()
+    {
+        return nerdbankMessagePackSerializer.Serialize(value, PolyType.SourceGenerator.ShapeProvider_Benchmark.Default);
     }
 
     [Benchmark, BenchmarkCategory(Categories.Bytes)]

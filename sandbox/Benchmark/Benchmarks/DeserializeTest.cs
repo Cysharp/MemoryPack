@@ -27,12 +27,14 @@ public class DeserializeTest<T> : SerializerTestBase<T>
 {
     Serializer<T> orleansSerializer;
 
+    Nerdbank.MessagePack.MessagePackSerializer nerdbankMessagePackSerializer;
     SerializerSession session;
     byte[] payloadMessagePack;
     byte[] payloadMemoryPack;
     byte[] payloadProtobuf;
     byte[] payloadJson;
     byte[] payloadOrleans;
+    byte[] payloadNerdbankMessagePack;
 
     public DeserializeTest()
         : base()
@@ -44,7 +46,10 @@ public class DeserializeTest<T> : SerializerTestBase<T>
         session = serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
         orleansSerializer = serviceProvider.GetRequiredService<Serializer<T>>();
 
+        nerdbankMessagePackSerializer = new Nerdbank.MessagePack.MessagePackSerializer();
+
         payloadOrleans = orleansSerializer.SerializeToArray(value);
+        payloadNerdbankMessagePack = nerdbankMessagePackSerializer.Serialize(value, PolyType.SourceGenerator.ShapeProvider_Benchmark.Default);
         payloadMessagePack = MessagePackSerializer.Serialize(value);
         payloadMemoryPack = MemoryPackSerializer.Serialize(value);
         using var stream = new MemoryStream();
@@ -63,6 +68,12 @@ public class DeserializeTest<T> : SerializerTestBase<T>
     public T? MemoryPackDeserialize()
     {
         return MemoryPackSerializer.Deserialize<T>(payloadMemoryPack);
+    }
+
+    [Benchmark]
+    public T? NerdbankMessagePackSerialize()
+    {
+        return nerdbankMessagePackSerializer.Deserialize<T>(payloadNerdbankMessagePack, PolyType.SourceGenerator.ShapeProvider_Benchmark.Default);
     }
 
     [Benchmark]

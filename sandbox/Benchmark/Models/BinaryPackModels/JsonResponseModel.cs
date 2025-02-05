@@ -6,6 +6,7 @@ using BinaryPack.Models.Interfaces;
 using MemoryPack;
 using MessagePack;
 using Orleans;
+using PolyType;
 using ProtoBuf;
 
 #nullable enable
@@ -19,6 +20,7 @@ namespace BinaryPack.Models
     [MemoryPackable]
     [MessagePackObject]
     [ProtoContract]
+    [GenerateShape]
     [Orleans.GenerateSerializer]
     public sealed partial class JsonResponseModel : IInitializable, IEquatable<JsonResponseModel>
     {
@@ -30,31 +32,31 @@ namespace BinaryPack.Models
             if (initialize) Initialize();
         }
 
-        [Key(0), Id(0), ProtoMember(1)]
+        [Key(0), Nerdbank.MessagePack.Key(0), Id(0), ProtoMember(1)]
         public string? Id { get; set; }
 
-        [Key(1), Id(1), ProtoMember(2)]
+        [Key(1), Nerdbank.MessagePack.Key(1), Id(1), ProtoMember(2)]
         public string? Type { get; set; }
 
-        [Key(2), Id(2), ProtoMember(3)]
+        [Key(2), Nerdbank.MessagePack.Key(2), Id(2), ProtoMember(3)]
         public int Count { get; set; }
 
-        [Key(3), Id(3), ProtoMember(4)]
+        [Key(3), Nerdbank.MessagePack.Key(3), Id(3), ProtoMember(4)]
         public DateTime CreationTime { get; set; }
 
-        [Key(4), Id(4), ProtoMember(5)]
+        [Key(4), Nerdbank.MessagePack.Key(4), Id(4), ProtoMember(5)]
         public DateTime UpdateTime { get; set; }
 
-        [Key(5), Id(5), ProtoMember(6)]
+        [Key(5), Nerdbank.MessagePack.Key(5), Id(5), ProtoMember(6)]
         public DateTime ExpirationTime { get; set; }
 
-        [Key(6), Id(6), ProtoMember(7)]
+        [Key(6), Nerdbank.MessagePack.Key(6), Id(6), ProtoMember(7)]
         public string? PreviousPageId { get; set; }
 
-        [Key(7), Id(7), ProtoMember(8)]
+        [Key(7), Nerdbank.MessagePack.Key(7), Id(7), ProtoMember(8)]
         public string? FollowingPageId { get; set; }
 
-        [Key(8), Id(8), ProtoMember(9)]
+        [Key(8), Nerdbank.MessagePack.Key(8), Id(8), ProtoMember(9)]
         public List<ApiModelContainer>? ModelContainers { get; set; }
 
         /// <inheritdoc/>
@@ -106,13 +108,13 @@ namespace BinaryPack.Models
     [Orleans.GenerateSerializer]
     public sealed partial class ApiModelContainer : IInitializable, IEquatable<ApiModelContainer>
     {
-        [Key(0), Id(0), ProtoMember(1)]
+        [Key(0), Nerdbank.MessagePack.Key(0), Id(0), ProtoMember(1)]
         public string? Id { get; set; }
 
-        [Key(1), Id(1), ProtoMember(2)]
+        [Key(1), Nerdbank.MessagePack.Key(1), Id(1), ProtoMember(2)]
         public string? Type { get; set; }
 
-        [Key(2), Id(2), ProtoMember(3)]
+        [Key(2), Nerdbank.MessagePack.Key(2), Id(2), ProtoMember(3)]
         public RestApiModel? Model { get; set; }
 
         /// <inheritdoc/>
@@ -146,85 +148,85 @@ namespace BinaryPack.Models
     [Orleans.GenerateSerializer]
     public sealed partial class RestApiModel : IInitializable, IEquatable<RestApiModel>
     {
-        [Key(0), Id(0), ProtoMember(1)]
+        [Key(0), Nerdbank.MessagePack.Key(0), Id(0), ProtoMember(1)]
         public string? Id { get; set; }
 
-        [Key(1), Id(1), ProtoMember(2)]
+        [Key(1), Nerdbank.MessagePack.Key(1), Id(1), ProtoMember(2)]
         public string? Type { get; set; }
 
-        [Key(2), Id(2), ProtoMember(3)]
+        [Key(2), Nerdbank.MessagePack.Key(2), Id(2), ProtoMember(3)]
         public string? Parent { get; set; }
 
-        [Key(3), Id(3), ProtoMember(4)]
+        [Key(3), Nerdbank.MessagePack.Key(3), Id(3), ProtoMember(4)]
         public string? Author { get; set; }
 
-        [Key(4), Id(4), ProtoMember(5)]
+        [Key(4), Nerdbank.MessagePack.Key(4), Id(4), ProtoMember(5)]
         public string? Title { get; set; }
 
-        [Key(5), Id(5), ProtoMember(6)]
+        [Key(5), Nerdbank.MessagePack.Key(5), Id(5), ProtoMember(6)]
         public string? Text { get; set; }
 
-        [Key(6), Id(6), ProtoMember(7)]
+        [Key(6), Nerdbank.MessagePack.Key(6), Id(6), ProtoMember(7)]
         public string? Url { get; set; }
 
-        [Key(7), Id(7), ProtoMember(8)]
+        [Key(7), Nerdbank.MessagePack.Key(7), Id(7), ProtoMember(8)]
         public string? HtmlContent { get; set; }
 
-        [Key(8), Id(8), ProtoMember(9)]
+        [Key(8), Nerdbank.MessagePack.Key(8), Id(8), ProtoMember(9)]
         public int Upvotes { get; set; }
 
-        [Key(9), Id(9), ProtoMember(10)]
+        [Key(9), Nerdbank.MessagePack.Key(9), Id(9), ProtoMember(10)]
         public int Downvotes { get; set; }
 
-        [Key(10), Id(10), ProtoMember(11)]
+        [Key(10), Nerdbank.MessagePack.Key(10), Id(10), ProtoMember(11)]
         public float VotesRatio { get; set; }
 
-        [Key(11), Id(11), ProtoMember(12)]
+        [Key(11), Nerdbank.MessagePack.Key(11), Id(11), ProtoMember(12)]
         public int Views { get; set; }
 
-        [Key(12), Id(12), ProtoMember(13)]
+        [Key(12), Nerdbank.MessagePack.Key(12), Id(12), ProtoMember(13)]
         public int Clicks { get; set; }
 
-        [Key(13), Id(13), ProtoMember(14)]
+        [Key(13), Nerdbank.MessagePack.Key(13), Id(13), ProtoMember(14)]
         public float ClicksRatio { get; set; }
 
-        [Key(14), Id(14), ProtoMember(15)]
+        [Key(14), Nerdbank.MessagePack.Key(14), Id(14), ProtoMember(15)]
         public int NumberOfComments { get; set; }
 
-        [Key(15), Id(15), ProtoMember(16)]
+        [Key(15), Nerdbank.MessagePack.Key(15), Id(15), ProtoMember(16)]
         public DateTime CreationTime { get; set; }
 
-        [Key(16), Id(16), ProtoMember(17)]
+        [Key(16), Nerdbank.MessagePack.Key(16), Id(16), ProtoMember(17)]
         public DateTime UpdateTime { get; set; }
 
-        [Key(17), Id(17), ProtoMember(18)]
+        [Key(17), Nerdbank.MessagePack.Key(17), Id(17), ProtoMember(18)]
         public DateTime ExpirationTime { get; set; }
 
-        [Key(18), Id(18), ProtoMember(19)]
+        [Key(18), Nerdbank.MessagePack.Key(18), Id(18), ProtoMember(19)]
         public bool Flag1 { get; set; }
 
-        [Key(19), Id(19), ProtoMember(20)]
+        [Key(19), Nerdbank.MessagePack.Key(19), Id(19), ProtoMember(20)]
         public bool Flag2 { get; set; }
 
-        [Key(20), Id(20), ProtoMember(21)]
+        [Key(20), Nerdbank.MessagePack.Key(20), Id(20), ProtoMember(21)]
         public bool Flag3 { get; set; }
 
-        [Key(21), Id(21), ProtoMember(22)]
+        [Key(21), Nerdbank.MessagePack.Key(21), Id(21), ProtoMember(22)]
         public bool Flag4 { get; set; }
 
-        [Key(22), Id(22), ProtoMember(23)]
+        [Key(22), Nerdbank.MessagePack.Key(22), Id(22), ProtoMember(23)]
         public bool Flag5 { get; set; }
 
-        [Key(23), Id(23), ProtoMember(24)]
+        [Key(23), Nerdbank.MessagePack.Key(23), Id(23), ProtoMember(24)]
         public string? Optional1 { get; set; }
 
-        [Key(24), Id(24), ProtoMember(25)]
+        [Key(24), Nerdbank.MessagePack.Key(24), Id(24), ProtoMember(25)]
         public string? Optional2 { get; set; }
 
-        [Key(25), Id(25), ProtoMember(26)]
+        [Key(25), Nerdbank.MessagePack.Key(25), Id(25), ProtoMember(26)]
         public string? Optional3 { get; set; }
 
-        [Key(26), Id(26), ProtoMember(27)]
+        [Key(26), Nerdbank.MessagePack.Key(26), Id(26), ProtoMember(27)]
         public MediaInfoModel? Info { get; set; }
 
         /// <inheritdoc/>
@@ -320,16 +322,16 @@ namespace BinaryPack.Models
     [Orleans.GenerateSerializer]
     public sealed partial class MediaInfoModel : IInitializable, IEquatable<MediaInfoModel>
     {
-        [Key(0), Id(0), ProtoMember(1)]
+        [Key(0), Nerdbank.MessagePack.Key(0), Id(0), ProtoMember(1)]
         public string? Id { get; set; }
 
-        [Key(1), Id(1), ProtoMember(2)]
+        [Key(1), Nerdbank.MessagePack.Key(1), Id(1), ProtoMember(2)]
         public string? AlbumUrl { get; set; }
 
-        [Key(2), Id(2), ProtoMember(3)]
+        [Key(2), Nerdbank.MessagePack.Key(2), Id(2), ProtoMember(3)]
         public bool Property { get; set; }
 
-        [Key(3), Id(3), ProtoMember(4)]
+        [Key(3), Nerdbank.MessagePack.Key(3), Id(3), ProtoMember(4)]
         public List<ImageModel>? Images { get; set; }
 
         /// <inheritdoc/>
@@ -372,16 +374,16 @@ namespace BinaryPack.Models
     [Orleans.GenerateSerializer]
     public sealed partial class ImageModel : IInitializable, IEquatable<ImageModel>
     {
-        [Key(0), Id(0), ProtoMember(1)]
+        [Key(0), Nerdbank.MessagePack.Key(0), Id(0), ProtoMember(1)]
         public string? Url { get; set; }
 
-        [Key(1), Id(1), ProtoMember(2)]
+        [Key(1), Nerdbank.MessagePack.Key(1), Id(1), ProtoMember(2)]
         public int Width { get; set; }
 
-        [Key(2), Id(2), ProtoMember(3)]
+        [Key(2), Nerdbank.MessagePack.Key(2), Id(2), ProtoMember(3)]
         public int Height { get; set; }
 
-        [Key(3), Id(3), ProtoMember(4)]
+        [Key(3), Nerdbank.MessagePack.Key(3), Id(3), ProtoMember(4)]
         public float AspectRatio { get; set; }
 
         /// <inheritdoc/>
