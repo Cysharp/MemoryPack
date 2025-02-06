@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MemoryPack.Tests;
 
-public class DeserializeTest
+public partial class DeserializeTest
 {
     [Fact]
     public async Task StreamTest()
@@ -30,6 +32,106 @@ public class DeserializeTest
         result.Should().Equal(expected);
     }
 
+    [Fact]
+    public void GenericValueStructTest()
+    {
+        GenericStruct<int> value = new() { Id = 75, Value = 23 };
+
+        RunMultiSegmentTest(value);
+    }
+
+    [Fact]
+    public void LargeGenericValueStructTest()
+    {
+        GenericStruct<PrePaddedInt> value = new() { Id = 75, Value = new PrePaddedInt() { Value = 23 } };
+
+        RunMultiSegmentTest(value);
+    }
+
+    [Fact]
+    public void GenericReferenceStructTest()
+    {
+        GenericStruct<string> value = new GenericStruct<string>() { Id = 75, Value = "Hello World!" };
+
+        RunMultiSegmentTest(value);
+    }
+
+    [Fact]
+    public void LargeGenericReferenceStructTest()
+    {
+        GenericStruct<PrePaddedString> value = new() { Id = 75, Value = new PrePaddedString() { Value = "Hello World!" } };
+
+        RunMultiSegmentTest(value);
+    }
+
+    private void RunMultiSegmentTest<T>(T value)
+    {
+        byte[] bytes = MemoryPackSerializer.Serialize(value);
+
+        byte[] firstHalf = new byte[bytes.Length / 2];
+        Array.Copy(bytes, 0, firstHalf, 0, firstHalf.Length);
+
+        int secondHalfLength = bytes.Length / 2;
+        if (bytes.Length % 2 != 0)
+        {
+            secondHalfLength++;
+        }
+
+        byte[] secondHalf = new byte[secondHalfLength];
+
+        Array.Copy(bytes, firstHalf.Length, secondHalf, 0, secondHalfLength);
+
+        ReadOnlySequence<byte> sequence = ReadOnlySequenceBuilder.Create(firstHalf, secondHalf);
+
+        T? result = MemoryPackSerializer.Deserialize<T>(sequence);
+        result.Should().Be(value);
+    }
+
+    [MemoryPackable]
+    public partial struct GenericStruct<T>
+    {
+        public int Id;
+        public T Value;
+
+        public override string ToString()
+        {
+            return $"{Id}, {Value}";
+        }
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 516)]
+    struct PrePaddedInt
+    {
+        [FieldOffset(512)]
+        public int Value;
+    }
+
+    [MemoryPackable]
+    private partial class PrePaddedString : IEquatable<PrePaddedString>
+    {
+        private PrePaddedInt _padding;
+        public string Value { get; set; } = "";
+
+        public bool Equals(PrePaddedString? other)
+        {
+            if (other is null)
+                return false;
+
+            return Value.Equals(other.Value);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is PrePaddedString other)
+                return Equals(other);
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+    }
 
     class RandomStream : Stream
     {
