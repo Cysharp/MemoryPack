@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 namespace MemoryPack.Tests.Models;
 
 
-[MemoryPackable]
-public partial class GenericsType<T>
+public abstract partial class AbstractGenericsType<T>
 {
     public int MyProperty1 { get; set; }
     public T? MyProperty2 { get; set; }
+}
+
+[MemoryPackable]
+public partial class GenericsType<T> : AbstractGenericsType<T>
+{
 }
 
 
