@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace MemoryPack.Tests.Models;
 
-
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(GenericsType<>))]
 public abstract partial class AbstractGenericsType<T>
 {
     public int MyProperty1 { get; set; }
