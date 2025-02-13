@@ -101,7 +101,7 @@ jobs:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
       tag: ${{ inputs.tag }}
       nuget-push: true
-      release-upload: true
+      release-upload: false
     secrets: inherit
 
   cleanup:
