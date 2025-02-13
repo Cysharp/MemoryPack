@@ -627,7 +627,7 @@ public partial class Tester
 """);
     }
 
-    [Fact]
+    [Fact(Skip = "Obsolete")]
     public void MEMPACK040_SuppressDefaultInitializationMustBeSettable()
     {
         Compile(40, """

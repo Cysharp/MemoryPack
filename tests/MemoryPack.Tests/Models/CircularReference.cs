@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace MemoryPack.Tests.Models;
 
@@ -44,12 +40,23 @@ public partial class Employee
     public List<Employee>? DirectReports { get; set; }
 }
 
-
-
 [MemoryPackable(GenerateType.CircularReference, SerializeLayout.Sequential)]
 public partial class SequentialCircularReference
 {
     public string? Name { get; set; }
     public SequentialCircularReference? Manager { get; set; }
     public List<SequentialCircularReference>? DirectReports { get; set; }
+}
+
+[MemoryPackable(GenerateType.CircularReference)]
+public partial class CircularReferenceWithRequiredProperties
+{
+    [MemoryPackOrder(0)]
+    public required string FirstName { get; init; }
+    [MemoryPackOrder(1)]
+    public required string LastName { get; set; }
+    [MemoryPackOrder(2)]
+    public CircularReferenceWithRequiredProperties? Manager { get; set; }
+    [MemoryPackOrder(3)]
+    public required List<CircularReferenceWithRequiredProperties> DirectReports { get; set; }
 }

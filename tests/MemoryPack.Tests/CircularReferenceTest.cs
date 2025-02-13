@@ -1,13 +1,7 @@
 ﻿#pragma warning disable CS8602
 
 using MemoryPack.Tests.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MemoryPack.Tests;
 
@@ -151,4 +145,81 @@ public class CircularReferenceTest
         tylerDeserialized?.DirectReports?[0].Manager.Should().BeSameAs(tylerDeserialized);
     }
 
+    [Fact]
+    public void RequiredProperties()
+    {
+        CircularReferenceWithRequiredProperties manager = new()
+        {
+            FirstName = "Tyler",
+            LastName = "Stein",
+            Manager = null,
+            DirectReports = []
+        };
+
+        CircularReferenceWithRequiredProperties emp1 = new()
+        {
+            FirstName = "Adrian",
+            LastName = "King",
+            Manager = manager,
+            DirectReports = []
+        };
+        CircularReferenceWithRequiredProperties emp2 = new()
+        {
+            FirstName = "Ben",
+            LastName = "Aston",
+            Manager = manager,
+            DirectReports = []
+        };
+        CircularReferenceWithRequiredProperties emp3 = new()
+        {
+            FirstName = "Emily",
+            LastName = "Ottoline",
+            Manager = emp2,
+            DirectReports = []
+        };
+        CircularReferenceWithRequiredProperties emp4 = new()
+        {
+            FirstName = "Jaymes",
+            LastName = "Jaiden",
+            Manager = emp2,
+            DirectReports = []
+        };
+        manager.DirectReports = [emp1, emp2];
+        emp2.DirectReports = [emp3, emp4];
+
+
+        var bin = MemoryPackSerializer.Serialize(manager);
+
+        CircularReferenceWithRequiredProperties? deserialized = MemoryPackSerializer.Deserialize<CircularReferenceWithRequiredProperties>(bin);
+
+        deserialized.Should().NotBeNull();
+        deserialized!.FirstName.Should().Be("Tyler");
+        deserialized.LastName.Should().Be("Stein");
+        deserialized.Manager.Should().BeNull();
+        deserialized.DirectReports.Should().HaveCount(2);
+
+        var dEmp1 = deserialized.DirectReports[0];
+        dEmp1.FirstName.Should().Be("Adrian");
+        dEmp1.LastName.Should().Be("King");
+        dEmp1.Manager.Should().BeSameAs(deserialized);
+        dEmp1.DirectReports.Should().BeEmpty();
+
+        var dEmp2 = deserialized.DirectReports[1];
+        dEmp2.FirstName.Should().Be("Ben");
+        dEmp2.LastName.Should().Be("Aston");
+        dEmp2.Manager.Should().BeSameAs(deserialized);
+        dEmp2.DirectReports.Should().HaveCount(2);
+
+        var dEmp3 = dEmp2.DirectReports[0];
+        dEmp3.FirstName.Should().Be("Emily");
+        dEmp3.LastName.Should().Be("Ottoline");
+        dEmp3.Manager.Should().BeSameAs(dEmp2);
+        dEmp3.DirectReports.Should().BeEmpty();
+
+        var dEmp4 = dEmp2.DirectReports[1];
+        dEmp4.FirstName.Should().Be("Jaymes");
+        dEmp4.LastName.Should().Be("Jaiden");
+        dEmp4.Manager.Should().BeSameAs(dEmp2);
+        dEmp4.DirectReports.Should().BeEmpty();
+    }
 }

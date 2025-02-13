@@ -12,6 +12,27 @@ public class IncrementalGeneratorTest
     public void Run()
     {
         // lang=C#-test
+
+        //TODO: this is just while WIP
+        var code = """
+            using System.Collections.ObjectModel;
+            using MemoryPack;
+            
+            [MemoryPackable]
+            public partial class CollectionTest
+            {
+                public Collection<string> Collection { get; } = new Collection<string>();
+
+                [MemoryPackOnSerializing]
+                void OnSerializing2()
+                {
+                    Console.WriteLine(nameof(OnSerializing2));
+                }
+            }
+            
+            """;
+        var k = string.Join(Environment.NewLine, CSharpGeneratorRunner.RunGenerator(code).Item1.SyntaxTrees.Select(x => x.ToString()));
+
         var step1 = """
 [MemoryPackable]
 public partial class MyClass
