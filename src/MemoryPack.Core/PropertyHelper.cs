@@ -23,14 +23,15 @@ public static class PropertyHelper
             var setMethod = prop.GetSetMethod(true);
             if (setMethod is null)
             {
-                throw new ArgumentException($"Property \"{propertyName}\"  does not have a setter.");
+                throw new ArgumentException($"Property \"{propertyName}\" does not have a setter.");
             }
 
-            var instanceParameter = Expression.Parameter(typeOfT, "instance");
-            var valueParameter = Expression.Parameter(typeof(TValue), "value");
-            var callExpr = Expression.Call(instanceParameter, setMethod, valueParameter);
-            var lambda = Expression.Lambda<Action<T, TValue>>(callExpr, instanceParameter, valueParameter);
-            setter = lambda.Compile();
+            setter = setMethod.CreateDelegate(typeof(Action<T, TValue>));
+            //var instanceParameter = Expression.Parameter(typeOfT, "instance");
+            //var valueParameter = Expression.Parameter(typeof(TValue), "value");
+            //var callExpr = Expression.Call(instanceParameter, setMethod, valueParameter);
+            //var lambda = Expression.Lambda<Action<T, TValue>>(callExpr, instanceParameter, valueParameter);
+            //setter = lambda.Compile();
             _cache.TryAdd(key, setter);
         }
 
