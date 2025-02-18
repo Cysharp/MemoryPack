@@ -585,7 +585,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
         /*
 {{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.@{x.Name} = __{x.Name};").NewLine()}}
-{{Members.Where(x => x.IsInitOnly).Select(x => $"        global::MemoryPack.UnsafePropertyUpdater.SetInitOnlyProperty<{TypeName}, {x.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{x.Name}), __{x.Name});").NewLine()}}
+{{Members.Where(x => x.IsInitOnly).Select(x => $"        global::MemoryPack.PropertyHelper.SetInitOnlyProperty<{TypeName}, {x.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{x.Name}), __{x.Name});").NewLine()}}
         */
 {{Members.Where(x => x.IsAssignable || x.IsInitOnly).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}{EmitPropertyAssignValue(x)}").NewLine()}}
         goto READ_END;
@@ -995,7 +995,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
         else if (meta.IsInitOnly)
         {
-            return $"global::MemoryPack.UnsafePropertyUpdater.SetInitOnlyProperty<{TypeName}, {meta.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{meta.Name}), __{meta.Name});";
+            return $"global::MemoryPack.PropertyHelper.SetInitOnlyProperty<{TypeName}, {meta.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{meta.Name}), __{meta.Name});";
         }
 
         throw new InvalidOperationException($"Unable to emit property assignation expression on non-assignable member {meta.Name}");

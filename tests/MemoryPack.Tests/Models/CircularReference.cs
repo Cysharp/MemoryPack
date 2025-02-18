@@ -56,7 +56,7 @@ public partial class CircularReferenceWithRequiredProperties
     [MemoryPackOrder(1)]
     public required string LastName { get; set; }
     [MemoryPackOrder(2)]
-    public CircularReferenceWithRequiredProperties? Manager { get; set; }
+    public CircularReferenceWithRequiredProperties? Manager { get; init; }
     [MemoryPackOrder(3)]
     public required List<CircularReferenceWithRequiredProperties> DirectReports { get; set; }
 }

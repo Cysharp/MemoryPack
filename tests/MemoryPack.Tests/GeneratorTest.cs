@@ -133,7 +133,23 @@ public class GeneratorTest
         VerifyEquivalent(new IncludesReferenceStruct { X = 9, Y = "foobarbaz" });
 #if NET7_0_OR_GREATER
         VerifyEquivalent(new RequiredType { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
+        VerifyEquivalent(new RequiredInitOnlyType
+        {
+            MyProperty1 = 10,
+            MyProperty2 = "hogemogehuga",
+            MyProperty3 = "qwerty",
+            MyProperty4 = "property4",
+            MyProperty5 = "property5"
+        });
         VerifyEquivalent(new RequiredType2 { MyProperty1 = 10, MyProperty2 = "hogemogehuga" });
+        VerifyEquivalent(new RequiredInitOnlyType2
+        {
+            MyProperty1 = 10,
+            MyProperty2 = "hogemogehuga",
+            MyProperty3 = "qwerty",
+            MyProperty4 = "property4",
+            MyProperty5 = "property5"
+        });
 #endif
         VerifyEquivalent(new StructWithConstructor1("foo"));
         VerifyEquivalent(new MyRecord(10, 20, "haa"));

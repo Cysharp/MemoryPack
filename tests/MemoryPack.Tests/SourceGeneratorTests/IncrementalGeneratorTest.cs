@@ -18,16 +18,18 @@ public class IncrementalGeneratorTest
             using System.Collections.ObjectModel;
             using MemoryPack;
             
-            [MemoryPackable]
-            public partial class CollectionTest
+            
+            [MemoryPackable(GenerateType.CircularReference)]
+            public partial class CircularReferenceWithRequiredProperties
             {
-                public Collection<string> Collection { get; } = new Collection<string>();
-
-                [MemoryPackOnSerializing]
-                void OnSerializing2()
-                {
-                    Console.WriteLine(nameof(OnSerializing2));
-                }
+                [MemoryPackOrder(0)]
+                public required string FirstName { get; init; }
+                [MemoryPackOrder(1)]
+                public required string LastName { get; set; }
+                [MemoryPackOrder(2)]
+                public CircularReferenceWithRequiredProperties? Manager { get; init; }
+                [MemoryPackOrder(3)]
+                public required List<CircularReferenceWithRequiredProperties> DirectReports { get; set; }
             }
             
             """;
