@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
@@ -52,7 +52,7 @@ jobs:
     steps:
       - name: Load secrets
         id: op-load-secret
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
         with:
           export-env: false
         env:
@@ -62,7 +62,7 @@ jobs:
           UNITY_SERIAL: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/serial"
 
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
 
@@ -88,7 +88,7 @@ jobs:
           customParameters: "/headless /ScriptBackend IL2CPP"
 
       # check meta files
-      - uses: Cysharp/Actions/.github/actions/check-metas@main
+      - uses: Cysharp/Actions/.github/actions/check-metas@main # check meta files
         with:
           directory: src/MemoryPack.Unity
 
