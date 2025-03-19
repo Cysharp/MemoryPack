@@ -330,7 +330,7 @@ public partial class TypeMeta
         string staticRegisterFormatterMethod, staticMemoryPackableMethod, scopedRef, constraint, registerBody, registerT;
         var fixedSizeInterface = "";
         var fixedSizeMethod = "";
-        scopedRef = (context.IsCSharp11OrGreater())
+        scopedRef = context.IsNet7OrGreater && context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
         if (!context.IsNet7OrGreater)
@@ -350,11 +350,7 @@ public partial class TypeMeta
             registerT = $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();";
 
             // similar as VersionTolerantOptimized but not includes String, Array
-            var fixedSize = false;
-            if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable or MemberKind.Blank))
-            {
-                fixedSize = true;
-            }
+            bool fixedSize = Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable or MemberKind.Blank);
 
             var callbackCount = new[] { this.OnSerializing, this.OnSerialized, this.OnDeserialized, this.OnDeserializing }.Select(x => x.Length).Sum();
             if (fixedSize && GenerateType == GenerateType.Object && !this.IsValueType && callbackCount == 0)
@@ -984,7 +980,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var register = (context.IsNet7OrGreater)
             ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
             : "RegisterFormatter();";
-        var scopedRef = context.IsCSharp11OrGreater()
+        var scopedRef = context.IsNet7OrGreater && context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
         string serializeMethodSignarture = context.IsForUnity
@@ -1045,7 +1041,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
 
     public void EmitUnionFormatterTemplate(StringBuilder writer, IGeneratorContext context, INamedTypeSymbol formatterSymbol)
     {
-        var scopedRef = context.IsCSharp11OrGreater()
+        var scopedRef = context.IsNet7OrGreater && context.IsCSharp11OrGreater()
             ? "scoped ref"
             : "ref";
         string serializeMethodSignarture = context.IsForUnity
