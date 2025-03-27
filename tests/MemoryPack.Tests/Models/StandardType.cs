@@ -71,6 +71,42 @@ namespace MemoryPack.Tests.Models
         }
     }
 
+    public partial struct NestedStructContainer
+    {
+        [MemoryPackable]
+        public partial class StandardTypeNested
+        {
+            public int One { get; set; }
+        }
+    }
+
+    public partial record struct NestedRecordStructContainer
+    {
+        [MemoryPackable]
+        public partial class StandardTypeNested
+        {
+            public int One { get; set; }
+        }
+    }
+
+    public partial interface NestedInterfaceContainer
+    {
+        [MemoryPackable]
+        public partial class StandardTypeNested
+        {
+            public int One { get; set; }
+        }
+    }
+
+    public abstract partial class NestedAbstractClassContainer
+    {
+        [MemoryPackable]
+        public partial class StandardTypeNested
+        {
+            public int One { get; set; }
+        }
+    }
+
     public partial class DoublyNestedContainer
     {
         public partial class DoublyNestedContainerInner
@@ -82,7 +118,6 @@ namespace MemoryPack.Tests.Models
             }
         }
     }
-
 
     [MemoryPackable]
     public partial class WithArray

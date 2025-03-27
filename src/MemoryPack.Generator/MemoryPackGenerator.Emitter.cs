@@ -312,14 +312,18 @@ public partial class TypeMeta
 
         var containingTypeDeclarations = new List<string>();
         var containingType = Symbol.ContainingType;
+
         while (containingType is not null)
         {
-            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType) switch
+            var isInterface = containingType.TypeKind == TypeKind.Interface;
+            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType, containingType.IsAbstract, isInterface) switch
             {
-                (true, true) => $"partial record struct {containingType.Name}",
-                (true, false) => $"partial record {containingType.Name}",
-                (false, true) => $"partial struct {containingType.Name}",
-                (false, false) => $"partial class {containingType.Name}",
+                (true, true, false, false) => $"partial record struct {containingType.Name}",
+                (true, false, false, false) => $"partial record {containingType.Name}",
+                (false, true, false, false) => $"partial struct {containingType.Name}",
+                (false, false, false, false) => $"partial class {containingType.Name}",
+                (false, false, true, false) => $"abstract partial class {containingType.Name}",
+                (false, false, true, true) => $"partial interface {containingType.Name}",
             });
             containingType = containingType.ContainingType;
         }
