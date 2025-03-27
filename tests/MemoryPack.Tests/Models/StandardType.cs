@@ -119,6 +119,7 @@ namespace MemoryPack.Tests.Models
         }
     }
 
+
     [MemoryPackable]
     public partial class WithArray
     {

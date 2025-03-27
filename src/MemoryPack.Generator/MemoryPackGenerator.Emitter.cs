@@ -312,7 +312,6 @@ public partial class TypeMeta
 
         var containingTypeDeclarations = new List<string>();
         var containingType = Symbol.ContainingType;
-
         while (containingType is not null)
         {
             var isInterface = containingType.TypeKind == TypeKind.Interface;
