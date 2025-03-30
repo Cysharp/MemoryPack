@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConsoleAppFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,18 +12,18 @@ namespace SandboxConsoleApp;
 // check the System.Text.Json's constructor select rule.
 
 // For a class, if the only constructor is a parameterized one, that constructor will be used.
-// For a struct, or a class with multiple constructors, specify the one to use by applying the[JsonConstructor] attribute.
+// For a struct, or a class with multiple constructors, specify the one to use by applying the [JsonConstructor] attribute.
 // When the attribute is not used, a public parameterless constructor is always used if present.
 
 // MemoryPack choose class/struct as same rule.
-// If has no explicit constrtucotr, use parameterless one.
+// If has no explicit constructor, use parameterless one.
 // If has a one parameterless/parameterized constructor, choose it.
-// If has multiple construcotrs, should apply [MemoryPackConstructor] attribute(no automatically choose one), otherwise generator error it.
+// If has multiple constructor, should apply [MemoryPackConstructor] attribute (no automatically choose one), otherwise generator error it.
 
 // The parameter names of a parameterized constructor must match the property names.
 // Matching is case-insensitive, and the constructor parameter must match the actual property name.
 
-class SystemTextJsonChecker : ConsoleAppBase
+class SystemTextJsonChecker
 {
     //[RootCommand]
     public void JsonConstructorSelector()
@@ -57,7 +58,7 @@ class SystemTextJsonChecker : ConsoleAppBase
         JsonSerializer.Deserialize<Seven>(seven);
     }
 
-    [RootCommand]
+    [Command("")]
     public void PrivateSerialization()
     {
         // private field/property can not annnotate JsonInclude
