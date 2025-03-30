@@ -51,7 +51,7 @@ global using MemoryPack;
         {
             preprocessorSymbols = new[] { "NET7_0_OR_GREATER" };
         }
-        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
+        var parseOptions = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessorSymbols);
 
         var driver = CSharpGeneratorDriver.Create(new MemoryPackGenerator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
@@ -68,7 +68,7 @@ global using MemoryPack;
 
     public static (string Key, string Reasons)[][] GetIncrementalGeneratorTrackedStepsReasons(string keyPrefixFilter, params string[] sources)
     {
-        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11);
+        var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
         var driver = CSharpGeneratorDriver.Create(
             [new MemoryPackGenerator().AsSourceGenerator()],
             driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true))
