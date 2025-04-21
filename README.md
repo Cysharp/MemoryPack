@@ -31,7 +31,7 @@ Other than performance, MemoryPack has these features.
 
 Installation
 ---
-This library is distributed via NuGet. For best performance, recommend to use `.NET 7`. Minimum requirement is `.NET Standard 2.1`.
+This library is distributed via NuGet. For best performance, it is recommended to use `.NET 7`. Minimum requirement is `.NET Standard 2.1`.
 
 > PM> Install-Package [MemoryPack](https://www.nuget.org/packages/MemoryPack)
 
@@ -65,7 +65,7 @@ var bin = MemoryPackSerializer.Serialize(v);
 var val = MemoryPackSerializer.Deserialize<Person>(bin);
 ```
 
-`Serialize` method supports a return type of `byte[]` as well as it can serialize to `IBufferWriter<byte>` or `Stream`. `Deserialize` method supports `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>` and `Stream`. And there are alse non-generics versions.
+`Serialize` method supports a return type of `byte[]` as well as it can serialize to `IBufferWriter<byte>` or `Stream`. `Deserialize` method supports `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>` and `Stream`. And there are also non-generic versions.
 
 Built-in supported types
 ---
