@@ -14,6 +14,8 @@ on:
 
 jobs:
   update-packagejson:
+    permissions:
+      contents: write
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
     with:
       file-path: |
@@ -24,7 +26,9 @@ jobs:
 
   build-dotnet:
     needs: [update-packagejson]
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
@@ -47,7 +51,9 @@ jobs:
     strategy:
       matrix:
         unity: ["2022.3.39f1"]
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Load secrets
@@ -95,6 +101,8 @@ jobs:
   # release
   create-release:
     needs: [update-packagejson, build-dotnet, build-unity]
+    permissions:
+      contents: write
     uses: Cysharp/Actions/.github/workflows/create-release.yaml@main
     with:
       dry-run: ${{ inputs.dry-run }}
@@ -107,6 +115,8 @@ jobs:
   cleanup:
     if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
     needs: [update-packagejson, create-release]
+    permissions:
+      contents: write
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
     with:
       branch: ${{ needs.update-packagejson.outputs.branch-name }}
