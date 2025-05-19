@@ -297,11 +297,11 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     {
         SourceProductionContext context;
 
-        public GeneratorContext(SourceProductionContext context, LanguageVersion languageVersion, bool isNet70OrGreater)
+        public GeneratorContext(SourceProductionContext context, LanguageVersion languageVersion, bool isNet7OrGreater)
         {
             this.context = context;
             this.LanguageVersion = languageVersion;
-            this.IsNet7OrGreater = isNet70OrGreater;
+            this.IsNet7OrGreater = isNet7OrGreater;
         }
 
         public CancellationToken CancellationToken => context.CancellationToken;
