@@ -149,7 +149,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void AdvanceUnsafe(int count)
+    internal void AdvanceUnsafe(int count)
     {
         bufferLength = bufferLength - count;
 #if NET7_0_OR_GREATER
