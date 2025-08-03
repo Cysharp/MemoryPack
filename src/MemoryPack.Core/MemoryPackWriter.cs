@@ -149,6 +149,19 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void AdvanceUnsafe(int count)
+    {
+        bufferLength = bufferLength - count;
+#if NET7_0_OR_GREATER
+        bufferReference = ref Unsafe.Add(ref bufferReference, count);
+#else
+        bufferReference = bufferReference.Slice(count);
+#endif
+        advancedCount += count;
+        writtenCount += count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Flush()
     {
         if (advancedCount != 0)
@@ -217,21 +230,21 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             MemoryPackSerializationException.ThrowWriteInvalidMemberCount(memberCount);
         }
         GetSpanReference(1) = memberCount;
-        Advance(1);
+        AdvanceUnsafe(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullObjectHeader()
     {
         GetSpanReference(1) = MemoryPackCode.NullObject;
-        Advance(1);
+        AdvanceUnsafe(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteObjectReferenceId(uint referenceId)
     {
         GetSpanReference(1) = MemoryPackCode.ReferenceId;
-        Advance(1);
+        AdvanceUnsafe(1);
         WriteVarInt(referenceId);
     }
 
@@ -241,14 +254,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         if (tag < MemoryPackCode.WideTag)
         {
             GetSpanReference(1) = (byte)tag;
-            Advance(1);
+            AdvanceUnsafe(1);
         }
         else
         {
             ref var spanRef = ref GetSpanReference(3);
             Unsafe.WriteUnaligned(ref spanRef, MemoryPackCode.WideTag);
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, 1), tag);
-            Advance(3);
+            AdvanceUnsafe(3);
         }
     }
 
@@ -262,14 +275,14 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WriteCollectionHeader(int length)
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(4), length);
-        Advance(4);
+        AdvanceUnsafe(4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullCollectionHeader()
     {
         Unsafe.WriteUnaligned(ref GetSpanReference(4), MemoryPackCode.NullCollection);
-        Advance(4);
+        AdvanceUnsafe(4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -312,7 +325,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         MemoryMarshal.AsBytes(value.AsSpan()).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dest, 4), copyByteCount));
 #endif
 
-        Advance(copyByteCount + 4);
+        AdvanceUnsafe(copyByteCount + 4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -329,7 +342,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);
         MemoryMarshal.AsBytes(value).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dest, 4), copyByteCount));
-        Advance(copyByteCount + 4);
+        AdvanceUnsafe(copyByteCount + 4);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -372,7 +385,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
         // write written utf8-length in header, that is ~length
         Unsafe.WriteUnaligned(ref destPointer, ~bytesWritten);
-        Advance(bytesWritten + 8); // + header
+        AdvanceUnsafe(bytesWritten + 8); // + header
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -394,7 +407,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref destPointer, 8), utf8Value.Length);
         utf8Value.CopyTo(dest);
 
-        Advance(utf8Value.Length + 8);
+        AdvanceUnsafe(utf8Value.Length + 8);
     }
 
 #if NET7_0_OR_GREATER
@@ -628,7 +641,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Unsafe.WriteUnaligned(ref dest, value.Length);
         Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
 
-        Advance(allocSize);
+        AdvanceUnsafe(allocSize);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -649,7 +662,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Unsafe.WriteUnaligned(ref dest, value.Length);
         Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
 
-        Advance(allocSize);
+        AdvanceUnsafe(allocSize);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -670,7 +683,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Unsafe.WriteUnaligned(ref dest, value.Length);
         Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)srcLength);
 
-        Advance(allocSize);
+        AdvanceUnsafe(allocSize);
     }
 
     #endregion
@@ -689,7 +702,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)srcLength);
 
-            Advance(srcLength);
+            AdvanceUnsafe(srcLength);
             return;
         }
         else
