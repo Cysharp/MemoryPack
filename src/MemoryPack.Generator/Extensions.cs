@@ -291,4 +291,22 @@ internal static class Extensions
         members.Any(x =>
             x.IsConstructorParameter &&
             string.Equals(constructorParameter.Name, x.ConstructorParameterName, StringComparison.OrdinalIgnoreCase));
+
+    public static bool TryGetConstructorMember(this IEnumerable<MemberMeta> members, IParameterSymbol constructorParameter, out MemberMeta? member)
+    {
+        member = members.FirstOrDefault(m =>
+        {
+            if (EqualsConstructorParameter(constructorParameter, m.Name)) return true;
+            if (m.Name.StartsWith(UnderScorePrefix))
+            {
+                return EqualsConstructorParameter(constructorParameter, m.Name.Substring(UnderScorePrefix.Length));
+            }
+
+            return false;
+        });
+
+        return member != null;
+
+        static bool EqualsConstructorParameter(IParameterSymbol constructorParameter, string name) => constructorParameter.Name.Equals(name, StringComparison.OrdinalIgnoreCase);
+    }
 }
