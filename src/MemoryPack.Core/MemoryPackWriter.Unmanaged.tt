@@ -32,9 +32,9 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 <# for(var j = 2; j <= i; j++) { #>
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #>), value<#= j #>);
 <# } #>
-        Advance(size);
+        AdvanceUnsafe(size);
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void <#= dangerous ? "Dangerous" : "" #>WriteUnmanagedWithObjectHeader<<#= MakeT(i) #>>(byte propertyCount, <#= MakeArgs(i) #>)
 <# if(!dangerous) { #>
@@ -48,7 +48,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 <# for(var j = 2; j <= i; j++) { #>
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #> + 1), value<#= j #>);
 <# } #>
-        Advance(size);
+        AdvanceUnsafe(size);
     }
 
 <# } } #>
