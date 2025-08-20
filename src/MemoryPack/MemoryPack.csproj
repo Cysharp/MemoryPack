@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0;net8.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;netstandard2.1</TargetFrameworks>
         <!-- This project is meta package -->
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <IncludeContentInPack>true</IncludeContentInPack>
@@ -11,10 +11,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="..\..\LICENSE.md" />
+        <EmbeddedResource Include="../../LICENSE.md" />
         <None Include="../../Icon.png" Pack="true" PackagePath="/" />
-        <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
-        <ProjectReference Include="..\MemoryPack.Generator\MemoryPack.Generator.csproj" />
+        <ProjectReference Include="../MemoryPack.Core/MemoryPack.Core.csproj" />
+        <ProjectReference Include="../MemoryPack.Generator/MemoryPack.Generator.csproj" />
     </ItemGroup>
 
 </Project>

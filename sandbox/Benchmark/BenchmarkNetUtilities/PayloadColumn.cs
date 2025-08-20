@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+using Perfolizer.Metrology;
 
 namespace Benchmark.BenchmarkNetUtilities;
 
@@ -39,7 +40,7 @@ public class PayloadColumn : IColumn
         {
             var instance = Activator.CreateInstance(benchmarkCase.Descriptor.Type);
             var result = (byte[])methodInfo.Invoke(instance, null)!;
-            return new SizeValue(result.LongLength).ToString(null);
+            return new SizeValue(result.LongLength).ToString();
         }
         else
         {

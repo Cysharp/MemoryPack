@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;netstandard2.1</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
@@ -15,11 +15,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+        <PackageReference Include="System.IO.Pipelines" Version="9.0.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
+        <ProjectReference Include="../MemoryPack.Core/MemoryPack.Core.csproj" />
     </ItemGroup>
 
 </Project>
