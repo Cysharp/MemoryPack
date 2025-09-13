@@ -54,6 +54,10 @@ public class GeneratorTest
     public void Nested()
     {
         VerifyEquivalent(new NestedContainer.StandardTypeNested() { One = 9999 });
+        VerifyEquivalent(new NestedStructContainer.StandardTypeNested() { One = 9999 });
+        VerifyEquivalent(new NestedRecordStructContainer.StandardTypeNested() { One = 9999 });
+        VerifyEquivalent(new NestedInterfaceContainer.StandardTypeNested() { One = 9999 });
+        VerifyEquivalent(new NestedAbstractClassContainer.StandardTypeNested() { One = 9999 });
         VerifyEquivalent(new DoublyNestedContainer.DoublyNestedContainerInner.StandardTypeDoublyNested() { One = 9999 });
     }
 
