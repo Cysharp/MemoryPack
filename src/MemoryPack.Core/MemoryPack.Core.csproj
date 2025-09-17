@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0;net8.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;netstandard2.1</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -17,8 +17,8 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(TargetFramework) == 'netstandard2.1'">
-        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-        <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.1" />
+        <PackageReference Include="System.Collections.Immutable" Version="9.0.3" />
     </ItemGroup>
 
     <ItemGroup>
