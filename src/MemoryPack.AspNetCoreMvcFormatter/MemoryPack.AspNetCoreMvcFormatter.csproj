@@ -5,12 +5,13 @@
         <OutputType>Library</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Description>ASP.NET Input/Output Formatter of MemoryPack.</Description>
+
+		    <!-- NuGet -->
         <IsPackable>true</IsPackable>
+        <Description>ASP.NET Input/Output Formatter of MemoryPack.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
         <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
     </ItemGroup>
 

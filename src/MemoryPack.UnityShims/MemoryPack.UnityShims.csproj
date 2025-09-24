@@ -7,13 +7,12 @@
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <RootNamespace>UnityEngine</RootNamespace>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
+
+		    <!-- NuGet -->
+        <IsPackable>true</IsPackable>
         <PackageTags>serializer</PackageTags>
         <Description>Unity shims(Vector3, Color, etc) of MemoryPack.</Description>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\MemoryPack.Core\MemoryPack.Core.csproj" />
