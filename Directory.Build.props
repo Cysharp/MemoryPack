@@ -19,7 +19,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>Icon.png</PackageIcon>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)opensource.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
