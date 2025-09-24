@@ -77,7 +77,19 @@ publish
 *.Publish.xml
 
 # NuGet Packages Directory
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# The packages folder can be ignored because of Package Restore
 # packages # upm pacakge will use Packages
+# **/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+# !**/[Pp]ackages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/[Pp]ackages/repositories.config
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
 
 # Windows Azure Build Output
 csx
@@ -107,9 +119,6 @@ UpgradeLog*.XML
 .vs/config/applicationhost.config
 .vs/restore.dg
 
-nuget/tools/*
-nuget/*.nupkg
-nuget/*.unitypackage
 .vs/
 
 # Jetbrains Rider
