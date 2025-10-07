@@ -120,7 +120,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnionMemberNotAllowStruct = new(
         id: "MEMPACK015",
         title: "Union member can't be struct",
-        messageFormat: "The MemoryPackable object '{0}' union member '{1}' can't be member, not allows struct",
+        messageFormat: "The MemoryPackable object '{0}' union member '{1}' can't be member, not allow struct",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
