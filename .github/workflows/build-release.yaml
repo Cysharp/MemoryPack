@@ -23,7 +23,6 @@ jobs:
         ./src/MemoryPack.Unity/Assets/MemoryPack.Unity/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
-      push-tag: false
 
   build-dotnet:
     needs: [update-packagejson]
