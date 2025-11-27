@@ -32,7 +32,7 @@ public ref partial struct MemoryPackReader
 <# for(var j = 2; j <= i; j++) { #>
         value<#= j #> = Unsafe.ReadUnaligned<T<#= j #>>(ref Unsafe.Add(ref spanRef, <#= MakeSize(j - 1) #>));
 <# } #>
-        Advance(size);
+        AdvanceUnsafe(size);
     }
 
 <# } } #>
