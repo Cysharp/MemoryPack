@@ -1375,7 +1375,7 @@ The `MemoryPack.UnityShims` package provides shims for Unity's standard structs 
 
 1. Unity version does not support CustomFormatter.
 2. If you are using .NET7 or later, MemoryPack binary format is not fully compatible with Unity.
-    - This problem occurs with value types that `[StructLayout(LayoutKind.Auto)]` is explicitly specified. (The default for struct is `LayoutKind.Sequencil`.) For such types, binaries serialized in .NET cannot be deserialized in Untiy. Similarly, a binary serialized in Unity cannot be serialized in .NET side.
+    - This problem occurs with value types that `[StructLayout(LayoutKind.Auto)]` is explicitly specified. (The default for struct is `LayoutKind.Sequential`.) For such types, binaries serialized in .NET cannot be deserialized in Unity. Similarly, a binary serialized in Unity cannot be serialized in .NET side.
     - The affected types typically include the following types.
         - `DateTimeOffset`
         - `ValueTuple`
