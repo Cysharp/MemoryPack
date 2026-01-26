@@ -6,13 +6,12 @@
         <Nullable>enable</Nullable>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		    <!-- NuGet -->
+        <IsPackable>true</IsPackable>
         <PackageTags>serializer</PackageTags>
         <Description>Additional streaming support for MemoryPack.</Description>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Include="../../Icon.png" Pack="true" PackagePath="/" />
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
@@ -23,4 +22,3 @@
     </ItemGroup>
 
 </Project>
-

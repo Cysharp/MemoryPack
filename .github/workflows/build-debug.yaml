@@ -11,13 +11,16 @@ on:
 
 jobs:
   build-dotnet:
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: Cysharp/Actions/.github/actions/checkout@main
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-      - run: dotnet build -c Debug
-      - run: dotnet test -c Debug --no-build
+      - run: dotnet build -c Release
+      - run: dotnet test -c Release --no-build
+      - run: dotnet pack -c Release --no-build  -p:IncludeSymbols=true -o $GITHUB_WORKSPACE/artifacts
 
   build-unity:
     if: ${{ ((github.event_name == 'push' && github.repository_owner == 'Cysharp') || startsWith(github.event.pull_request.head.label, 'Cysharp:')) && github.triggering_actor != 'dependabot[bot]' }}
@@ -25,21 +28,23 @@ jobs:
       fail-fast: false
       matrix:
         unity: ["2022.3.39f1", "6000.0.12f1"] # Test with LTS
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Load secrets
         id: op-load-secret
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
         with:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN_PUBLIC }}
-          UNITY_EMAIL: "op://GitHubActionsPublic/UNITY_LICENSE/username"
-          UNITY_PASSWORD: "op://GitHubActionsPublic/UNITY_LICENSE/credential"
-          UNITY_SERIAL: "op://GitHubActionsPublic/UNITY_LICENSE/serial"
+          UNITY_EMAIL: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/username"
+          UNITY_PASSWORD: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/credential"
+          UNITY_SERIAL: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/serial"
 
-      - uses: actions/checkout@v4
+      - uses: Cysharp/Actions/.github/actions/checkout@main
 
       # Run SourceGenerater to generate serialization code
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main

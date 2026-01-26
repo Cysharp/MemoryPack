@@ -14,21 +14,25 @@ on:
 
 jobs:
   update-packagejson:
+    permissions:
+      actions: read
+      contents: write
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
     with:
       file-path: |
         ./src/MemoryPack.Unity/Assets/MemoryPack.Unity/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
-      push-tag: false
 
   build-dotnet:
     needs: [update-packagejson]
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
-      - uses: actions/checkout@v4
+      - uses: Cysharp/Actions/.github/actions/checkout@main
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
@@ -47,22 +51,24 @@ jobs:
     strategy:
       matrix:
         unity: ["2022.3.39f1"]
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Load secrets
         id: op-load-secret
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
         with:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN_PUBLIC }}
-          UNITY_EMAIL: "op://GitHubActionsPublic/UNITY_LICENSE/username"
-          UNITY_PASSWORD: "op://GitHubActionsPublic/UNITY_LICENSE/credential"
-          UNITY_SERIAL: "op://GitHubActionsPublic/UNITY_LICENSE/serial"
+          UNITY_EMAIL: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/username"
+          UNITY_PASSWORD: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/credential"
+          UNITY_SERIAL: "op://${{ vars.OP_VAULT_ACTIONS_PUBLIC }}/UNITY_LICENSE/serial"
 
       - run: echo ${{ needs.update-packagejson.outputs.sha }}
-      - uses: actions/checkout@v4
+      - uses: Cysharp/Actions/.github/actions/checkout@main
         with:
           ref: ${{ needs.update-packagejson.outputs.sha }}
 
@@ -88,13 +94,16 @@ jobs:
           customParameters: "/headless /ScriptBackend IL2CPP"
 
       # check meta files
-      - uses: Cysharp/Actions/.github/actions/check-metas@main
+      - uses: Cysharp/Actions/.github/actions/check-metas@main # check meta files
         with:
           directory: src/MemoryPack.Unity
 
   # release
   create-release:
     needs: [update-packagejson, build-dotnet, build-unity]
+    permissions:
+      contents: write
+      id-token: write # required for NuGet Trusted Publish
     uses: Cysharp/Actions/.github/workflows/create-release.yaml@main
     with:
       dry-run: ${{ inputs.dry-run }}
@@ -107,6 +116,8 @@ jobs:
   cleanup:
     if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
     needs: [update-packagejson, create-release]
+    permissions:
+      contents: write
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
     with:
       branch: ${{ needs.update-packagejson.outputs.branch-name }}

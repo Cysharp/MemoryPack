@@ -5,7 +5,6 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <IsPackable>false</IsPackable>
 
         <!-- AOT Options -->
         <!-- https://learn.microsoft.com/ja-jp/dotnet/core/deploying/native-aot/ -->

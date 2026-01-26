@@ -1,24 +1,39 @@
-﻿root = true
+﻿# top-most EditorConfig file
+root = true
 
 [*]
+charset = utf-8
+end_of_line = lf
 indent_style = space
+indent_size = 2
 insert_final_newline = true
-indent_style = space
 trim_trailing_whitespace = true
 
-[*.{sh,yaml,yml,rules}]
-charset = utf-8
-indent_size = 2
-end_of_line = lf
+# Visual Studio Spell checker configs (https://learn.microsoft.com/en-us/visualstudio/ide/text-spell-checker?view=vs-2022#how-to-customize-the-spell-checker)
+spelling_exclusion_path  = ./exclusion.dic
+
+[*.cs]
+indent_size = 4
+charset = utf-8-bom
+end_of_line = unset
+
+# Solution files
+[*.{sln,slnx}]
+end_of_line = unset
+
+# MSBuild project files
+[*.{csproj,props,targets}]
+end_of_line = unset
+
+# Xml config files
+[*.{ruleset,config,nuspec,resx,runsettings,DotSettings}]
+end_of_line = unset
 
 [*{_AssemblyInfo.cs,.notsupported.cs}]
 generated_code = true
 
-# C# files
-[*.cs]
-charset = utf-8-bom
-indent_size = 4
-
+# C# code style settings
+[*.{cs}]
 csharp_style_namespace_declarations = file_scoped
 dotnet_style_require_accessibility_modifiers = never
 

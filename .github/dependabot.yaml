@@ -1,0 +1,14 @@
+# ref: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Check for updates to GitHub Actions every week
+    cooldown:
+      default-days: 14 # Wait 14 days before creating another PR for the same dependency. This will prevent vulnerability on the package impact.
+    ignore:
+      # I just want update action when major/minor version is updated. patch updates are too noisy.
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-patch
