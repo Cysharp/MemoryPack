@@ -383,8 +383,8 @@ public partial class TypeMeta
                 }
                 else if (item is { SuppressDefaultInitialization: true, IsAssignable: false })
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SuppressDefaultInitializationMustBeSettable, item.GetLocation(syntax), Symbol.Name, item.Name));
-                    noError = false;
+                    //context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SuppressDefaultInitializationMustBeSettable, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    //noError = false;
                 }
             }
         }
@@ -620,9 +620,12 @@ partial class MemberMeta
     public bool IsField { get; }
     public bool IsProperty { get; }
     public bool IsSettable { get; }
+    public bool IsRequired { get; }
     public bool IsAssignable { get; }
+    public bool IsInitOnly { get; }
     public bool IsConstructorParameter { get; }
     public string? ConstructorParameterName { get; }
+    public string? DefaultInitializer { get; }
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
@@ -665,6 +668,25 @@ partial class MemberMeta
             this.IsConstructorParameter = false;
         }
 
+        var equalsSyntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() switch
+        {
+            PropertyDeclarationSyntax property => property.Initializer,
+            VariableDeclaratorSyntax variable => variable.Initializer,
+            _ => null
+        };
+
+        if (equalsSyntax is not null)
+        {
+            var syntaxTree = equalsSyntax.SyntaxTree;
+            var semanticModel = references.Compilation.GetSemanticModel(syntaxTree);
+
+            var rewrittenInitializer = new FullyQualifiedNameRewriter(semanticModel)
+                .Visit(equalsSyntax.Value);
+
+            DefaultInitializer = rewrittenInitializer.ToString();
+        }
+        //DefaultInitializer = equalsSyntax?.Value.ToString();
+
         if (symbol is IFieldSymbol f)
         {
             IsProperty = false;
@@ -682,11 +704,9 @@ partial class MemberMeta
             IsProperty = true;
             IsField = false;
             IsSettable = !p.IsReadOnly;
-            IsAssignable = IsSettable
-#if !ROSLYN3
-                && !p.IsRequired
-#endif
-                && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
+            IsRequired = p.IsRequired;
+            IsInitOnly = p.SetMethod is not null && p.SetMethod.IsInitOnly;
+            IsAssignable = IsSettable && (p.SetMethod != null && !p.SetMethod.IsInitOnly);
             MemberType = p.Type;
         }
         else

@@ -471,6 +471,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         var commentOutInvalidBody = "";
         var circularReferenceBody = "";
         var circularReferenceBody2 = "";
+        var instanceCreationBody  = Members.Any(x => x.IsRequired) ? $"({TypeName})global::System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof({TypeName}))" : EmitConstructor();
+        var membersDeclaration = Members
+            .Where(x => x.Symbol != null)
+            .Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name}" + (!string.IsNullOrEmpty(x.DefaultInitializer) ? $" = {x.DefaultInitializer};" : ";")).NewLine();
 
         if (isVersionTolerant)
         {
@@ -509,7 +513,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         id = reader.ReadVarIntUInt32();
         if (value == null)
         {
-            value = new {{TypeName}}();
+            value = {{instanceCreationBody }};
         }
         reader.OptionalState.AddObjectReference(id, value);
 """;
@@ -524,7 +528,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{circularReferenceBody}}
 {{readBeginBody}}
 {{circularReferenceBody2}}
-{{Members.Where(x => x.Symbol != null).Select(x => $"        {x.MemberType.FullyQualifiedToString()} __{x.Name};").NewLine()}}
+{{membersDeclaration}}
 
         {{(!isVersionTolerant ? "" : "var readCount = " + count + ";")}}
         if (count == {{count}})
@@ -579,7 +583,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 
     SET:
         {{(!IsUseEmptyConstructor ? "goto NEW;" : "")}}
+        /*
 {{Members.Where(x => x.IsAssignable).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}value.@{x.Name} = __{x.Name};").NewLine()}}
+{{Members.Where(x => x.IsInitOnly).Select(x => $"        global::MemoryPack.PropertyHelper.SetInitOnlyProperty<{TypeName}, {x.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{x.Name}), __{x.Name});").NewLine()}}
+        */
+{{Members.Where(x => x.IsAssignable || x.IsInitOnly).Select(x => $"        {(IsUseEmptyConstructor ? "" : "// ")}{EmitPropertyAssignValue(x)}").NewLine()}}
         goto READ_END;
 
     NEW:
@@ -957,7 +965,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         // all value is deserialized, __Name is exsits.
         return string.Join("," + Environment.NewLine, Members
-            .Where(x => x is { IsSettable: true, IsConstructorParameter: false, SuppressDefaultInitialization: false })
+            .Where(x => (x.IsSettable && !x.IsConstructorParameter && !x.SuppressDefaultInitialization) || x.IsRequired)
+            //.Where(x => x is { IsSettable: true, IsConstructorParameter: false, SuppressDefaultInitialization: false })
             .Select(x => $"{indent}@{x.Name} = __{x.Name}"));
     }
 
@@ -967,11 +976,29 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             .Select((x, i) => (x, i))
             .Where(v => v.x.SuppressDefaultInitialization);
 
+        //var lines = GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference
+        //    ? members.Select(v => $"{indent}if (deltas.Length > {v.i} && deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
+        //    : members.Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};");
+
         var lines = GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference
-            ? members.Select(v => $"{indent}if (deltas.Length > {v.i} && deltas[{v.i}] != 0) value.@{v.x.Name} = __{v.x.Name};")
-            : members.Select(v => $"{indent}if ({v.i + 1} <= count) value.@{v.x.Name} = __{v.x.Name};");
+            ? members.Select(v => $"{indent}if (deltas.Length > {v.i} && deltas[{v.i}] != 0) {EmitPropertyAssignValue(v.x)}")
+            : members.Select(v => $"{indent}if ({v.i + 1} <= count) {EmitPropertyAssignValue(v.x)}");
 
         return lines.NewLine();
+    }
+
+    string EmitPropertyAssignValue(MemberMeta meta)
+    {
+        if (meta.IsAssignable)
+        {
+            return $"value.@{meta.Name} = __{meta.Name};";
+        }
+        else if (meta.IsInitOnly)
+        {
+            return $"global::MemoryPack.PropertyHelper.SetInitOnlyProperty<{TypeName}, {meta.MemberType.FullyQualifiedToString()}>(value, nameof({TypeName}.{meta.Name}), __{meta.Name});";
+        }
+
+        throw new InvalidOperationException($"Unable to emit property assignation expression on non-assignable member {meta.Name}");
     }
 
     string EmitUnionTemplate(IGeneratorContext context)

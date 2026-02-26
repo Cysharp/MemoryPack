@@ -31,10 +31,35 @@ public partial class RequiredType
 }
 
 [MemoryPackable]
+public partial class RequiredInitOnlyType
+{
+    public required int MyProperty1 { get; init; }
+    public required string MyProperty2 { get; init; }
+    public required string MyProperty3 { get; set; }
+    public string? MyProperty4 { get; set; }
+    public string? MyProperty5 { get; init; }
+}
+
+[MemoryPackable]
 public partial struct RequiredType2
 {
     public required int MyProperty1 { get; set; }
     public required string MyProperty2 { get; set; }
+
+    public void F()
+    {
+        // new MyRecord()
+    }
+}
+
+[MemoryPackable]
+public partial struct RequiredInitOnlyType2
+{
+    public required int MyProperty1 { get; init; }
+    public required string MyProperty2 { get; init; }
+    public required string MyProperty3 { get; set; }
+    public string? MyProperty4 { get; set; }
+    public string? MyProperty5 { get; init; }
 
     public void F()
     {

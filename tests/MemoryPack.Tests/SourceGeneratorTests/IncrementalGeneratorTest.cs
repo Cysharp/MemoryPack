@@ -12,6 +12,29 @@ public class IncrementalGeneratorTest
     public void Run()
     {
         // lang=C#-test
+
+        //TODO: this is just while WIP
+        var code = """
+            using System.Collections.ObjectModel;
+            using MemoryPack;
+            
+            
+            [MemoryPackable(GenerateType.CircularReference)]
+            public partial class CircularReferenceWithRequiredProperties
+            {
+                [MemoryPackOrder(0)]
+                public required string FirstName { get; init; }
+                [MemoryPackOrder(1)]
+                public required string LastName { get; set; }
+                [MemoryPackOrder(2)]
+                public CircularReferenceWithRequiredProperties? Manager { get; init; }
+                [MemoryPackOrder(3)]
+                public required List<CircularReferenceWithRequiredProperties> DirectReports { get; set; }
+            }
+            
+            """;
+        var k = string.Join(Environment.NewLine, CSharpGeneratorRunner.RunGenerator(code).Item1.SyntaxTrees.Select(x => x.ToString()));
+
         var step1 = """
 [MemoryPackable]
 public partial class MyClass
