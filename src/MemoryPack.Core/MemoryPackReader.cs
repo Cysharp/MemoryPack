@@ -172,6 +172,19 @@ public ref partial struct MemoryPackReader
         consumed += count;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AdvanceUnsafe(int count)
+    {
+        bufferLength = bufferLength - count;
+#if NET7_0_OR_GREATER
+        bufferReference = ref Unsafe.Add(ref bufferReference, count);
+#else
+        bufferReference = bufferReference.Slice(count);
+#endif
+        advancedCount += count;
+        consumed += count;
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     bool TryAdvanceSequence(int count)
     {
@@ -253,7 +266,7 @@ public ref partial struct MemoryPackReader
     public bool TryReadObjectHeader(out byte memberCount)
     {
         memberCount = GetSpanReference(1);
-        Advance(1);
+        AdvanceUnsafe(1);
         return memberCount != MemoryPackCode.NullObject;
     }
 
@@ -261,7 +274,7 @@ public ref partial struct MemoryPackReader
     public bool TryReadUnionHeader(out ushort tag)
     {
         var firstTag = GetSpanReference(1);
-        Advance(1);
+        AdvanceUnsafe(1);
         if (firstTag < MemoryPackCode.WideTag)
         {
             tag = firstTag;
@@ -283,7 +296,7 @@ public ref partial struct MemoryPackReader
     public bool TryReadCollectionHeader(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
-        Advance(4);
+        AdvanceUnsafe(4);
 
         // If collection-length is larger than buffer-length, it is invalid data.
         if (Remaining < length)
@@ -351,7 +364,7 @@ public ref partial struct MemoryPackReader
     public bool DangerousTryReadCollectionHeader(out int length)
     {
         length = Unsafe.ReadUnaligned<int>(ref GetSpanReference(4));
-        Advance(4);
+        AdvanceUnsafe(4);
 
         return length != MemoryPackCode.NullCollection;
     }
@@ -386,7 +399,7 @@ public ref partial struct MemoryPackReader
 
         var str = new string(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<byte, char>(ref src), length));
 
-        Advance(byteCount);
+        AdvanceUnsafe(byteCount);
 
         return str;
     }
@@ -443,7 +456,7 @@ public ref partial struct MemoryPackReader
 #endif
         }
 
-        Advance(utf8Length + 4);
+        AdvanceUnsafe(utf8Length + 4);
 
         return str;
     }
@@ -456,7 +469,7 @@ public ref partial struct MemoryPackReader
         var size = Unsafe.SizeOf<T1>();
         ref var spanRef = ref GetSpanReference(size);
         var value1 = Unsafe.ReadUnaligned<T1>(ref spanRef);
-        Advance(size);
+        AdvanceUnsafe(size);
         return value1;
     }
 
@@ -744,7 +757,7 @@ public ref partial struct MemoryPackReader
         ref var src = ref GetSpanReference(byteCount);
         var dest = AllocateUninitializedArray<T>(length);
         Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref GetArrayDataReference(dest)), ref src, (uint)byteCount);
-        Advance(byteCount);
+        AdvanceUnsafe(byteCount);
 
         return dest;
     }
@@ -775,7 +788,7 @@ public ref partial struct MemoryPackReader
         ref var dest = ref Unsafe.As<T, byte>(ref GetArrayDataReference(value));
         Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
 
-        Advance(byteCount);
+        AdvanceUnsafe(byteCount);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -804,7 +817,7 @@ public ref partial struct MemoryPackReader
         ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value));
         Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
 
-        Advance(byteCount);
+        AdvanceUnsafe(byteCount);
     }
 
     #endregion
@@ -830,7 +843,7 @@ public ref partial struct MemoryPackReader
             ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
 
-            Advance(byteCount);
+            AdvanceUnsafe(byteCount);
         }
         else
         {
@@ -873,7 +886,7 @@ public ref partial struct MemoryPackReader
             ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
 
-            Advance(byteCount);
+            AdvanceUnsafe(byteCount);
         }
         else
         {
@@ -913,7 +926,7 @@ public ref partial struct MemoryPackReader
 
         var span = MemoryMarshal.CreateReadOnlySpan(ref src, byteCount);
 
-        Advance(byteCount);
+        AdvanceUnsafe(byteCount);
         view = span; // safe until call next GetSpanReference
     }
 }

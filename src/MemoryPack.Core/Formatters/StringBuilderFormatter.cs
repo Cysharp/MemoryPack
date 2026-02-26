@@ -30,7 +30,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
                 ref var src = ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(chunk.Span));
                 Unsafe.CopyBlockUnaligned(ref p, ref src, (uint)chunk.Length * 2);
 
-                writer.Advance(chunk.Length * 2);
+                writer.AdvanceUnsafe(chunk.Length * 2);
             }
             return;
         }
@@ -67,6 +67,6 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
         var src = MemoryMarshal.CreateSpan(ref Unsafe.As<byte, char>(ref p), length);
         value.Append(src);
 
-        reader.Advance(size);
+        reader.AdvanceUnsafe(size);
     }
 }
