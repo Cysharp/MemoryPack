@@ -105,6 +105,30 @@ using MemoryPack;
         }
         sb.AppendLine();
 
+        // emit type info
+        if (unionFormatter)
+        {
+            AppendTypeRemarks(serializationInfoLogDirectoryPath, typeMeta, sb, fullType);
+            typeMeta.EmitUnionFormatterTemplate(sb, context, typeSymbol);
+        }
+        else
+        {
+            // Emit the type.  Wrap the append method to capture the current variables.
+            typeMeta.Emit(sb, context,
+                () => AppendTypeRemarks(serializationInfoLogDirectoryPath, typeMeta, sb, fullType));
+        }
+
+        if (!ns.IsGlobalNamespace && !context.IsCSharp10OrGreater())
+        {
+            sb.AppendLine($"}}");
+        }
+
+        var code = sb.ToString();
+        context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
+    }
+
+    static void AppendTypeRemarks(string? serializationInfoLogDirectoryPath, TypeMeta typeMeta, StringBuilder sb, string fullType)
+    {
         // Write document comment as remarks
         if (typeMeta.GenerateType is GenerateType.Object or GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
@@ -131,24 +155,6 @@ using MemoryPack;
                 }
             }
         }
-
-        // emit type info
-        if (unionFormatter)
-        {
-            typeMeta.EmitUnionFormatterTemplate(sb, context, typeSymbol);
-        }
-        else
-        {
-            typeMeta.Emit(sb, context);
-        }
-
-        if (!ns.IsGlobalNamespace && !context.IsCSharp10OrGreater())
-        {
-            sb.AppendLine($"}}");
-        }
-
-        var code = sb.ToString();
-        context.AddSource($"{fullType}.MemoryPackFormatter.g.cs", code);
     }
 
     static bool IsPartial(TypeDeclarationSyntax typeDeclaration)
@@ -253,17 +259,54 @@ using MemoryPack;
 
 public partial class TypeMeta
 {
-    public void Emit(StringBuilder writer, IGeneratorContext context)
+    public void Emit(StringBuilder writer, IGeneratorContext context, Action appendTypeRemarks)
     {
+        var containingTypeDeclarations = new List<string>();
+        var containingType = Symbol.ContainingType;
+        while (containingType is not null)
+        {
+            var isInterface = containingType.TypeKind == TypeKind.Interface;
+            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType, containingType.IsAbstract, isInterface) switch
+            {
+                (true, true, false, false) => $"partial record struct {containingType.Name}",
+                (true, false, false, false) => $"partial record {containingType.Name}",
+                (false, true, false, false) => $"partial struct {containingType.Name}",
+                (false, false, false, false) => $"partial class {containingType.Name}",
+                (false, false, true, false) => $"abstract partial class {containingType.Name}",
+                (false, false, true, true) => $"partial interface {containingType.Name}",
+                _ => $"partial class {containingType.Name}"
+            });
+            containingType = containingType.ContainingType;
+        }
+        containingTypeDeclarations.Reverse();
+
+        foreach (var declaration in containingTypeDeclarations)
+        {
+            writer.AppendLine(declaration);
+            writer.AppendLine("{");
+        }
+
+
+        // Write the documentation header after any containing classes.
+        appendTypeRemarks.Invoke();
+
         if (IsUnion)
         {
             writer.AppendLine(EmitUnionTemplate(context));
-            return;
         }
 
         if (GenerateType == GenerateType.Collection)
         {
             writer.AppendLine(EmitGenericCollectionTemplate(context));
+        }
+
+        // Write the closing braces.
+        if (IsUnion || GenerateType == GenerateType.Collection)
+        {
+            for(int i = 0; i < containingTypeDeclarations.Count; ++i)
+            {
+                writer.AppendLine("}");
+            }
             return;
         }
 
@@ -309,21 +352,6 @@ public partial class TypeMeta
             (false, true) => "struct",
             (false, false) => "class",
         };
-
-        var containingTypeDeclarations = new List<string>();
-        var containingType = Symbol.ContainingType;
-        while (containingType is not null)
-        {
-            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType) switch
-            {
-                (true, true) => $"partial record struct {containingType.Name}",
-                (true, false) => $"partial record {containingType.Name}",
-                (false, true) => $"partial struct {containingType.Name}",
-                (false, false) => $"partial class {containingType.Name}",
-            });
-            containingType = containingType.ContainingType;
-        }
-        containingTypeDeclarations.Reverse();
 
         var nullable = IsValueType ? "" : "?";
 
@@ -373,12 +401,6 @@ public partial class TypeMeta
         var serializeMethodSignarture = context.IsForUnity
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
-
-        foreach (var declaration in containingTypeDeclarations)
-        {
-            writer.AppendLine(declaration);
-            writer.AppendLine("{");
-        }
 
         writer.AppendLine($$"""
 partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{fixedSizeInterface}}
