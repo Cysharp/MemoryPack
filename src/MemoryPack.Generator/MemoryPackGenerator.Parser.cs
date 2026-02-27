@@ -104,9 +104,21 @@ public partial class TypeMeta
                 }
                 return true;
             })
-            .Select((x, i) => new MemberMeta(x, Constructor, reference, i))
+            .Select((x, i) => new MemberMeta(x, reference, i))
             .OrderBy(x => x.Order)
             .ToArray();
+
+        if (this.Constructor != null)
+        {
+            foreach (var parameter in this.Constructor.Parameters)
+            {
+                if (this.Members.TryGetConstructorMember(parameter, out var member))
+                {
+                    member!.IsConstructorParameter = true;
+                    member!.ConstructorParameterName = parameter.Name;
+                }
+            }
+        }
 
         this.IsValueType = symbol.IsValueType;
         this.IsUnmanagedType = symbol.IsUnmanagedType;
@@ -621,8 +633,8 @@ partial class MemberMeta
     public bool IsProperty { get; }
     public bool IsSettable { get; }
     public bool IsAssignable { get; }
-    public bool IsConstructorParameter { get; }
-    public string? ConstructorParameterName { get; }
+    public bool IsConstructorParameter { get; set; }
+    public string? ConstructorParameterName { get; set; }
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public MemberKind Kind { get; }
@@ -637,7 +649,7 @@ partial class MemberMeta
         this.Kind = MemberKind.Blank;
     }
 
-    public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references, int sequentialOrder)
+    public MemberMeta(ISymbol symbol, ReferenceSymbols references, int sequentialOrder)
     {
         this.Symbol = symbol;
         this.Name = symbol.Name;
@@ -653,16 +665,6 @@ partial class MemberMeta
         else
         {
             this.HasExplicitOrder = false;
-        }
-
-        if (constructor != null)
-        {
-            this.IsConstructorParameter = constructor.TryGetConstructorParameter(symbol, out var constructorParameter);
-            this.ConstructorParameterName = constructorParameter?.Name;
-        }
-        else
-        {
-            this.IsConstructorParameter = false;
         }
 
         if (symbol is IFieldSymbol f)
