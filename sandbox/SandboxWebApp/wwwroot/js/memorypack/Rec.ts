@@ -20,7 +20,6 @@ export class Rec {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(1);
         Rec.serializeCore(writer, value.id);
 

@@ -1,4 +1,4 @@
-﻿namespace MemoryPack;
+namespace MemoryPack;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackableAttribute : Attribute
@@ -149,7 +149,7 @@ public sealed class MemoryPackOnDeserializedAttribute : Attribute
 
 // Others
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
 public sealed class GenerateTypeScriptAttribute : Attribute
 {
 }

@@ -1211,10 +1211,13 @@ There are a few restrictions on the types that can be generated. Among the primi
 | `: ICollection<T>` | `T[] \| null` | Supports all `ICollection<T>` implemented type like `List<T>`
 | `: ISet<T>` | `Set<T> \| null` | Supports all `ISet<T>` implemented type like `HashSet<T>`
 | `: IDictionary<K,V>` | `Map<K, V> \| null` | Supports all `IDictionary<K,V>` implemented type like `Dictionary<K,V>`.
-| `[MemoryPackable]` | `class` | Supports class only
+| `[MemoryPackable]` | `class` | Supports class and struct (see notes below)
 | `[MemoryPackUnion]` | `abstract class` |
 
-`[GenerateTypeScript]` can only be applied to classes and is currently not supported by struct.
+`[GenerateTypeScript]` supports both classes and structs. There are two serialization modes depending on the struct type:
+
+- **Managed struct** (contains reference-type fields, e.g. `struct Foo { string Name; int Value; }`): uses the same object-header wire format as classes. The generated TypeScript `class` has non-nullable serialize signatures and omits the null-object-header write, matching the C# value-type semantics.
+- **Unmanaged struct** (contains only unmanaged fields, e.g. `struct Point { int X; int Y; }`): serialized as a raw memory blit with no object header, matching `WriteUnmanaged`/`ReadUnmanaged` in C#. The generated TypeScript `class` writes each field individually at its correct byte offset (including any padding required by natural alignment), and deserialize always returns a non-nullable value.
 
 ### Configure import file extension and member name casing
 

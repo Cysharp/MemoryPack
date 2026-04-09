@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -122,6 +122,14 @@ export class MemoryPackWriter {
         this.ensureCapacity(1);
         this.dataView.setUint8(this.offset, value);
         this.offset += 1;
+    }
+
+    public writeZeros(count: number): void {
+        this.ensureCapacity(count);
+        for (let i = 0; i < count; i++) {
+            this.dataView.setUint8(this.offset + i, 0);
+        }
+        this.offset += count;
     }
 
     public writeNullableUint8(value: number | null): void {
@@ -491,6 +499,10 @@ export class MemoryPackReader {
         return (memberCount == nullObject)
             ? [false, 0]
             : [true, memberCount];
+    }
+
+    public skipBytes(count: number): void {
+        this.offset += count;
     }
 
     public tryReadUnionHeader(): [boolean, number] {
