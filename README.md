@@ -8,7 +8,7 @@ Zero encoding extreme performance binary serializer for C# and Unity.
 
 ![image](https://user-images.githubusercontent.com/46207/200979655-63ed38ae-dad2-4ca0-bbb7-9e0aa98914af.png)
 
-> Compared with [System.Text.Json](https://learn.microsoft.com/ja-jp/dotnet/api/system.text.json), [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp), [Orleans.Serialization](https://github.com/dotnet/orleans/). Measured by .NET 7 / Ryzen 9 5950X machine. These serializers have `IBufferWriter<byte>` method, serialized using `ArrayBufferWriter<byte>` and reused to avoid measure buffer copy. 
+> Compared with [System.Text.Json](https://learn.microsoft.com/ja-jp/dotnet/api/system.text.json), [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp), [Orleans.Serialization](https://github.com/dotnet/orleans/). Measured by .NET 7 / Ryzen 9 5950X machine. These serializers have `IBufferWriter<byte>` method, serialized using `ArrayBufferWriter<byte>` and reused to avoid measure buffer copy.
 
 For standard objects, MemoryPack is x10 faster and x2 ~ x5 faster than other binary serializers. For struct array, MemoryPack is even more powerful, with speeds up to x50 ~ x200 greater than other serializers.
 
@@ -80,7 +80,7 @@ These types can be serialized by default:
 * `T[]`, `T[,]`, `T[,,]`, `T[,,,]`, `Memory<>`, `ReadOnlyMemory<>`, `ArraySegment<>`, `ReadOnlySequence<>`
 * `Nullable<>`, `Lazy<>`, `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `SortedSet<>`, `PriorityQueue<,>`
-* `Dictionary<,>`, `SortedList<,>`, `SortedDictionary<,>`,  `ReadOnlyDictionary<,>` 
+* `Dictionary<,>`, `SortedList<,>`, `SortedDictionary<,>`,  `ReadOnlyDictionary<,>`
 * `Collection<>`, `ReadOnlyCollection<>`, `ObservableCollection<>`, `ReadOnlyObservableCollection<>`
 * `IEnumerable<>`, `ICollection<>`, `IList<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`, `ISet<>`
 * `IDictionary<,>`, `IReadOnlyDictionary<,>`, `ILookup<,>`, `IGrouping<,>`,
@@ -92,6 +92,7 @@ Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 `[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If a type is `struct` or `record struct` which contains no reference types ([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)) any additional annotation (ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
 
 Otherwise, by default, `[MemoryPackable]` serializes public instance properties or fields. You can use `[MemoryPackIgnore]` to remove serialization target, `[MemoryPackInclude]` promotes a private member to serialization target.
+You can use `[MemoryPackArrayLength]` to make a fixed-length array without unsafe. Note that this is not version-tolerant.
 
 ```csharp
 [MemoryPackable]
@@ -120,6 +121,12 @@ public partial class Sample
     int privateField2;
     [MemoryPackInclude]
     int privateProperty2 { get; set; }
+
+    // use [MemoryPackArrayLength] to make a fixed-length array without unsafe
+    [MemoryPackArrayLength(10)]
+    public int[] IntFixedArrayField;
+    [MemoryPackArrayLength(10)]
+    public int[] IntFixedArrayProperty { get; set; }
 }
 ```
 
@@ -210,7 +217,7 @@ public partial class Person3
 
 ### Serialization callbacks
 
-When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods. 
+When serializing/deserializing, MemoryPack can invoke a before/after event using the `[MemoryPackOnSerializing]`, `[MemoryPackOnSerialized]`, `[MemoryPackOnDeserializing]`, `[MemoryPackOnDeserialized]` attributes. It can annotate both static and instance (non-static) methods, and public and private methods.
 
 ```csharp
 [MemoryPackable]
@@ -558,7 +565,7 @@ public partial class DefaultValue
 
     [SuppressDefaultInitialization]
     public int Prop2 { get; set; } = 111; // < if old data is missing, set `111`.
-    
+
     public int Prop3 { get; set; } = 222; // < if old data is missing, set `default`.
 }
 ```
@@ -577,9 +584,11 @@ When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 * can't change member order
 * can't change member type
 
+Note that arrays with [MemoryPackArrayLength] are not version-tolerant. The length cannot be changed without breaking compatibility with old data.
+
 ```csharp
-// Ok to serialize/deserialize both 
-// VersionTolerantObject1 -> VersionTolerantObject2 and 
+// Ok to serialize/deserialize both
+// VersionTolerantObject1 -> VersionTolerantObject2 and
 // VersionTolerantObject2 -> VersionTolerantObject1
 
 [MemoryPackable(GenerateType.VersionTolerant)]
@@ -738,7 +747,7 @@ public partial class Sample
     // In deserialize, Dictionary is initialized with StringComparer.OrdinalIgnoreCase.
     [OrdinalIgnoreCaseStringDictionaryFormatter<int>]
     public Dictionary<string, int>? Ids { get; set; }
-    
+
     // In deserialize time, all string is interned(see: String.Intern). If similar values come repeatedly, it saves memory.
     [InternStringFormatter]
     public string? Flag { get; set; }
@@ -1014,7 +1023,7 @@ public class AnimationCurveFormatter : MemoryPackFormatter<AnimationCurve>
             value = null;
             return;
         }
-        
+
         var wrapped = reader.ReadPackable<SerializableAnimationCurve>();
         value = wrapped.AnimationCurve;
     }
@@ -1088,7 +1097,7 @@ The generated code is as follows, with simple fields and static methods for seri
 ```typescript
 import { MemoryPackWriter } from "./MemoryPackWriter.js";
 import { MemoryPackReader } from "./MemoryPackReader.js";
-import { Gender } from "./Gender.js"; 
+import { Gender } from "./Gender.js";
 
 export class Person {
     id: string;
@@ -1158,7 +1167,7 @@ let response = await fetch("http://localhost:5260/api",
 
 let buffer = await response.arrayBuffer();
 
-// deserialize from ArrayBuffer 
+// deserialize from ArrayBuffer
 let person2 = Person.deserialize(buffer);
 ```
 
@@ -1201,7 +1210,7 @@ There are a few restrictions on the types that can be generated. Among the primi
 | `ulong` |  `bigint` |
 | `float` |  `number` |
 | `double` |  `number` |
-| `string` |  `string \| null`  | 
+| `string` |  `string \| null`  |
 | `Guid` |  `string`  | In TypeScript, represents as string but serialize/deserialize as 16byte binary
 | `DateTime` | `Date` | DateTimeKind will be ignored
 | `enum` | `const enum` | `long` and `ulong` underlying type is not supported
@@ -1384,7 +1393,7 @@ The `MemoryPack.UnityShims` package provides shims for Unity's standard structs 
 
 Native AOT
 ---
-Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It 
+Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It
 is going to be fixed in .NET 8. Using ``Microsoft.DotNet.ILCompiler` preview version, will fix it in .NET 7. Please see [issue's comment](https://github.com/Cysharp/MemoryPack/issues/75#issuecomment-1386884611) how setup it.
 
 Binary wire format specification
@@ -1422,7 +1431,7 @@ Version Tolerant Object is similar as Object but has byte length of values in he
 
 ### Circular Reference Object
 
-`(byte memberCount, [varint byte-length-of-values...], varint referenceId, [values...])`  
+`(byte memberCount, [varint byte-length-of-values...], varint referenceId, [values...])`
 `(250, varint referenceId)`
 
 Circular Reference Object is similar as Version Tolerant Object but if memberCount is 250, next varint(unsigned-int32) is referenceId. If not, after byte-length-of-values, varint referenceId is written.
@@ -1439,16 +1448,22 @@ Tuple is fixed-size, non-nullable value collection. In .NET, `KeyValuePair<TKey,
 
 Collection has 4 byte signed integer as data count in header, `-1` represents `null`. Values store memorypack value for the number of length.
 
+### Fixed Array
+
+`[values...]`
+
+Fixed array don't have any data count. The count is derived from the C# schema with the \[MemoryPackArrayLength] attribute.
+
 ### String
 
-`(int utf16-length, utf16-value)`  
+`(int utf16-length, utf16-value)`
 `(int ~utf8-byte-count, int utf16-length, utf8-bytes)`
 
 String has two-forms, UTF16 and UTF8. If first 4byte signed integer is `-1`, represents null. `0`, represents empty. UTF16 is same as collection(serialize as `ReadOnlySpan<char>`, utf16-value's byte count is utf16-length * 2). If first signed integer <= `-2`, value is encoded by UTF8. utf8-byte-count is encoded in complement, `~utf8-byte-count` to retrieve count of bytes. Next signed integer is utf16-length, it allows `-1` that represents unknown length. utf8-bytes store bytes for the number of utf8-byte-count.
 
 ### Union
 
-`(byte tag, value)`  
+`(byte tag, value)`
 `(250, ushort tag, value)`
 
 First unsigned byte is tag that for discriminated value type or flag, `0` to `249` represents tag, `250` represents next unsigned short is tag, `255` represents union is `null`.
