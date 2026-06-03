@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -34,6 +35,7 @@ public enum MemberKind
     // from attribute
     AllowSerialize,
     MemoryPackUnion,
+    FixedArray,
 
     Object, // others allow
     RefLike, // not allowed
@@ -386,6 +388,16 @@ public partial class TypeMeta
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SuppressDefaultInitializationMustBeSettable, item.GetLocation(syntax), Symbol.Name, item.Name));
                     noError = false;
                 }
+                else if (item is { HasArrayLength: true, ArrayLength: < 1 })
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArrayLengthAttributeMustHaveAValidValue, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    noError = false;
+                }
+                else if (item is { HasArrayLength: true } and not { MemberType.TypeKind: TypeKind.Array })
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArrayLengthAttributeCanOnlyBeUsedForArrays, item.GetLocation(syntax), Symbol.Name, item.Name));
+                    noError = false;
+                }
             }
         }
 
@@ -625,6 +637,8 @@ partial class MemberMeta
     public string? ConstructorParameterName { get; }
     public int Order { get; }
     public bool HasExplicitOrder { get; }
+    public bool HasArrayLength { get; }
+    public long? ArrayLength { get; }
     public MemberKind Kind { get; }
     public bool SuppressDefaultInitialization { get; }
 
@@ -653,6 +667,21 @@ partial class MemberMeta
         else
         {
             this.HasExplicitOrder = false;
+        }
+
+        var arrayLengthAttr = symbol.GetAttribute(references.MemoryPackArrayLengthAttribute);
+        if (arrayLengthAttr != null)
+        {
+            if ((long)arrayLengthAttr.ConstructorArguments[0].Value == null || (long)arrayLengthAttr.ConstructorArguments[0].Value < 1)
+            {
+                ArrayLength = -1;
+            }
+            else
+            {
+                ArrayLength = (long)arrayLengthAttr.ConstructorArguments[0].Value!;
+            }
+
+            HasArrayLength = true;
         }
 
         if (constructor != null)
@@ -740,9 +769,17 @@ partial class MemberMeta
 
     static MemberKind ParseMemberKind(ISymbol? memberSymbol, ITypeSymbol memberType, ReferenceSymbols references)
     {
-        if (memberType.SpecialType is SpecialType.System_Object or SpecialType.System_Array or SpecialType.System_Delegate or SpecialType.System_MulticastDelegate || memberType.TypeKind == TypeKind.Delegate)
+        if (memberSymbol?.GetAttribute(references.MemoryPackArrayLengthAttribute) != null)
         {
-            return MemberKind.NonSerializable; // object, Array, delegate is not allowed
+            return MemberKind.FixedArray;
+        }
+        if (memberType.SpecialType is SpecialType.System_Object
+                 or SpecialType.System_Array
+                 or SpecialType.System_Delegate
+                 or SpecialType.System_MulticastDelegate ||
+             memberType.TypeKind == TypeKind.Delegate)
+        {
+            return MemberKind.NonSerializable; // object, Array, delegate are not allowed except arrays with length attr
         }
         else if (memberType.TypeKind == TypeKind.Enum)
         {
