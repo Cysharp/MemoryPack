@@ -704,6 +704,8 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteArrayWithoutLengthHeader<T>(T?[]? value)
     {
+        if (value == null) return;
+
         if (value.Length == 0) return;
 
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
