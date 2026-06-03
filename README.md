@@ -584,7 +584,7 @@ When using `GenerateType.VersionTolerant`, it supports full version-tolerant.
 * can't change member order
 * can't change member type
 
-Note that arrays with [MemoryPackArrayLength] are not version-tolerant. The length cannot be changed without breaking compatibility with old data.
+Note that arrays with [MemoryPackArrayLength] are not compatible with GenerateType.VersionTolerant or GenerateType.CircularReference.
 
 ```csharp
 // Ok to serialize/deserialize both
@@ -1452,7 +1452,7 @@ Collection has 4 byte signed integer as data count in header, `-1` represents `n
 
 `[values...]`
 
-Fixed array don't have any data count. The count is derived from the C# schema with the \[MemoryPackArrayLength] attribute.
+Fixed array doesn't have any data count. The count is derived from the C# schema with the \[MemoryPackArrayLength] attribute.
 
 ### String
 
