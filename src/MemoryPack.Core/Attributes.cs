@@ -95,9 +95,9 @@ public sealed class MemoryPackOrderAttribute : Attribute
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class MemoryPackArrayLengthAttribute : Attribute
 {
-    public long Length { get; }
+    public int Length { get; }
 
-    public MemoryPackArrayLengthAttribute(long length)
+    public MemoryPackArrayLengthAttribute(int length)
     {
         this.Length = length;
     }

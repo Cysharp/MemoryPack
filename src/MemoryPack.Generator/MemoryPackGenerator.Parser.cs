@@ -638,7 +638,7 @@ partial class MemberMeta
     public int Order { get; }
     public bool HasExplicitOrder { get; }
     public bool HasArrayLength { get; }
-    public long? ArrayLength { get; }
+    public int? ArrayLength { get; }
     public MemberKind Kind { get; }
     public bool SuppressDefaultInitialization { get; }
 
@@ -672,13 +672,13 @@ partial class MemberMeta
         var arrayLengthAttr = symbol.GetAttribute(references.MemoryPackArrayLengthAttribute);
         if (arrayLengthAttr != null)
         {
-            if ((long)arrayLengthAttr.ConstructorArguments[0].Value == null || (long)arrayLengthAttr.ConstructorArguments[0].Value < 1)
+            if (arrayLengthAttr.ConstructorArguments[0].Value == null || (int?)arrayLengthAttr.ConstructorArguments[0].Value < 1)
             {
                 ArrayLength = -1;
             }
             else
             {
-                ArrayLength = (long)arrayLengthAttr.ConstructorArguments[0].Value!;
+                ArrayLength = (int?)arrayLengthAttr.ConstructorArguments[0].Value;
             }
 
             HasArrayLength = true;
