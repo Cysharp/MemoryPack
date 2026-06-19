@@ -796,7 +796,7 @@ public ref partial struct MemoryPackReader
         var byteCount = length * Unsafe.SizeOf<T>();
         ref var src = ref GetSpanReference(byteCount);
 
-        if (value == null || value.Length != length)
+        if (value.IsEmpty || value.Length != length)
         {
             value = AllocateUninitializedArray<T>(length);
         }
