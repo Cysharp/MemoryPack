@@ -195,7 +195,9 @@ public
     }
 
     public void CopyTo<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> memoryPackWriter)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -253,7 +255,9 @@ public
     }
 
     static int CompressCore<TBufferWriter>(ref BrotliEncoder encoder, ReadOnlySpan<byte> source, ref MemoryPackWriter<TBufferWriter> destBufferWriter, int? initialLength, bool isFinalBlock)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>

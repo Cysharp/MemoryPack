@@ -165,7 +165,9 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     }
 
     public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
