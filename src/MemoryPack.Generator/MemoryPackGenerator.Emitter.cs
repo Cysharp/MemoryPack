@@ -193,7 +193,7 @@ using MemoryPack;
 
         if (!xmlDocument)
         {
-            if (type.IsUnmanagedType)
+            if (type.IsUnmanagedType && type.GenerateType is not GenerateType.VersionTolerant and not GenerateType.CircularReference)
             {
                 sb.Append("GenerateType unmanaged ");
             }
@@ -207,7 +207,7 @@ using MemoryPack;
         else
         {
             sb.AppendLine("/// <remarks>");
-            if (type.IsUnmanagedType)
+            if (type.IsUnmanagedType && type.GenerateType is not GenerateType.VersionTolerant and not GenerateType.CircularReference)
             {
                 sb.AppendLine("/// MemoryPack GenerateType: unmanaged<br/>");
             }
@@ -269,7 +269,7 @@ public partial class TypeMeta
 
         var serializeBody = "";
         var deserializeBody = "";
-        if (IsUnmanagedType)
+        if (IsUnmanagedType && GenerateType is not GenerateType.VersionTolerant and not GenerateType.CircularReference)
         {
             serializeBody = $$"""
         writer.WriteUnmanaged(value);

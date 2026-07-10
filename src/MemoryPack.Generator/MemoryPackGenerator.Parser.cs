@@ -292,14 +292,8 @@ public partial class TypeMeta
             noError = false;
         }
 
-        if (this.IsUnmanagedType)
+        if (this.IsUnmanagedType && GenerateType is not GenerateType.VersionTolerant and not GenerateType.CircularReference)
         {
-            if (GenerateType is GenerateType.VersionTolerant)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.VersionTolerantOnUnmanagedStruct, syntax.Identifier.GetLocation(), Symbol.Name));
-                noError = false;
-            }
-
             var structLayoutFields = this.Symbol.GetAllMembers()
                 .OfType<IFieldSymbol>()
                 .Select(x =>
