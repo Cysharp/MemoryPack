@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
@@ -181,6 +181,7 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 predicate: static (node, token) =>
                 {
                     return (node is ClassDeclarationSyntax
+                                 or StructDeclarationSyntax
                                  or RecordDeclarationSyntax
                                  or InterfaceDeclarationSyntax);
                 },

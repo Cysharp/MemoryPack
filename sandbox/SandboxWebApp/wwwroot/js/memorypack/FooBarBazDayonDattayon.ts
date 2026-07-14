@@ -20,7 +20,6 @@ export class FooBarBazDayonDattayon {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(1);
         writer.writeInt32(value.myProperty);
 

@@ -108,7 +108,6 @@ export class AllConvertableType {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(43);
         writer.writeBoolean(value.myBool);
         writer.writeUint8(value.myByte);

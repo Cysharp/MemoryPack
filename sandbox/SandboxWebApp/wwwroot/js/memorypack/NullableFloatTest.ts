@@ -22,7 +22,6 @@ export class NullableFloatTest {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(2);
         writer.writeNullableFloat32(value.nullableFloat);
         writer.writeNullableFloat64(value.nullableDouble);

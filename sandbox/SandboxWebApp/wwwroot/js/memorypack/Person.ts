@@ -33,7 +33,6 @@ export class Person {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(7);
         writer.writeGuid(value.id);
         writer.writeInt32(value.age);

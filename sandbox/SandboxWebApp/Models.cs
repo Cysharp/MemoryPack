@@ -1,4 +1,4 @@
-﻿using MemoryPack;
+using MemoryPack;
 using System.ComponentModel;
 using System.Security.Principal;
 
@@ -204,4 +204,39 @@ public partial class NullableFloatTest
 {
     public float? NullableFloat { get; set; }
     public double? NullableDouble { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial struct Vector3
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Z { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial struct ColorTag
+{
+    public string? Name { get; set; }
+    public int Code { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial struct BoundingBox
+{
+    public Vector3 Min { get; set; }
+    public Vector3 Max { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class GameObject
+{
+    public string? Name { get; set; }
+    public Vector3 Position { get; set; }
+    public BoundingBox Bounds { get; set; }
+    public ColorTag Tag { get; set; }
 }

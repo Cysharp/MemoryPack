@@ -4,6 +4,10 @@ import { SampleUnion1 } from "./memorypack/SampleUnion1.js";
 import { SampleUnion2 } from "./memorypack/SampleUnion2.js";
 import { Person } from "./memorypack/Person.js";
 import { NullableFloatTest } from "./memorypack/NullableFloatTest.js";
+import { Vector3 } from "./memorypack/Vector3.js";
+import { ColorTag } from "./memorypack/ColorTag.js";
+import { BoundingBox } from "./memorypack/BoundingBox.js";
+import { GameObject } from "./memorypack/GameObject.js";
 export async function hoge() {
     let person = new Person();
     person.id = crypto.randomUUID();
@@ -18,7 +22,7 @@ export async function hoge() {
     let blob = new Blob([bin.buffer], { type: "application/x-memorypack" });
     let response = await fetch("http://localhost:5260/api", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
     let buffer = await response.arrayBuffer();
-    // deserialize from ArrayBuffer 
+    // deserialize from ArrayBuffer
     let person2 = Person.deserialize(buffer);
 }
 export async function huga() {
@@ -188,6 +192,93 @@ export async function testNullableFloatWithNulls() {
     assertIsNull(output.nullableFloat);
     assertIsNull(output.nullableDouble);
     console.log("testNullableFloatWithNulls passed.");
+}
+export async function testVector3() {
+    const v = new Vector3();
+    v.x = 1.5;
+    v.y = -3.14;
+    v.z = 100.0;
+    const bin = Vector3.serialize(v);
+    const blob = new Blob([bin.buffer], { type: "application/x-memorypack" });
+    const response = await fetch("http://localhost:5260/api/vector3", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+    if (response.status != 200) {
+        console.log(response.status);
+        return;
+    }
+    const buffer = await response.arrayBuffer();
+    const v2 = Vector3.deserialize(buffer);
+    ok(v.x.toFixed(2), v2.x.toFixed(2));
+    ok(v.y.toFixed(2), v2.y.toFixed(2));
+    ok(v.z.toFixed(2), v2.z.toFixed(2));
+    console.log("testVector3 passed.");
+}
+export async function testColorTag() {
+    const v = new ColorTag();
+    v.name = "crimson";
+    v.code = 0xDC143C;
+    const bin = ColorTag.serialize(v);
+    const blob = new Blob([bin.buffer], { type: "application/x-memorypack" });
+    const response = await fetch("http://localhost:5260/api/colorTag", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+    if (response.status != 200) {
+        console.log(response.status);
+        return;
+    }
+    const buffer = await response.arrayBuffer();
+    const v2 = ColorTag.deserialize(buffer);
+    ok(v.name, v2.name);
+    ok(v.code, v2.code);
+    console.log("testColorTag passed.");
+}
+// One test, one endpoint — covers every struct combination:
+//   • class with struct members (GameObject is a class)
+//   • unmanaged struct as field (position: Vector3)
+//   • unmanaged struct nested inside unmanaged struct (bounds: BoundingBox → min/max: Vector3)
+//   • managed struct as field (tag: ColorTag, has string? member)
+//   • null string inside managed struct field (tag.name = null)
+export async function testStructs() {
+    const v = new GameObject();
+    v.name = "hero";
+    v.position = new Vector3();
+    v.position.x = 10.5;
+    v.position.y = -20.25;
+    v.position.z = 300.0;
+    v.bounds = new BoundingBox();
+    v.bounds.min = new Vector3();
+    v.bounds.min.x = -1.0;
+    v.bounds.min.y = -2.0;
+    v.bounds.min.z = -3.0;
+    v.bounds.max = new Vector3();
+    v.bounds.max.x = 1.0;
+    v.bounds.max.y = 2.0;
+    v.bounds.max.z = 3.0;
+    v.tag = new ColorTag();
+    v.tag.name = null; // null string inside managed struct
+    v.tag.code = 0xFF4500; // orange-red
+    const bin = GameObject.serialize(v);
+    const blob = new Blob([bin.buffer], { type: "application/x-memorypack" });
+    const response = await fetch("http://localhost:5260/api/gameObject", { method: "POST", body: blob, headers: { "Content-Type": "application/x-memorypack" } });
+    if (response.status != 200) {
+        console.log("testStructs HTTP error:", response.status);
+        return;
+    }
+    const buffer = await response.arrayBuffer();
+    const v2 = GameObject.deserialize(buffer);
+    ok(v.name, v2.name);
+    // unmanaged struct field
+    ok(v.position.x.toFixed(2), v2.position.x.toFixed(2));
+    ok(v.position.y.toFixed(2), v2.position.y.toFixed(2));
+    ok(v.position.z.toFixed(2), v2.position.z.toFixed(2));
+    // unmanaged struct nested inside unmanaged struct
+    ok(v.bounds.min.x.toFixed(2), v2.bounds.min.x.toFixed(2));
+    ok(v.bounds.min.y.toFixed(2), v2.bounds.min.y.toFixed(2));
+    ok(v.bounds.min.z.toFixed(2), v2.bounds.min.z.toFixed(2));
+    ok(v.bounds.max.x.toFixed(2), v2.bounds.max.x.toFixed(2));
+    ok(v.bounds.max.y.toFixed(2), v2.bounds.max.y.toFixed(2));
+    ok(v.bounds.max.z.toFixed(2), v2.bounds.max.z.toFixed(2));
+    // managed struct field (non-nullable after fix, null string inside survives round-trip)
+    ok(v.tag.name, v2.tag.name);
+    ok(v.tag.code, v2.tag.code);
+    console.log("testStructs passed.");
 }
 function assertNullableFloat(a, b) {
     ok(a.nullableFloat?.toFixed(1), b.nullableFloat?.toFixed(1));

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -337,6 +337,14 @@ internal static class DiagnosticDescriptors
         id: "MEMPACK042",
         title: "Nested MemoryPackable object's containing type(s) must be partial",
         messageFormat: "The MemoryPackable object '{0}' containing type(s) must be partial",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor GenerateTypeScriptDoesNotAllowNullableStruct = new(
+        id: "MEMPACK043",
+        title: "GenerateTypeScript does not allow Nullable<struct>",
+        messageFormat: "'{0}.{1}' is '{2}?' — structs can't be null, use '{2}' directly.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

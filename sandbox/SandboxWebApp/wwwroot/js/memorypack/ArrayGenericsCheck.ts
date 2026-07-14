@@ -27,7 +27,6 @@ export class ArrayGenericsCheck {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(3);
         writer.writeArray(value.array1, (writer, x) => NestedObject.serializeCore(writer, x));
         writer.writeArray(value.array2, (writer, x) => IMogeUnion.serializeCore(writer, x));
