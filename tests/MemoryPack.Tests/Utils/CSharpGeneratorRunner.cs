@@ -45,7 +45,12 @@ global using MemoryPack;
         baseCompilation = compilation;
     }
 
-    public static (Compilation, ImmutableArray<Diagnostic>) RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null)
+    public static (Compilation, ImmutableArray<Diagnostic>) RunGenerator(
+        string source,
+        string[]? preprocessorSymbols = null,
+        AnalyzerConfigOptionsProvider? options = null,
+        string? assemblyName = null,
+        IEnumerable<MetadataReference>? additionalReferences = null)
     {
         if (preprocessorSymbols == null)
         {
@@ -59,7 +64,13 @@ global using MemoryPack;
             driver = (Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
         }
 
-        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+        var compilation = baseCompilation
+            .WithAssemblyName(assemblyName ?? baseCompilation.AssemblyName)
+            .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+        if (additionalReferences is not null)
+        {
+            compilation = compilation.AddReferences(additionalReferences);
+        }
 
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
 
@@ -109,6 +120,37 @@ global using MemoryPack;
             .ToArray();
 
         return reasons;
+    }
+
+    public static (string Key, string Reasons)[] GetCachedIncrementalGeneratorTrackedStepsReasons(
+        string keyPrefixFilter,
+        string source,
+        params string[] preprocessorSymbols)
+    {
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
+        var driver = CSharpGeneratorDriver.Create(
+                [new MemoryPackGenerator().AsSourceGenerator()],
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true))
+            .WithUpdatedParseOptions(parseOptions);
+        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+
+        driver = driver.RunGenerators(compilation);
+        driver = driver.RunGenerators(compilation);
+
+        return driver.GetRunResult().Results[0].TrackedSteps
+            .Where(x => x.Key.StartsWith(keyPrefixFilter) || x.Key == "SourceOutput")
+            .Select(x =>
+            {
+                var outputs = x.Key == "SourceOutput"
+                    ? x.Value.Where(step => step.Inputs[0].Source.Name?.StartsWith(keyPrefixFilter) ?? false)
+                    : x.Value;
+                return (
+                    x.Key == "SourceOutput" ? x.Key : x.Key.Substring(keyPrefixFilter.Length),
+                    string.Join(", ", outputs.SelectMany(step => step.Outputs).Select(output => output.Reason)));
+            })
+            .Where(x => x.Item2.Length != 0)
+            .OrderBy(x => x.Item1)
+            .ToArray();
     }
 }
 
