@@ -397,7 +397,7 @@ public partial class TypeMeta
 
             if (IsUnmanagedType)
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnamannagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.OnMethodInUnmanagedType, item.GetLocation(syntax), Symbol.Name, item.Name));
                 noError = false;
                 continue;
             }
