@@ -57,9 +57,9 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor OnMethodInUnamannagedType = new(
+    public static readonly DiagnosticDescriptor OnMethodInUnmanagedType = new(
         id: "MEMPACK008",
-        title: "MemoryPackObject's On*** methods can't annotate in unamnaged struct",
+        title: "MemoryPackObject's On*** methods can't annotate in unmanaged struct",
         messageFormat: "The MemoryPackable object '{0}' is unmanaged struct that can't annotate On***Attribute however '{1}' method annotaed",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
