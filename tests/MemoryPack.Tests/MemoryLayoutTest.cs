@@ -81,6 +81,41 @@ public class MemoryLayoutTest
         data.Should().Equal(new byte[] { 28, 2, 0, 0, 0, 0, 0, 0, 0, 180, 89, 22, 69, 135, 207, 8 });
     }
 
+    // The generated TypeScript runtime's writeDateTimeOffset/readDateTimeOffset (see
+    // TypeScriptRuntime.cs) blit against this exact same layout: int offsetMinutes (4 bytes),
+    // 4 bytes padding, then the UTC ticks with the top 2 DateTimeKind bits masked off (8 bytes).
+    // These tests pin that assumption against MemoryPackSerializer's actual wire output, so a
+    // runtime layout change (like DateTimeOffsetLayout above guards against) also fails here.
+    [Theory]
+    [MemberData(nameof(DateTimeOffsetSamples))]
+    public void DateTimeOffsetWireFormatMatchesTypeScriptRuntimeAlgorithm(DateTimeOffset value)
+    {
+        const ulong dateTimeMask = 0b00111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111UL;
+
+        var actual = MemoryPackSerializer.Serialize(value);
+
+        // writeDateTimeOffset: writeInt32(offsetMinutes) + 4 zero bytes + writeUint64(utcTicks & mask)
+        var expected = new byte[16];
+        BitConverter.GetBytes((int)value.Offset.TotalMinutes).CopyTo(expected, 0);
+        BitConverter.GetBytes((ulong)value.UtcTicks & dateTimeMask).CopyTo(expected, 8);
+        actual.Should().Equal(expected);
+
+        // readDateTimeOffset: skip offsetMinutes+padding (8 bytes), read ticks & mask as UTC instant
+        var utcTicks = (long)(BitConverter.ToUInt64(actual, 8) & dateTimeMask);
+        var decodedUtc = new DateTime(utcTicks, DateTimeKind.Utc);
+        decodedUtc.Should().Be(value.UtcDateTime);
+    }
+
+    public static TheoryData<DateTimeOffset> DateTimeOffsetSamples => new()
+    {
+        new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+        new DateTimeOffset(2024, 1, 1, 12, 30, 0, TimeSpan.FromHours(5.5)),
+        new DateTimeOffset(2024, 6, 15, 9, 0, 0, TimeSpan.FromHours(-8)),
+        DateTimeOffset.UnixEpoch,
+        DateTimeOffset.MinValue,
+        DateTimeOffset.MaxValue,
+    };
+
     // can not use Marshal.OffsetOf because has AutoLayout field
 
     static unsafe (int, int, int) GetOffsets()
