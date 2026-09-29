@@ -310,20 +310,7 @@ public partial class TypeMeta
             (false, false) => "class",
         };
 
-        var containingTypeDeclarations = new List<string>();
-        var containingType = Symbol.ContainingType;
-        while (containingType is not null)
-        {
-            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType) switch
-            {
-                (true, true) => $"partial record struct {containingType.Name}",
-                (true, false) => $"partial record {containingType.Name}",
-                (false, true) => $"partial struct {containingType.Name}",
-                (false, false) => $"partial class {containingType.Name}",
-            });
-            containingType = containingType.ContainingType;
-        }
-        containingTypeDeclarations.Reverse();
+        var containingTypeDeclarations = GetContainingTypeDeclarations();
 
         var nullable = IsValueType ? "" : "?";
 
@@ -991,8 +978,17 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
-        var code = $$"""
+        var containingTypeDeclarations = GetContainingTypeDeclarations();
 
+        var containingTypesOpening = containingTypeDeclarations
+            .Select(d => $"{d}{Environment.NewLine}{{")
+            .NewLine();
+
+        var containingTypesClosing = Enumerable.Repeat("}", containingTypeDeclarations.Count)
+            .NewLine();
+
+        var code = $$"""
+{{containingTypesOpening}}
 partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
 {
     static partial void StaticConstructor();
@@ -1038,6 +1034,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
         }
     }
 }
+{{containingTypesClosing}}
 """;
 
         return code;
@@ -1267,6 +1264,34 @@ partial class {{TypeName}} : IMemoryPackFormatterRegister
 """;
 
         return code;
+    }
+
+    IReadOnlyList<string> GetContainingTypeDeclarations()
+    {
+        var containingTypeDeclarations = new List<string>();
+        var containingType = Symbol.ContainingType;
+        while (containingType is not null)
+        {
+            if (containingType.TypeKind == TypeKind.Interface)
+            {
+                containingTypeDeclarations.Add($"partial interface {containingType.Name}");
+            }
+            else
+            {
+                containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType) switch
+                {
+                    (true, true) => $"partial record struct {containingType.Name}",
+                    (true, false) => $"partial record {containingType.Name}",
+                    (false, true) => $"partial struct {containingType.Name}",
+                    (false, false) => $"partial class {containingType.Name}",
+                });
+            }
+
+            containingType = containingType.ContainingType;
+        }
+        containingTypeDeclarations.Reverse();
+
+        return containingTypeDeclarations;
     }
 }
 
