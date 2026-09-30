@@ -67,6 +67,62 @@ var val = MemoryPackSerializer.Deserialize<Person>(bin);
 
 `Serialize` method supports a return type of `byte[]` as well as it can serialize to `IBufferWriter<byte>` or `Stream`. `Deserialize` method supports `ReadOnlySpan<byte>`, `ReadOnlySequence<byte>` and `Stream`. And there are alse non-generics versions.
 
+Source-generated serializer contexts
+---
+
+The default `MemoryPackSerializer.Serialize<T>/Deserialize<T>` APIs use the existing process-wide formatter provider. This is the simplest option for normal applications, but a formatter registered for a type from a collectible `AssemblyLoadContext` is a strong reference from `MemoryPack.Core` back to that load context.
+
+.NET 7 or later applications that load unloadable plugins can instead generate an instance-owned formatter graph:
+
+```csharp
+[MemoryPackable]
+public partial class PluginDto
+{
+    public int Id { get; set; }
+}
+
+[MemoryPackSerializable(typeof(PluginDto))]
+[MemoryPackSerializable(typeof(Dictionary<string, PluginDto>))]
+public partial class PluginMemoryPackContext : MemoryPackSerializerContext
+{
+}
+
+var context = new PluginMemoryPackContext(MemoryPackSerializerOptions.Utf8);
+var bytes = MemoryPackSerializer.Serialize(value, context);
+var copy = MemoryPackSerializer.Deserialize<PluginDto, PluginMemoryPackContext>(bytes, context);
+```
+
+The context generator recursively creates the formatter graph for its declared roots. Generated object, version-tolerant, circular-reference, collection and union formatters use injected dependencies. The context path covers the standard formatter catalog, including nullable values, arrays through rank four, array-like values, tuples, list/queue/stack/set and dictionary shapes, interface collections, lookup/grouping, concurrent collections, immutable collections and, on .NET 8 or later, frozen collections. Nested generic combinations are expanded recursively and do not consult the global provider. `Type` values use a context-local wire-name map; a type must be present in the declared graph to be resolved while deserializing.
+
+`Serialize` normally infers both the value and context types. The strongly typed `Deserialize` overload spells out both generic arguments because C# does not infer a result type from the assignment target. Keeping `TContext` in the static signature allows the generated formatter call to remain statically bound and also keeps existing calls such as `Deserialize<T>(bytes, null)` unambiguous.
+
+For tooling scenarios, the context also exposes `Serialize(Type, object?)`, `Deserialize(Type, ReadOnlySpan<byte>)` and `GetFormatter(Type)`. Those APIs use the instance type table and may box values; they do not add a type lookup or boxing cost to the strongly typed overloads.
+
+Each generated context also has a read-only `Default` property. It is a static field on the generated context type in the declaring assembly, not a process-wide `MemoryPack.Core` current context:
+
+```csharp
+var context = PluginMemoryPackContext.Default;
+```
+
+A context is immutable after construction and can be used concurrently. It does not implement `IDisposable`; releasing it means removing every strong reference to the context. Keeping a plugin-derived context instance alive intentionally keeps that plugin and every assembly represented by its formatter graph alive. Contexts are not composed at runtime: a cross-plugin shape such as `Dictionary<PluginA, PluginB>` must be declared by a generated bridge context. That bridge assembly has compile-time references to both plugins and therefore defines an explicit lifetime group for them; it should be loaded and unloaded with those dependencies.
+
+The existing overloads remain unchanged. Calling the no-context static API for a type that is also included in a generated context lazily registers that type in the legacy global provider and can therefore prevent a collectible load context from unloading. Context generation never silently falls back to that provider. If an external MemoryPackable type is used, its declaring assembly must have generated a context factory; otherwise `MEMPACK045` is reported. An external leaf type can instead specify `FormatterType`; declaring that leaf also makes the override available when another declared root contains it:
+
+```csharp
+[MemoryPackSerializable(typeof(ExternalType), FormatterType = typeof(ExternalTypeFormatter))]
+public partial class PluginMemoryPackContext : MemoryPackSerializerContext
+{
+}
+```
+
+A formatter with context-owned dependencies can implement the advanced `IMemoryPackSerializerContextFormatterFactory<T>` contract. A formatter that explicitly calls `MemoryPackFormatterProvider.Register` opts out of collectible isolation.
+
+The context API is available on .NET 7 or later. A library that also targets `netstandard` or Unity should conditionally compile its context declaration for the supported target frameworks; the existing static API remains unchanged on the older targets.
+
+The process-wide provider can safely share stateless formatters whose types and instances do not refer to a collectible type. A `Type` key, a formatter or delegate closed over a plugin type, reflected members, a custom plugin formatter instance, and any container formatter closed over a plugin type must instead be owned by the generated context.
+
+The corresponding retention chain on the legacy path is `MemoryPack.Core` in the default load context → the static provider's formatter dictionary or closed generic cache → the plugin `Type`, formatter, generic argument or delegate → the plugin assembly/loader allocator → the collectible load context. Static fields declared by the plugin itself only form references inside that collectible lifetime and do not, by themselves, prevent unloading. `GenerateType.NoGenerate` is not an independent fix: the manual workaround works only when eager generation is avoided, `RegisterFormatter()` does not register globally, and the implementation exclusively uses packable reader/writer APIs that never reach the static provider.
+
 Built-in supported types
 ---
 These types can be serialized by default:
