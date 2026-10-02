@@ -42,7 +42,9 @@ namespace MemoryPack.Formatters
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, [NotNullWhen(false)] scoped ref TCollection? value)
             where TCollection : IEnumerable<TElement>
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+            where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -75,7 +77,9 @@ namespace MemoryPack.Formatters
 
         public static void SerializeCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TCollection? value)
             where TCollection : ICollection<TElement>
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+            where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -94,7 +98,9 @@ namespace MemoryPack.Formatters
 
         public static void SerializeReadOnlyCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TCollection? value)
             where TCollection : IReadOnlyCollection<TElement>
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+            where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>

@@ -12,7 +12,9 @@ public static class KeyValuePairFormatter
     [Preserve]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Serialize<TKey, TValue, TBufferWriter>(IMemoryPackFormatter<TKey> keyFormatter, IMemoryPackFormatter<TValue> valueFormatter, ref MemoryPackWriter<TBufferWriter> writer, KeyValuePair<TKey?, TValue?> value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
