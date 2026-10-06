@@ -12,8 +12,20 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  validate-release:
+    permissions:
+      contents: read
+    uses: Cysharp/Actions/.github/workflows/validate-release.yaml@main
+    with:
+      tag: ${{ inputs.tag }}
+
   update-packagejson:
+    needs: [validate-release]
     permissions:
       actions: read
       contents: write
@@ -21,11 +33,13 @@ jobs:
     with:
       file-path: |
         ./src/MemoryPack.Unity/Assets/MemoryPack.Unity/package.json
-      tag: ${{ inputs.tag }}
+      tag: ${{ needs.validate-release.outputs.tag }}
       dry-run: ${{ inputs.dry-run }}
+      use-bot-token: true
+    secrets: inherit
 
   build-dotnet:
-    needs: [update-packagejson]
+    needs: [validate-release, update-packagejson]
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -37,9 +51,9 @@ jobs:
           ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
       # pack nuget (.nupkg and .symbols.nupkg will be created)
-      - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
+      - run: dotnet build -c Release -p:Version=${{ needs.validate-release.outputs.tag }}
       - run: dotnet test -c Release --no-build
-      - run: dotnet pack -c Release --no-build -p:Version=${{ inputs.tag }} -p:IncludeSymbols=true -o ./publish
+      - run: dotnet pack -c Release --no-build -p:Version=${{ needs.validate-release.outputs.tag }} -p:IncludeSymbols=true -o ./publish
       - uses: Cysharp/Actions/.github/actions/upload-artifact@main
         with:
           name: nuget
@@ -47,7 +61,7 @@ jobs:
           retention-days: 1
 
   build-unity:
-    needs: [update-packagejson]
+    needs: [validate-release, update-packagejson]
     strategy:
       matrix:
         unity: ["2022.3.39f1"]
@@ -98,47 +112,36 @@ jobs:
         with:
           directory: src/MemoryPack.Unity
 
-  # publish
-  publish:
-    name: "Publish NuGet packages"
-    needs: [build-dotnet, build-unity]
-    permissions:
-      contents: read
-      id-token: write # required for NuGet Trusted Publish
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-      - uses: Cysharp/Actions/.github/actions/download-artifact@main
-      # push nuget
-      - name: NuGet login (OIDC)
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
-        id: login
-        with:
-          user: ${{ secrets.NUGET_USER }}
-      - run: dotnet nuget push "./nuget/*.nupkg" --skip-duplicate -s https://api.nuget.org/v3/index.json -k "${NUGET_KEY}"
-        if: ${{ !inputs.dry-run }}
-        env:
-          NUGET_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
-
   # release
   create-release:
-    needs: [update-packagejson, publish]
+    needs: [validate-release, update-packagejson, build-dotnet, build-unity]
     permissions:
       contents: write
-      id-token: write # required for NuGet Trusted Publish
     uses: Cysharp/Actions/.github/workflows/create-release.yaml@main
     with:
       dry-run: ${{ inputs.dry-run }}
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
-      tag: ${{ inputs.tag }}
-      nuget-push: false
-      release-upload: false
+      tag: ${{ needs.validate-release.outputs.tag }}
     secrets: inherit
 
+  publish-package:
+    needs: [validate-release, create-release]
+    if: ${{ !inputs.dry-run }}
+    permissions:
+      contents: read
+      id-token: write # required for NuGet Trusted Publish in the calling repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: Cysharp/Actions/.github/actions/publish-nuget@main
+        with:
+          artifact-name: nuget
+          user: ${{ secrets.NUGET_USER }}
+          version: ${{ needs.validate-release.outputs.version }}
+
   cleanup:
-    if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
-    needs: [update-packagejson, create-release]
+    if: ${{ always() && needs.update-packagejson.outputs.is-branch-created == 'true' }}
+    needs: [update-packagejson, create-release, publish-package]
     permissions:
       contents: write
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
