@@ -340,4 +340,44 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SerializerContextMustBePartial = new(
+        id: "MEMPACK043",
+        title: "MemoryPack serializer context must be partial",
+        messageFormat: "The MemoryPack serializer context '{0}' must be partial",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SerializerContextRequiresNet7 = new(
+        id: "MEMPACK044",
+        title: "MemoryPack serializer context requires .NET 7 or later",
+        messageFormat: "The MemoryPack serializer context '{0}' requires a .NET 7 or later target framework",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SerializerContextTypeNotSupported = new(
+        id: "MEMPACK045",
+        title: "Type is not supported by MemoryPack serializer context generation",
+        messageFormat: "The serializer context '{0}' cannot generate a context-local formatter for '{1}'. Add a supported root formatter or generate a context factory in the type's declaring assembly",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SerializerContextDoesNotAllowGenerics = new(
+        id: "MEMPACK046",
+        title: "MemoryPack serializer context cannot be generic",
+        messageFormat: "The MemoryPack serializer context '{0}' cannot declare generic type parameters",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor SerializerContextMustDeriveFromBase = new(
+        id: "MEMPACK047",
+        title: "MemoryPack serializer context must derive from MemoryPackSerializerContext",
+        messageFormat: "The MemoryPack serializer context '{0}' must be a non-abstract class derived from MemoryPackSerializerContext",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
