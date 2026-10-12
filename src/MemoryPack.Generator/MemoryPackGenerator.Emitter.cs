@@ -455,7 +455,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             writer.AppendLine(code);
         }
 
-        for(int i = 0; i < containingTypeDeclarations.Count; ++i)
+        for (int i = 0; i < containingTypeDeclarations.Count; ++i)
         {
             writer.AppendLine("}");
         }

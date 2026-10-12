@@ -8,7 +8,9 @@ public interface IMemoryPackFormatter
 {
     [Preserve]
     void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct;
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>;
 #else
         where TBufferWriter : class, IBufferWriter<byte>;
@@ -22,7 +24,9 @@ public interface IMemoryPackFormatter<T>
 {
     [Preserve]
     void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct;
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>;
 #else
         where TBufferWriter : class, IBufferWriter<byte>;
@@ -36,7 +40,9 @@ public abstract class MemoryPackFormatter<T> : IMemoryPackFormatter<T>, IMemoryP
 {
     [Preserve]
     public abstract void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref T? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct;
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>;
 #else
         where TBufferWriter : class, IBufferWriter<byte>;

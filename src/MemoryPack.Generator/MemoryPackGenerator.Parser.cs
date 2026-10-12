@@ -529,7 +529,7 @@ public partial class TypeMeta
             }
         }
 
-    // Union validations
+        // Union validations
     UNION_VALIDATIONS:
         if (IsUnion)
         {
