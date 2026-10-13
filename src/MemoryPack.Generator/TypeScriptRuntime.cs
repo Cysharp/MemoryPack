@@ -418,8 +418,10 @@ export class MemoryPackWriter {
     }
 
     public writeDateTimeOffset(value: Date, offsetMinutes: number = 0): void {
-        // .NET DateTimeOffset raw layout is: int offsetMinutes, 4 bytes padding, then the
+        // .NET DateTimeOffset raw layout is: 8 bytes of offsetMinutes + padding, then the
         // UTC DateTime ticks (ulong dateData, top 2 kind bits trimmed same as writeDate).
+        // offsetMinutes is a short on .NET 8/9 and an int on .NET 10; writing it as a sign-extended
+        // int32 followed by 4 zero bytes is read correctly by both.
         // Date.getTime is already a UTC Unix time of millisecond, so it maps directly onto
         // the ticks field - offsetMinutes only round-trips through the wire, it does not
         // shift the represented instant.
@@ -848,11 +850,12 @@ export class MemoryPackReader {
     }
 
     public readDateTimeOffset(): Date {
-        // .NET DateTimeOffset raw layout is: int offsetMinutes, 4 bytes padding, then the
-        // UTC DateTime ticks (ulong dateData, top 2 kind bits trimmed same as readDate).
+        // .NET DateTimeOffset raw layout is: 8 bytes of offsetMinutes + padding (short on .NET 8/9,
+        // int on .NET 10, padding bytes are runtime dependent), then the UTC DateTime ticks
+        // (ulong dateData, top 2 kind bits trimmed same as readDate).
         // offsetMinutes only round-trips through the wire and does not shift the represented
         // instant, so it is skipped here - the returned Date is always the UTC instant.
-        this.offset += 8; // int offsetMinutes(4) + padding(4)
+        this.offset += 8; // offsetMinutes + padding
         const ticks = this.readUint64() & dateTimeMask;
         const unixMillisecond = (ticks - unixEpochTicks) / 10000n;
         return new Date(Number(unixMillisecond));

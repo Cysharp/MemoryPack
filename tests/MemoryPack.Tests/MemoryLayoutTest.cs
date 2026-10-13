@@ -82,10 +82,10 @@ public class MemoryLayoutTest
     }
 
     // The generated TypeScript runtime's writeDateTimeOffset/readDateTimeOffset (see
-    // TypeScriptRuntime.cs) blit against this exact same layout: int offsetMinutes (4 bytes),
-    // 4 bytes padding, then the UTC ticks with the top 2 DateTimeKind bits masked off (8 bytes).
-    // These tests pin that assumption against MemoryPackSerializer's actual wire output, so a
-    // runtime layout change (like DateTimeOffsetLayout above guards against) also fails here.
+    // TypeScriptRuntime.cs) rely on this layout: 8 bytes of offsetMinutes + padding, then the UTC
+    // ticks with the top 2 DateTimeKind bits masked off (8 bytes). offsetMinutes is a short on
+    // .NET 8/9 and an int on .NET 10, so the padding bytes after the low 2 bytes differ by runtime
+    // (zero vs sign-extension) and are intentionally not asserted here.
     [Theory]
     [MemberData(nameof(DateTimeOffsetSamples))]
     public void DateTimeOffsetWireFormatMatchesTypeScriptRuntimeAlgorithm(DateTimeOffset value)
@@ -93,17 +93,24 @@ public class MemoryLayoutTest
         const ulong dateTimeMask = 0b00111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111UL;
 
         var actual = MemoryPackSerializer.Serialize(value);
+        actual.Length.Should().Be(16);
 
-        // writeDateTimeOffset: writeInt32(offsetMinutes) + 4 zero bytes + writeUint64(utcTicks & mask)
-        var expected = new byte[16];
-        BitConverter.GetBytes((int)value.Offset.TotalMinutes).CopyTo(expected, 0);
-        BitConverter.GetBytes((ulong)value.UtcTicks & dateTimeMask).CopyTo(expected, 8);
-        actual.Should().Equal(expected);
+        // offsetMinutes low 16 bits and masked UTC ticks match what the TS runtime reads/writes
+        BitConverter.ToInt16(actual, 0).Should().Be((short)value.Offset.TotalMinutes);
+        BitConverter.ToUInt64(actual, 8).Should().Be((ulong)value.UtcTicks & dateTimeMask);
 
         // readDateTimeOffset: skip offsetMinutes+padding (8 bytes), read ticks & mask as UTC instant
         var utcTicks = (long)(BitConverter.ToUInt64(actual, 8) & dateTimeMask);
-        var decodedUtc = new DateTime(utcTicks, DateTimeKind.Utc);
-        decodedUtc.Should().Be(value.UtcDateTime);
+        new DateTime(utcTicks, DateTimeKind.Utc).Should().Be(value.UtcDateTime);
+
+        // writeDateTimeOffset: sign-extended int32 offsetMinutes + 4 zero bytes + masked UTC ticks
+        // must deserialize back to the same value on every runtime layout.
+        var written = new byte[16];
+        BitConverter.GetBytes((int)value.Offset.TotalMinutes).CopyTo(written, 0);
+        BitConverter.GetBytes((ulong)value.UtcTicks & dateTimeMask).CopyTo(written, 8);
+        var roundTripped = MemoryPackSerializer.Deserialize<DateTimeOffset>(written);
+        roundTripped.Should().Be(value);
+        roundTripped.Offset.Should().Be(value.Offset);
     }
 
     public static TheoryData<DateTimeOffset> DateTimeOffsetSamples => new()
