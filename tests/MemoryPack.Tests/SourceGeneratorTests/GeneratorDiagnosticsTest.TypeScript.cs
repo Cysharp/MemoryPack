@@ -220,6 +220,31 @@ public partial class Hoge
             """);
     }
 
+    [Fact]
+    public void GenerateTypeScriptDateTimeOffset()
+    {
+        // DateTimeOffset used to throw MEMPACK031 (not supported type in typescript generation).
+        var generatedCode = CompileAndRead(
+            """
+            using System;
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial class Hoge
+            {
+                public DateTimeOffset CreatedAt { get; set; }
+                public DateTimeOffset? UpdatedAt { get; set; }
+            }
+            """,
+            "Hoge.ts");
+
+        generatedCode.Should().Contain("writer.writeDateTimeOffset(value.createdAt)");
+        generatedCode.Should().Contain("reader.readDateTimeOffset()");
+        generatedCode.Should().Contain("writer.writeNullableDateTimeOffset(value.updatedAt)");
+        generatedCode.Should().Contain("reader.readNullableDateTimeOffset()");
+    }
+
 
     class TypeScriptOptionProvider : AnalyzerConfigOptionsProvider
     {

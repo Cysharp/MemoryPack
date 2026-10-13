@@ -417,6 +417,31 @@ export class MemoryPackWriter {
         this.writeUint64(ticks & dateTimeMask);
     }
 
+    public writeDateTimeOffset(value: Date, offsetMinutes: number = 0): void {
+        // .NET DateTimeOffset raw layout is: 8 bytes of offsetMinutes + padding, then the
+        // UTC DateTime ticks (ulong dateData, top 2 kind bits trimmed same as writeDate).
+        // offsetMinutes is a short on .NET 8/9 and an int on .NET 10; writing it as a sign-extended
+        // int32 followed by 4 zero bytes is read correctly by both.
+        // Date.getTime is already a UTC Unix time of millisecond, so it maps directly onto
+        // the ticks field - offsetMinutes only round-trips through the wire, it does not
+        // shift the represented instant.
+        const unixMillisecond = BigInt(value.getTime());
+        const utcTicks = unixMillisecond * 10000n + unixEpochTicks;
+        this.writeInt32(offsetMinutes);
+        this.clearBuffer(4);
+        this.writeUint64(utcTicks & dateTimeMask);
+    }
+
+    public writeNullableDateTimeOffset(value: Date | null, offsetMinutes: number = 0): void {
+        if (value == null) {
+            this.clearBuffer(24);
+            return;
+        }
+
+        this.writeInt64(1n);
+        this.writeDateTimeOffset(value, offsetMinutes);
+    }
+
     public writeNullableDate(value: Date | null): void {
         if (value == null) {
             this.clearBuffer(16);
@@ -822,6 +847,27 @@ export class MemoryPackReader {
         const ticks = this.readUint64() & dateTimeMask;
         const unixMillisecond = (ticks - unixEpochTicks) / 10000n;
         return new Date(Number(unixMillisecond));
+    }
+
+    public readDateTimeOffset(): Date {
+        // .NET DateTimeOffset raw layout is: 8 bytes of offsetMinutes + padding (short on .NET 8/9,
+        // int on .NET 10, padding bytes are runtime dependent), then the UTC DateTime ticks
+        // (ulong dateData, top 2 kind bits trimmed same as readDate).
+        // offsetMinutes only round-trips through the wire and does not shift the represented
+        // instant, so it is skipped here - the returned Date is always the UTC instant.
+        this.offset += 8; // offsetMinutes + padding
+        const ticks = this.readUint64() & dateTimeMask;
+        const unixMillisecond = (ticks - unixEpochTicks) / 10000n;
+        return new Date(Number(unixMillisecond));
+    }
+
+    public readNullableDateTimeOffset(): Date | null {
+        if (this.readInt64() == 0n) {
+            this.offset += 16;
+            return null;
+        }
+
+        return this.readDateTimeOffset();
     }
 
     public readNullableDate(): Date | null {
