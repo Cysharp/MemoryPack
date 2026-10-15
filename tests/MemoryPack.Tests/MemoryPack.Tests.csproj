@@ -26,6 +26,7 @@
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
         <ProjectReference Include="..\..\src\MemoryPack.Streaming\MemoryPack.Streaming.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.AspNetCoreMvcFormatter\MemoryPack.AspNetCoreMvcFormatter.csproj" />
     </ItemGroup>
 
     <ItemGroup>
