@@ -10,6 +10,18 @@ namespace MemoryPack.Tests;
 
 public class UnionTest
 {
+#if !NET5_0_OR_GREATER
+    public UnionTest()
+    {
+        // Required for MemoryPack.Tests.NetStandard, which disables NET*_OR_GREATER symbols.
+        // Generated initializers have [ModuleInitializer] only when NET5_0_OR_GREATER is defined,
+        // so the union formatters must be registered manually otherwise (same as Unity).
+        ForExternalUnionFormatterInitializer.RegisterFormatter();
+        ForExternalUnionFormatter2_T_Initializer.RegisterFormatter();
+        ForExternalUnionFormatter3Initializer.RegisterFormatter();
+    }
+#endif
+
     [Fact]
     public void Foo()
     {
