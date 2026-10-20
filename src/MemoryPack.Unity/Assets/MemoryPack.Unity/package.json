@@ -1,6 +1,6 @@
 {
     "name": "com.cysharp.memorypack",
-    "displayName": "MemoryPack",
+    "displayName": "MemoryPack.Unity",
     "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
     "version": "1.21.4",
     "unity": "2022.3",
