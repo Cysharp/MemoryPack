@@ -206,7 +206,7 @@ public partial class Hoge
             """,
             "FullName.ts");
 
-        generatedCode.Should().Contain(
+        generatedCode.Replace("\r\n", "\n").Should().Contain(
             """
             export class FullName {
                 firstName: string;

@@ -674,9 +674,9 @@ public partial class Tester
     }
 
     [Fact]
-    public void MEMPACK041_UnmanagedStructCannotBeVersionTolerant()
+    public void MEMPACK041_UnmanagedStructCanBeVersionTolerant()
     {
-        Compile(41, """
+        var code = """
 using MemoryPack;
 
 [MemoryPackable(GenerateType.VersionTolerant)]
@@ -685,7 +685,9 @@ public partial struct Tester
     [MemoryPackOrder(0)]
     public int I1 { get; init; }
 }
-""");
+""";
+        var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code);
+        diagnostics.Length.Should().Be(0);
     }
 
     [Fact]
