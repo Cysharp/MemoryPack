@@ -92,6 +92,17 @@ public sealed class MemoryPackOrderAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class MemoryPackArrayLengthAttribute : Attribute
+{
+    public int Length { get; }
+
+    public MemoryPackArrayLengthAttribute(int length)
+    {
+        this.Length = length;
+    }
+}
+
 #if !UNITY_2021_2_OR_NEWER
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]

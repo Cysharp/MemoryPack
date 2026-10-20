@@ -1316,6 +1316,8 @@ public partial class MemberMeta
                 return $"global::MemoryPack.Formatters.ListFormatter.SerializePackable(ref {writer}, value.@{Name});";
             case MemberKind.Array:
                 return $"{writer}.WriteArray(value.@{Name});";
+            case MemberKind.FixedArray:
+                return $"""if (value.@{Name}.Length != {ArrayLength}) throw new MemoryPackSerializationException("Array length mismatch for {Name}"); {writer}.WriteArrayWithoutLengthHeader(value.@{Name});""";
             case MemberKind.Blank:
                 return "";
             case MemberKind.CustomFormatter:
@@ -1373,6 +1375,8 @@ public partial class MemberMeta
                 return $"{pre}__{Name} = global::MemoryPack.Formatters.ListFormatter.DeserializePackable<{(MemberType as INamedTypeSymbol)!.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(ref reader);";
             case MemberKind.Array:
                 return $"{pre}__{Name} = reader.ReadArray<{(MemberType as IArrayTypeSymbol)!.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>();";
+            case MemberKind.FixedArray:
+                return $"{pre}reader.ReadArrayWithoutReadLengthHeader({ArrayLength}, out __{Name});";
             case MemberKind.Blank:
                 return $"{pre}reader.Advance(deltas[{i}]);";
             case MemberKind.CustomFormatter:
@@ -1410,6 +1414,8 @@ public partial class MemberMeta
                 return $"{pre}global::MemoryPack.Formatters.ListFormatter.DeserializePackable(ref reader, ref __{Name});";
             case MemberKind.Array:
                 return $"{pre}reader.ReadArray(ref __{Name});";
+            case MemberKind.FixedArray:
+                return $"{pre}reader.ReadArrayWithoutReadLengthHeader({ArrayLength}, out __{Name});";
             case MemberKind.Blank:
                 return $"{pre}reader.Advance(deltas[{i}]);";
             case MemberKind.CustomFormatter:

@@ -14,6 +14,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackConstructorAttribute { get; }
     public INamedTypeSymbol MemoryPackAllowSerializeAttribute { get; }
     public INamedTypeSymbol MemoryPackOrderAttribute { get; }
+    public INamedTypeSymbol MemoryPackArrayLengthAttribute { get; }
     public INamedTypeSymbol? MemoryPackCustomFormatterAttribute { get; } // Unity is null.
     public INamedTypeSymbol? MemoryPackCustomFormatter2Attribute { get; } // Unity is null.
     public INamedTypeSymbol MemoryPackIgnoreAttribute { get; }
@@ -39,6 +40,7 @@ public class ReferenceSymbols
         MemoryPackConstructorAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackConstructorAttribute");
         MemoryPackAllowSerializeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackAllowSerializeAttribute");
         MemoryPackOrderAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackOrderAttribute");
+        MemoryPackArrayLengthAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackArrayLengthAttribute");
         MemoryPackCustomFormatterAttribute = compilation.GetTypeByMetadataName("MemoryPack.MemoryPackCustomFormatterAttribute`1")?.ConstructUnboundGenericType();
         MemoryPackCustomFormatter2Attribute = compilation.GetTypeByMetadataName("MemoryPack.MemoryPackCustomFormatterAttribute`2")?.ConstructUnboundGenericType();
         MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute");

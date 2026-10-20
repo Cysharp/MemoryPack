@@ -32,22 +32,17 @@ using MemoryPack;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-CollectionTest sourceCollection = new CollectionTest();
-sourceCollection.Collection.Add("1234");
-sourceCollection.Collection.Add("5678");
-
-Pipe bufferPipe = new Pipe();
-MemoryPackSerializer.Serialize(bufferPipe.Writer, sourceCollection);
-_ = await bufferPipe.Writer.FlushAsync().ConfigureAwait(false);
-ReadResult resultBuffer = await bufferPipe.Reader.ReadAsync().ConfigureAwait(false);
-
-
-//var newSource = new CollectionTest();
-var newSource = MemoryPackSerializer.Deserialize<CollectionTest>(resultBuffer.Buffer);
-Console.WriteLine(newSource.Collection.Count);
-
-
-
+FixedArrays x = new()
+{
+    data = new byte[1_000_000],
+};
+var data = MemoryPackSerializer.Serialize(x);
+for (int i = 0; i < data.Length; i++)
+{
+    Console.Write($"{data[i]}" + ' ');
+}
+Console.WriteLine();
+MemoryPackSerializer.Deserialize<FixedArrays>(data);
 
 [MemoryPackable]
 public partial class Region

@@ -340,4 +340,19 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ArrayLengthAttributeMustHaveAValidValue = new(
+        id: "MEMPACK043",
+        title: "[MemoryPackArrayLength] must have a valid value",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' is annotated with [MemoryPackArrayLength], but it has a invalid value",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+    public static readonly DiagnosticDescriptor ArrayLengthAttributeCanOnlyBeUsedForArrays = new(
+        id: "MEMPACK044",
+        title: "[MemoryPackArrayLength] can only be applied to arrays",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' is annotated with [MemoryPackArrayLength], but isn't a array",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

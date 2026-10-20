@@ -114,7 +114,15 @@ public partial class LisList : List<int>
 
 }
 
+[MemoryPackable]
+public partial class FixedArrays
+{
+    //[MemoryPackArrayLength(6)] public long[] data;
 
+    //[MemoryPackArrayLength(-6)] public long[] datawithwronglength;
+
+    [MemoryPackArrayLength(1_000_000)] public byte[] data;
+}
 
 
 [MemoryPackable]
