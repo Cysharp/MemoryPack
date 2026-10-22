@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if NET7_0_OR_GREATER
+// netstandard2.1 build of MemoryPack requires TBufferWriter to be a reference type.
+
+using System;
 using System.Buffers;
 using MemoryPack.Tests.Models;
 
@@ -57,3 +60,5 @@ public struct TestBufferWriter : IBufferWriter<byte>
         return new byte[sizeHint];
     }
 }
+
+#endif
