@@ -4,6 +4,9 @@
 [![GitHub Actions](https://github.com/Cysharp/MemoryPack/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/MemoryPack/actions)
 [![Releases](https://img.shields.io/github/release/Cysharp/MemoryPack.svg)](https://github.com/Cysharp/MemoryPack/releases)
 
+> [!IMPORTANT]
+> MemoryPack is a high-performance serialization format for **trusted data only**: data produced and consumed by code you control, over channels you trust. With the recent rise in security issues found through AI-assisted vulnerability discovery, we no longer recommend using MemoryPack where the input can come from an untrusted party, such as public network endpoints or user-supplied files. For those scenarios use [MessagePack for C# v4](https://github.com/MessagePack-CSharp/MessagePack-CSharp/releases/tag/v4.0.0-preview.1), which is designed to be secure by default and now performs has closed much of the performance gap. The features aimed at cross-boundary communication (the TypeScript code generator among them) will be removed in the next MemoryPack release, so please avoid depending on them.
+
 Zero encoding extreme performance binary serializer for C# and Unity.
 
 ![image](https://user-images.githubusercontent.com/46207/200979655-63ed38ae-dad2-4ca0-bbb7-9e0aa98914af.png)
