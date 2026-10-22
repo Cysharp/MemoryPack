@@ -341,10 +341,9 @@ public static partial class MemoryPackFormatterProvider
 
     static Type? TryCreateGenericCollectionFormatterType(Type type)
     {
-        if (type.IsGenericType && genericCollectionFormatterFactory.TryGetValue(type, out var formatterType))
+        if (type.IsGenericType && genericCollectionFormatterFactory.TryGetValue(type.GetGenericTypeDefinition(), out var formatterType))
         {
-            var genericDefinition = type.GetGenericTypeDefinition();
-            var elementTypes = genericDefinition.GetGenericArguments();
+            var elementTypes = type.GetGenericArguments();
 
             // formatterType is <TCollection, TArgs> so concat type at first
             return formatterType.MakeGenericType(elementTypes.Prepend(type).ToArray());
