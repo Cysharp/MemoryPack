@@ -8,7 +8,7 @@ namespace MemoryPack.Generator;
 
 partial class MemoryPackGenerator
 {
-    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, string? serializationInfoLogDirectoryPath, IGeneratorContext context)
+    static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, string? serializationInfoLogDirectoryPath, IGeneratorContext context, bool contextOwned)
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -139,7 +139,7 @@ using MemoryPack;
         }
         else
         {
-            typeMeta.Emit(sb, context);
+            typeMeta.Emit(sb, context, contextOwned);
         }
 
         if (!ns.IsGlobalNamespace && !context.IsCSharp10OrGreater())
@@ -253,17 +253,25 @@ using MemoryPack;
 
 public partial class TypeMeta
 {
-    public void Emit(StringBuilder writer, IGeneratorContext context)
+    public void Emit(StringBuilder writer, IGeneratorContext context, bool contextOwned = false)
     {
         if (IsUnion)
         {
-            writer.AppendLine(EmitUnionTemplate(context));
+            writer.AppendLine(EmitUnionTemplate(context, contextOwned));
+            if (context.IsNet7OrGreater && contextOwned)
+            {
+                writer.AppendLine(EmitSerializerContextUnionFormatter());
+            }
             return;
         }
 
         if (GenerateType == GenerateType.Collection)
         {
-            writer.AppendLine(EmitGenericCollectionTemplate(context));
+            writer.AppendLine(EmitGenericCollectionTemplate(context, contextOwned));
+            if (context.IsNet7OrGreater && contextOwned)
+            {
+                writer.AppendLine(EmitSerializerContextCollectionFormatter());
+            }
             return;
         }
 
@@ -347,7 +355,7 @@ public partial class TypeMeta
             staticMemoryPackableMethod = $"static void IMemoryPackable<{TypeName}>.";
             constraint = "";
             registerBody = $"global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.MemoryPackableFormatter<{TypeName}>());";
-            registerT = $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();";
+            registerT = contextOwned ? "" : $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();";
 
             // similar as VersionTolerantOptimized but not includes String, Array
             var fixedSize = false;
@@ -454,6 +462,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 """;
             writer.AppendLine(code);
         }
+        else if (contextOwned)
+        {
+            writer.AppendLine(EmitSerializerContextFormatter(context));
+        }
 
         for(int i = 0; i < containingTypeDeclarations.Count; ++i)
         {
@@ -461,7 +473,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
     }
 
-    private string EmitDeserializeBody()
+    private string EmitDeserializeBody(bool useContextFormatters = false)
     {
         var count = Members.Length;
 
@@ -531,7 +543,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         {
             {{(IsValueType ? "" : "if (value == null)")}}
             {
-{{EmitDeserializeMembers(Members, "                ")}}
+{{EmitDeserializeMembers(Members, "                ", useContextFormatters)}}
 
                 goto NEW;
             }
@@ -539,7 +551,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             {
 {{Members.Where(x => x.Symbol != null).Select(x => $"                __{x.Name} = value.@{x.Name};").NewLine()}}
 
-{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)).NewLine()}}
+{{Members.Select(x => "                " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference, useContextFormatters)).NewLine()}}
 
                 goto SET;
             }
@@ -563,7 +575,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
 {{(IsValueType ? "#endif" : "")}}
 
             if (count == 0) goto SKIP_READ;
-{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
+{{Members.Select((x, i) => "            " + x.EmitReadRefDeserialize(x.Order, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference, useContextFormatters) + $" if (count == {i + 1}) goto SKIP_READ;").NewLine()}}
 
     SKIP_READ:
             {{(IsValueType ? "" : "if (value == null)")}}
@@ -644,17 +656,17 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         return sb.ToString();
     }
 
-    string EmitSerializeBody(bool isForUnity)
+    string EmitSerializeBody(bool isForUnity, bool useContextFormatters = false)
     {
         if (this.GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference)
         {
             if (Members.All(x => x.Kind is MemberKind.Unmanaged or MemberKind.String or MemberKind.Enum or MemberKind.UnmanagedArray or MemberKind.UnmanagedNullable or MemberKind.Blank))
             {
-                return EmitVersionTorelantSerializeBodyOptimized(isForUnity);
+                return EmitVersionTorelantSerializeBodyOptimized(isForUnity, useContextFormatters);
             }
             else
             {
-                return EmitVersionTorelantSerializeBody(isForUnity);
+                return EmitVersionTorelantSerializeBody(isForUnity, useContextFormatters);
             }
         }
 
@@ -667,11 +679,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 """ : "")}}
 
-{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: true)}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: true, useContextFormatters)}}
 """;
     }
 
-    string EmitVersionTorelantSerializeBody(bool isForUnity)
+    string EmitVersionTorelantSerializeBody(bool isForUnity, bool useContextFormatters)
     {
         var newTempWriter = isForUnity
             ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
@@ -705,7 +717,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             Span<int> offsets = stackalloc int[{{Members.Length}}];
             var tempWriter = {{newTempWriter}};
 
-{{EmitSerializeMembers(Members, "            ", toTempWriter: true, writeObjectHeader: false)}}
+{{EmitSerializeMembers(Members, "            ", toTempWriter: true, writeObjectHeader: false, useContextFormatters)}}
 
             tempWriter.Flush();
 
@@ -734,7 +746,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     }
 
     // Optimized is all member is fixed size
-    string EmitVersionTorelantSerializeBodyOptimized(bool isForUnity)
+    string EmitVersionTorelantSerializeBodyOptimized(bool isForUnity, bool useContextFormatters)
     {
         static string EmitLengthHeader(MemberMeta[] members)
         {
@@ -771,12 +783,12 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         writer.WriteObjectHeader({{Members.Length}});
 {{EmitLengthHeader(Members)}}
         {{(GenerateType == GenerateType.CircularReference ? "writer.WriteVarInt(id);" : "")}}
-{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: false)}}
+{{EmitSerializeMembers(Members, "        ", toTempWriter: false, writeObjectHeader: false, useContextFormatters)}}
 """;
     }
 
     // toTempWriter is VersionTolerant
-    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader)
+    public string EmitSerializeMembers(MemberMeta[] members, string indent, bool toTempWriter, bool writeObjectHeader, bool useContextFormatters = false)
     {
         // members is guranteed writable.
         if (members.Length == 0 && writeObjectHeader)
@@ -798,7 +810,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
                     sb.Append(indent);
                 }
 
-                sb.Append(members[i].EmitSerialize(writer));
+                sb.Append(members[i].EmitSerialize(writer, useContextFormatters));
                 if (toTempWriter)
                 {
                     sb.AppendLine($" offsets[{i}] = tempWriter.WrittenCount;");
@@ -872,7 +884,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     }
 
     // for optimize, can use same count, value == null.
-    public string EmitDeserializeMembers(MemberMeta[] members, string indent)
+    public string EmitDeserializeMembers(MemberMeta[] members, string indent, bool useContextFormatters = false)
     {
         // {{Members.Select(x => "                " + x.EmitReadToDeserialize()).NewLine()}}
         var sb = new StringBuilder();
@@ -881,7 +893,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             if (!(members[i].Kind is MemberKind.Unmanaged or MemberKind.Enum or MemberKind.UnmanagedNullable) || (GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference))
             {
                 sb.Append(indent);
-                sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference));
+                sb.AppendLine(members[i].EmitReadToDeserialize(i, GenerateType is GenerateType.VersionTolerant or GenerateType.CircularReference, useContextFormatters));
                 continue;
             }
 
@@ -974,7 +986,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         return lines.NewLine();
     }
 
-    string EmitUnionTemplate(IGeneratorContext context)
+    string EmitUnionTemplate(IGeneratorContext context, bool contextOwned = false)
     {
         var classOrInterfaceOrRecord = IsRecord ? "record" : (Symbol.TypeKind == TypeKind.Interface) ? "interface" : "class";
 
@@ -982,7 +994,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
         var register = (context.IsNet7OrGreater)
-            ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
+            ? (contextOwned ? "" : $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();")
             : "RegisterFormatter();";
         var scopedRef = context.IsCSharp11OrGreater()
             ? "scoped ref"
@@ -1225,7 +1237,7 @@ public static class {{initializerName}}
 """;
     }
 
-    string EmitGenericCollectionTemplate(IGeneratorContext context)
+    string EmitGenericCollectionTemplate(IGeneratorContext context, bool contextOwned = false)
     {
         var (collectionKind, collectionSymbol) = ParseCollectionKind(Symbol, reference);
         var methodName = collectionKind switch
@@ -1242,7 +1254,7 @@ public static class {{initializerName}}
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
         var register = (context.IsNet7OrGreater)
-            ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
+            ? (contextOwned ? "" : $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();")
             : "RegisterFormatter();";
 
         var code = $$"""
@@ -1295,8 +1307,22 @@ public partial class MethodMeta
 
 public partial class MemberMeta
 {
-    public string EmitSerialize(string writer)
+    public bool RequiresSerializerContextFormatter => Kind is not (
+        MemberKind.Unmanaged or
+        MemberKind.Enum or
+        MemberKind.UnmanagedNullable or
+        MemberKind.String or
+        MemberKind.UnmanagedArray or
+        MemberKind.Blank or
+        MemberKind.CustomFormatter);
+
+    public string EmitSerialize(string writer, bool useContextFormatter = false)
     {
+        if (useContextFormatter && RequiresSerializerContextFormatter)
+        {
+            return $"{writer}.WriteValueWithFormatter(__{Name}ContextFormatter, value.@{Name});";
+        }
+
         switch (Kind)
         {
             case MemberKind.MemoryPackable:
@@ -1344,7 +1370,7 @@ public partial class MemberMeta
         }
     }
 
-    public string EmitReadToDeserialize(int i, bool requireDeltaCheck)
+    public string EmitReadToDeserialize(int i, bool requireDeltaCheck, bool useContextFormatter = false)
     {
         var equalDefault = Kind == MemberKind.Blank
             ? "{ }"
@@ -1353,6 +1379,12 @@ public partial class MemberMeta
         var pre = requireDeltaCheck
             ? $"if (deltas[{i}] == 0) {equalDefault} else "
             : "";
+
+        if (useContextFormatter && RequiresSerializerContextFormatter)
+        {
+            var memberType = MemberType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            return $"{pre}__{Name} = reader.ReadValueWithFormatter<global::MemoryPack.MemoryPackFormatter<{memberType}>, {memberType}>(__{Name}ContextFormatter);";
+        }
 
         switch (Kind)
         {
@@ -1385,11 +1417,16 @@ public partial class MemberMeta
         }
     }
 
-    public string EmitReadRefDeserialize(int i, bool requireDeltaCheck)
+    public string EmitReadRefDeserialize(int i, bool requireDeltaCheck, bool useContextFormatter = false)
     {
         var pre = requireDeltaCheck
             ? $"if (deltas[{i}] != 0) "
             : "";
+
+        if (useContextFormatter && RequiresSerializerContextFormatter)
+        {
+            return $"{pre}reader.ReadValueWithFormatter(__{Name}ContextFormatter, ref __{Name});";
+        }
 
         switch (Kind)
         {

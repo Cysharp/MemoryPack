@@ -32,6 +32,7 @@ namespace MemoryPack.Generator;
 public partial class MemoryPackGenerator : IIncrementalGenerator
 {
     public const string MemoryPackableAttributeFullName = "MemoryPack.MemoryPackableAttribute";
+    public const string MemoryPackSerializableAttributeFullName = "MemoryPack.MemoryPackSerializableAttribute";
     public const string MemoryPackUnionFormatterAttributeFullName = "MemoryPack.MemoryPackUnionFormatterAttribute";
     public const string GenerateTypeScriptAttributeFullName = "MemoryPack.GenerateTypeScriptAttribute";
 
@@ -39,11 +40,18 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     {
         // no need RegisterPostInitializationOutput
 
-        RegisterMemoryPackable(context);
+        var serializerContextDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
+                MemoryPackSerializableAttributeFullName,
+                predicate: static (node, token) => node is TypeDeclarationSyntax,
+                transform: static (context, token) => (TypeDeclarationSyntax)context.TargetNode)
+            .WithTrackingName("MemoryPack.SerializerContext.1_ForAttributeMemoryPackSerializable");
+
+        RegisterMemoryPackable(context, serializerContextDeclarations);
+        RegisterSerializerContexts(context, serializerContextDeclarations);
         RegisterTypeScript(context);
     }
 
-    void RegisterMemoryPackable(IncrementalGeneratorInitializationContext context)
+    void RegisterMemoryPackable(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<TypeDeclarationSyntax> serializerContextDeclarations)
     {
         // return dir of info output or null .
         var logProvider = context.AnalyzerConfigOptionsProvider
@@ -99,35 +107,45 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         {
             var source = typeDeclarations
                 .Combine(context.CompilationProvider)
-                .WithComparer(Comparer.Instance)
+                .Combine(serializerContextDeclarations.Collect())
+                .Select(static (value, cancellationToken) => new MemoryPackableGenerationInput(
+                    value.Left.Item1,
+                    value.Left.Item2,
+                    IsContextOwned(value.Left.Item1, value.Left.Item2, value.Right, cancellationToken)))
+                .WithComparer(MemoryPackableGenerationInputComparer.Instance)
                 .Combine(logProvider)
                 .Combine(parseOptions)
                 .WithTrackingName("MemoryPack.MemoryPackable.2_MemoryPackableCombined");
 
             context.RegisterSourceOutput(source, static (context, source) =>
             {
-                var (typeDeclaration, compilation) = source.Left.Item1;
-                var logPath = source.Left.Item2;
+                var input = source.Left.Left;
+                var logPath = source.Left.Right;
                 var (langVersion, net7) = source.Right;
 
-                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+                Generate(input.Declaration, input.Compilation, logPath, new GeneratorContext(context, langVersion, net7), input.ContextOwned);
             });
         }
         {
             var source = typeDeclarations2
                 .Combine(context.CompilationProvider)
-                .WithComparer(Comparer.Instance)
+                .Combine(serializerContextDeclarations.Collect())
+                .Select(static (value, cancellationToken) => new MemoryPackableGenerationInput(
+                    value.Left.Item1,
+                    value.Left.Item2,
+                    IsContextOwned(value.Left.Item1, value.Left.Item2, value.Right, cancellationToken)))
+                .WithComparer(MemoryPackableGenerationInputComparer.Instance)
                 .Combine(logProvider)
                 .Combine(parseOptions)
                 .WithTrackingName("MemoryPack.MemoryPackable.2_MemoryPackUnionCombined");
 
             context.RegisterSourceOutput(source, static (context, source) =>
             {
-                var (typeDeclaration, compilation) = source.Left.Item1;
-                var logPath = source.Left.Item2;
+                var input = source.Left.Left;
+                var logPath = source.Left.Right;
                 var (langVersion, net7) = source.Right;
 
-                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+                Generate(input.Declaration, input.Compilation, logPath, new GeneratorContext(context, langVersion, net7), input.ContextOwned);
             });
         }
     }
@@ -291,6 +309,31 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         {
             return obj.Item1.GetHashCode();
         }
+    }
+
+    readonly struct MemoryPackableGenerationInput
+    {
+        public TypeDeclarationSyntax Declaration { get; }
+        public Compilation Compilation { get; }
+        public bool ContextOwned { get; }
+
+        public MemoryPackableGenerationInput(TypeDeclarationSyntax declaration, Compilation compilation, bool contextOwned)
+        {
+            Declaration = declaration;
+            Compilation = compilation;
+            ContextOwned = contextOwned;
+        }
+    }
+
+    sealed class MemoryPackableGenerationInputComparer : IEqualityComparer<MemoryPackableGenerationInput>
+    {
+        public static readonly MemoryPackableGenerationInputComparer Instance = new();
+
+        public bool Equals(MemoryPackableGenerationInput x, MemoryPackableGenerationInput y)
+            => x.ContextOwned == y.ContextOwned && x.Declaration.Equals(y.Declaration);
+
+        public int GetHashCode(MemoryPackableGenerationInput obj)
+            => (obj.Declaration.GetHashCode() * 397) ^ obj.ContextOwned.GetHashCode();
     }
 
     class GeneratorContext : IGeneratorContext

@@ -25,6 +25,8 @@ public class ReferenceSymbols
     public INamedTypeSymbol SkipOverwriteDefaultAttribute { get; }
     public INamedTypeSymbol GenerateTypeScriptAttribute { get; }
     public INamedTypeSymbol IMemoryPackable { get; }
+    public INamedTypeSymbol? IMemoryPackSerializerContextFormatterRegister { get; }
+    public INamedTypeSymbol? IMemoryPackSerializerContextFormatterFactory { get; }
 
     public WellKnownTypes KnownTypes { get; }
 
@@ -50,6 +52,12 @@ public class ReferenceSymbols
         SkipOverwriteDefaultAttribute = GetTypeByMetadataName("MemoryPack.SuppressDefaultInitializationAttribute");
         GenerateTypeScriptAttribute = GetTypeByMetadataName(MemoryPackGenerator.GenerateTypeScriptAttributeFullName);
         IMemoryPackable = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1").ConstructUnboundGenericType();
+        IMemoryPackSerializerContextFormatterRegister = compilation
+            .GetTypeByMetadataName("MemoryPack.IMemoryPackSerializerContextFormatterRegister`1")?
+            .ConstructUnboundGenericType();
+        IMemoryPackSerializerContextFormatterFactory = compilation
+            .GetTypeByMetadataName("MemoryPack.IMemoryPackSerializerContextFormatterFactory`1")?
+            .ConstructUnboundGenericType();
         KnownTypes = new WellKnownTypes(this);
     }
 
@@ -337,4 +345,3 @@ public class ReferenceSymbols
         INamedTypeSymbol GetTypeByMetadataName(string metadataName) => parent.GetTypeByMetadataName(metadataName);
     }
 }
-
