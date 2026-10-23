@@ -1,4 +1,4 @@
-﻿#if NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
 
 using MemoryPack.Generator;
 using Microsoft.CodeAnalysis;
@@ -189,6 +189,118 @@ public partial class Hoge
     }
 
     [Fact]
+    public void GenerateTypeScriptManagedStruct()
+    {
+        var generatedCode = CompileAndRead("""
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial struct ManagedStruct
+            {
+                public string Name { get; set; }
+                public int Value { get; set; }
+            }
+            """,
+            "ManagedStruct.ts");
+
+
+        generatedCode.Should().Contain("static serialize(value: ManagedStruct): Uint8Array");
+        generatedCode.Should().Contain("static serializeCore(writer: MemoryPackWriter, value: ManagedStruct): void");
+        generatedCode.Should().Contain("static deserialize(buffer: ArrayBuffer): ManagedStruct {");
+        generatedCode.Should().Contain("static deserializeCore(reader: MemoryPackReader): ManagedStruct {");
+
+        generatedCode.Should().NotContain("writeNullObjectHeader");
+        generatedCode.Should().Contain("writer.writeObjectHeader(2)");
+
+        generatedCode.Should().Contain("throw new Error(\"Cannot deserialize null into struct ManagedStruct.\")");
+        generatedCode.Should().NotContain("return null");
+    }
+
+    [Fact]
+    public void GenerateTypeScriptUnmanagedStruct()
+    {
+        var generatedCode = CompileAndRead("""
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial struct Point
+            {
+                public int X { get; set; }
+                public int Y { get; set; }
+            }
+            """,
+            "Point.ts");
+
+        generatedCode.Should().Contain("static serialize(value: Point): Uint8Array");
+        generatedCode.Should().Contain("static serializeCore(writer: MemoryPackWriter, value: Point): void");
+        generatedCode.Should().Contain("static deserializeCore(reader: MemoryPackReader): Point {");
+
+        generatedCode.Should().Contain("writer.writeInt32(value.x)");
+        generatedCode.Should().Contain("writer.writeInt32(value.y)");
+        generatedCode.Should().NotContain("writeObjectHeader");
+        generatedCode.Should().NotContain("writeNullObjectHeader");
+
+        generatedCode.Should().Contain("value.x = reader.readInt32()");
+        generatedCode.Should().Contain("value.y = reader.readInt32()");
+        generatedCode.Should().NotContain("tryReadObjectHeader");
+    }
+
+    [Fact]
+    public void GenerateTypeScriptUnmanagedStructWithPadding()
+    {
+        var generatedCode = CompileAndRead("""
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial struct Padded
+            {
+                public byte A { get; set; }
+                public int B { get; set; }
+            }
+            """,
+            "Padded.ts");
+
+        generatedCode.Should().Contain("writer.writeUint8(value.a)");
+        generatedCode.Should().Contain("writer.writeZeros(3)");
+        generatedCode.Should().Contain("writer.writeInt32(value.b)");
+        generatedCode.Should().Contain("value.a = reader.readUint8()");
+        generatedCode.Should().Contain("reader.skipBytes(3)");
+        generatedCode.Should().Contain("value.b = reader.readInt32()");
+    }
+
+    [Fact]
+    public void GenerateTypeScriptStructMemberIsNonNullable()
+    {
+        var generatedCode = CompileAndRead("""
+            using MemoryPack;
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial struct Point
+            {
+                public int X { get; set; }
+                public int Y { get; set; }
+            }
+
+            [MemoryPackable]
+            [GenerateTypeScript]
+            public partial class Container
+            {
+                public Point Position { get; set; }
+                public string Name { get; set; }
+            }
+            """,
+            "Container.ts");
+
+        generatedCode.Should().Contain("position: Point;");
+        generatedCode.Should().Contain("this.position = new Point();");
+        generatedCode.Should().NotContain("position: Point | null");
+    }
+
+    [Fact]
     public void GenerateTypeScriptNullableReferenceTypes()
     {
         var generatedCode = CompileAndRead(
@@ -274,6 +386,29 @@ public partial class Hoge
                 return false;
             }
         }
+    }
+
+    [Fact]
+    public void MEMPACK043_GenerateTypeScriptDoesNotAllowNullableStruct()
+    {
+        Compile2(43, """
+using MemoryPack;
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial struct Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+}
+
+[MemoryPackable]
+[GenerateTypeScript]
+public partial class Hoge
+{
+    public Point? Position { get; set; }
+}
+""");
     }
 }
 

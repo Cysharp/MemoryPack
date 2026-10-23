@@ -22,7 +22,6 @@ export class NestedObject {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(2);
         writer.writeInt32(value.myProperty);
         writer.writeString(value.myProperty2);

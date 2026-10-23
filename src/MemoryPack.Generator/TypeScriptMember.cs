@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace MemoryPack.Generator;
 
@@ -170,10 +170,11 @@ public class TypeScriptMember
 
         if (symbol.TryGetMemoryPackableType(references, out _, out _) || symbol.IsWillImplementMemoryPackUnion(references))
         {
+            bool isValueType = symbol.IsValueType;
             return new TypeScriptType
             {
-                TypeName = $"{symbol.Name} | null",
-                DefaultValue = "null",
+                TypeName = isValueType ? symbol.Name : $"{symbol.Name} | null",
+                DefaultValue = isValueType ? $"new {symbol.Name}()" : "null",
                 WriteMethodTemplate = $"{symbol.Name}.serializeCore(writer, {{0}})",
                 ReadMethodTemplate = $"{symbol.Name}.deserializeCore(reader)"
             };

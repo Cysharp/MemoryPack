@@ -26,7 +26,6 @@ export class Subset {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(4);
         writer.writeBoolean(value.myBool);
         writer.writeUint8(value.myByte);

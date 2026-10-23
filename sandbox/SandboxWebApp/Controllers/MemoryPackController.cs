@@ -1,4 +1,4 @@
-﻿using MemoryPack;
+using MemoryPack;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SandboxWebApp.Controllers;
@@ -26,4 +26,16 @@ public class MemoryPackController : Controller
 
         return ret;
     }
+
+    [Route("vector3")]
+    [HttpPost]
+    public Vector3 PostVector3([FromBody] Vector3 value) => value;
+
+    [Route("colorTag")]
+    [HttpPost]
+    public ColorTag PostColorTag([FromBody] ColorTag value) => value;
+
+    [Route("gameObject")]
+    [HttpPost]
+    public GameObject PostGameObject([FromBody] GameObject value) => value;
 }

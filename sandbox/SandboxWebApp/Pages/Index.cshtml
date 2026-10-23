@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -11,6 +11,9 @@
     import { testNullableFloatWithNulls } from "./js/file.js";
     import { hoge } from "./js/file.js";
     import { huga } from "./js/file.js";
+    import { testVector3 } from "./js/file.js";
+    import { testColorTag } from "./js/file.js";
+    import { testStructs } from "./js/file.js";
 
     //hoge();
     //huga();
@@ -19,6 +22,10 @@
 
     testNullableFloatWithValues();
     testNullableFloatWithNulls();
+
+    testVector3();
+    testColorTag();
+    testStructs();
 
 </script>
 

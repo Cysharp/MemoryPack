@@ -42,7 +42,6 @@ export class SampleLarge {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(12);
         writer.writeString(value._id);
         writer.writeString(value.author);

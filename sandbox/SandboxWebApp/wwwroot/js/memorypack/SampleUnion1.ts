@@ -21,7 +21,6 @@ export class SampleUnion1 implements IMogeUnion {
             writer.writeNullObjectHeader();
             return;
         }
-
         writer.writeObjectHeader(1);
         writer.writeNullableInt32(value.myProperty);
 
