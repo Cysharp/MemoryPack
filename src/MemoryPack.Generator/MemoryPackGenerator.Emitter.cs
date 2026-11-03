@@ -374,6 +374,31 @@ public partial class TypeMeta
             ? "Serialize(ref MemoryPackWriter"
             : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
 
+        var formatterRegistrationBody = EmitFormatterRegistrationBody(context, "        ", TypeName, registerBody);
+        var aotFormatterRegistration = "";
+        // NativeAOT may trim the static interface implementation when a model is only used as a collection element.
+        if (context.IsNet7OrGreater && !Symbol.IsGenericType && IsAccessibleFromTopLevel(Symbol))
+        {
+            var fullTypeName = Symbol.FullyQualifiedToString();
+            var aotRegisterBody = $"global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.MemoryPackableFormatter<{fullTypeName}>());";
+            var aotRegistrationBody = EmitFormatterRegistrationBody(context, "                ", fullTypeName, aotRegisterBody);
+            var registrationName = "__MemoryPackAotRegistration_" + GetStableTypeHash(fullTypeName).ToString("X16");
+
+            aotFormatterRegistration = $$"""
+internal static class {{registrationName}}
+{
+    [global::System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void RegisterFormatter()
+    {
+        if (!global::System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported)
+        {
+{{aotRegistrationBody}}
+        }
+    }
+}
+""";
+        }
+
         foreach (var declaration in containingTypeDeclarations)
         {
             writer.AppendLine(declaration);
@@ -395,15 +420,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{
     [global::MemoryPack.Internal.Preserve]
     {{staticRegisterFormatterMethod}}RegisterFormatter()
     {
-        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}>())
-        {
-            {{registerBody}}
-        }
-        if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{{TypeName}}[]>())
-        {
-            global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{{TypeName}}>());
-        }
-{{EmitAdditionalRegisterFormatter("        ", context)}}
+{{formatterRegistrationBody}}
     }
 
     [global::MemoryPack.Internal.Preserve]
@@ -458,6 +475,11 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         for(int i = 0; i < containingTypeDeclarations.Count; ++i)
         {
             writer.AppendLine("}");
+        }
+
+        if (aotFormatterRegistration.Length > 0)
+        {
+            writer.AppendLine(aotFormatterRegistration);
         }
     }
 
@@ -630,6 +652,46 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 
         return sb.ToString();
+    }
+
+    string EmitFormatterRegistrationBody(IGeneratorContext context, string indent, string typeName, string registerBody)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"{indent}if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{typeName}>())");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    {registerBody}");
+        sb.AppendLine($"{indent}}}");
+        sb.AppendLine($"{indent}if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<{typeName}[]>())");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<{typeName}>());");
+        sb.AppendLine($"{indent}}}");
+        sb.Append(EmitAdditionalRegisterFormatter(indent, context));
+        return sb.ToString();
+    }
+
+    static ulong GetStableTypeHash(string value)
+    {
+        unchecked
+        {
+            ulong hash = 14695981039346656037;
+            foreach (var character in value)
+            {
+                hash = (hash ^ character) * 1099511628211UL;
+            }
+            return hash;
+        }
+    }
+
+    static bool IsAccessibleFromTopLevel(INamedTypeSymbol symbol)
+    {
+        for (var current = symbol; current is not null; current = current.ContainingType)
+        {
+            if (current.DeclaredAccessibility is Accessibility.Private or Accessibility.Protected or Accessibility.ProtectedAndInternal)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     string EmitCustomFormatters()

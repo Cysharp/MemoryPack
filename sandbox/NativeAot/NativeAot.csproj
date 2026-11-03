@@ -15,4 +15,9 @@
         <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\MemoryPack.Core\MemoryPack.Core.csproj" />
+        <ProjectReference Include="..\..\src\MemoryPack.Generator\MemoryPack.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
 </Project>
