@@ -340,4 +340,20 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor CSharpUnionTagsMustMatchCases = new(
+        id: "MEMPACK043",
+        title: "Union tags must match the union's case types",
+        messageFormat: "The MemoryPackable union '{0}' must have exactly one MemoryPackUnion tag for each case type when any are specified",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnionOnStructMustBeCSharpUnion = new(
+        id: "MEMPACK044",
+        title: "MemoryPackUnion on a struct requires a union declaration",
+        messageFormat: "The MemoryPackable struct '{0}' can only use MemoryPackUnion if it is declared as a union",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

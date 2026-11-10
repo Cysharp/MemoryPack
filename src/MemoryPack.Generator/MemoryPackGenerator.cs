@@ -72,11 +72,13 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 MemoryPackableAttributeFullName,
                 predicate: static (node, token) =>
                 {
-                    // search [MemoryPackable] class or struct or interface or record
+                    // search [MemoryPackable] class or struct or interface or record or union
                     return (node is ClassDeclarationSyntax
                                  or StructDeclarationSyntax
                                  or RecordDeclarationSyntax
-                                 or InterfaceDeclarationSyntax);
+                                 or InterfaceDeclarationSyntax
+                                 // UnionDeclarationSyntax is newer than the referenced Roslyn, so match by keyword
+                                 or TypeDeclarationSyntax { Keyword.ValueText: "union" });
                 },
                 transform: static (context, token) =>
                 {

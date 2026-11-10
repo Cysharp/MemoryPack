@@ -269,7 +269,12 @@ public partial class TypeMeta
 
         var serializeBody = "";
         var deserializeBody = "";
-        if (IsUnmanagedType)
+        if (IsCSharpUnion)
+        {
+            serializeBody = EmitCSharpUnionSerializeBody();
+            deserializeBody = EmitCSharpUnionDeserializeBody();
+        }
+        else if (IsUnmanagedType)
         {
             serializeBody = $$"""
         writer.WriteUnmanaged(value);
@@ -302,24 +307,26 @@ public partial class TypeMeta
             Members = originalMembers;
         }
 
-        var classOrStructOrRecord = (IsRecord, IsValueType) switch
+        var classOrStructOrRecord = (IsCSharpUnion, IsRecord, IsValueType) switch
         {
-            (true, true) => "record struct",
-            (true, false) => "record",
-            (false, true) => "struct",
-            (false, false) => "class",
+            (true, _, _) => "union",
+            (_, true, true) => "record struct",
+            (_, true, false) => "record",
+            (_, false, true) => "struct",
+            (_, false, false) => "class",
         };
 
         var containingTypeDeclarations = new List<string>();
         var containingType = Symbol.ContainingType;
         while (containingType is not null)
         {
-            containingTypeDeclarations.Add((containingType.IsRecord, containingType.IsValueType) switch
+            containingTypeDeclarations.Add((containingType.IsCSharpUnion(), containingType.IsRecord, containingType.IsValueType) switch
             {
-                (true, true) => $"partial record struct {containingType.Name}",
-                (true, false) => $"partial record {containingType.Name}",
-                (false, true) => $"partial struct {containingType.Name}",
-                (false, false) => $"partial class {containingType.Name}",
+                (true, _, _) => $"partial union {containingType.Name}",
+                (_, true, true) => $"partial record struct {containingType.Name}",
+                (_, true, false) => $"partial record {containingType.Name}",
+                (_, false, true) => $"partial struct {containingType.Name}",
+                (_, false, false) => $"partial class {containingType.Name}",
             });
             containingType = containingType.ContainingType;
         }
@@ -1222,6 +1229,91 @@ public static class {{initializerName}}
                     MemoryPackSerializationException.ThrowInvalidTag(tag, typeof({{symbolFullQualified}}));
                     break;
             }
+""";
+    }
+
+    // C# union case types in declaration order
+    ITypeSymbol[] GetCSharpUnionCaseTypes()
+    {
+        return Symbol.InstanceConstructors
+            .Where(x => x.IsImplicitlyDeclared && x.Parameters.Length == 1)
+            .Select(x => x.Parameters[0].Type)
+            .ToArray();
+    }
+
+    // [MemoryPackUnion] tag if specified, otherwise the case index
+    ushort GetCSharpUnionTag(ITypeSymbol caseType, int index)
+    {
+        return UnionTags.Length == 0
+            ? (ushort)index
+            : UnionTags.First(x => SymbolEqualityComparer.Default.Equals(x.Type, caseType)).Tag;
+    }
+
+    static string ToCSharpUnionTypePattern(ITypeSymbol type)
+    {
+        // type patterns can't be nullable
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
+        {
+            type = nullable.TypeArguments[0];
+        }
+        // tuple syntax would be parsed as a positional pattern
+        if (type is INamedTypeSymbol { IsTupleType: true } tuple)
+        {
+            return $"global::System.ValueTuple<{string.Join(", ", tuple.TypeArguments.Select(x => x.FullyQualifiedToString()))}>";
+        }
+        return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).FullyQualifiedToString();
+    }
+
+    string EmitCSharpUnionSerializeBody()
+    {
+        var writeBody = GetCSharpUnionCaseTypes()
+            .Select((x, i) => $$"""
+        else if (__value is {{ToCSharpUnionTypePattern(x)}} __case{{i}})
+        {
+            writer.WriteUnionHeader({{GetCSharpUnionTag(x, i)}});
+            writer.WriteValue(__case{{i}});
+        }
+""")
+            .NewLine();
+
+        return $$"""
+        var __value = value.Value;
+        if (__value == null)
+        {
+            writer.WriteNullUnionHeader();
+        }
+{{writeBody}}
+        else
+        {
+            MemoryPackSerializationException.ThrowNotFoundInUnionType(__value.GetType(), typeof({{TypeName}}));
+        }
+""";
+    }
+
+    string EmitCSharpUnionDeserializeBody()
+    {
+        var readBody = GetCSharpUnionCaseTypes()
+            .Select((x, i) => $$"""
+            case {{GetCSharpUnionTag(x, i)}}:
+                value = new {{TypeName}}(({{x.FullyQualifiedToString()}})reader.ReadValue<{{ToCSharpUnionTypePattern(x)}}>());
+                break;
+""")
+            .NewLine();
+
+        return $$"""
+        if (!reader.TryReadUnionHeader(out var tag))
+        {
+            value = default;
+            goto END;
+        }
+
+        switch (tag)
+        {
+{{readBody}}
+            default:
+                MemoryPackSerializationException.ThrowInvalidTag(tag, typeof({{TypeName}}));
+                break;
+        }
 """;
     }
 
