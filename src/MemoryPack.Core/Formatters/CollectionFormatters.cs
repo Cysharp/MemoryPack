@@ -105,15 +105,17 @@ namespace MemoryPack.Formatters
             {
                 value = new List<T?>(length);
             }
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
             else if (value.Count == length)
             {
                 value.Clear();
             }
 
-            var span = CollectionsMarshalEx.CreateSpan(value, length);
+            CollectionsMarshal.SetCount(value, length);
+            var span = CollectionsMarshal.AsSpan(value);
             reader.ReadPackableSpanWithoutReadLengthHeader(length, ref span);
 #else
+            // .NET 7 or lower has no public API to set the count, add one by one.
             else
             {
                 value.Clear();
@@ -166,15 +168,17 @@ namespace MemoryPack.Formatters
             {
                 value = new List<T?>(length);
             }
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
             else if (value.Count == length)
             {
                 value.Clear();
             }
 
-            var span = CollectionsMarshalEx.CreateSpan(value, length);
+            CollectionsMarshal.SetCount(value, length);
+            var span = CollectionsMarshal.AsSpan(value);
             reader.ReadSpanWithoutReadLengthHeader(length, ref span);
 #else
+            // .NET 7 or lower has no public API to set the count, add one by one.
             else
             {
                 value.Clear();
@@ -202,17 +206,30 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-#if NET7_0_OR_GREATER
-            writer.WriteSpan(CollectionsMarshalEx.AsSpan(value));
-#else
-            var formatter = writer.GetFormatter<T?>();
-            writer.WriteCollectionHeader(value.Count);
-            foreach (var item in value.Reverse()) // serialize reverse order
+            var count = value.Count;
+            if (count == 0)
             {
-                var v = item;
-                formatter.Serialize(ref writer, ref v);
+                writer.WriteCollectionHeader(0);
+                return;
             }
-#endif
+
+            // Stack has no public API to get the inner array, copy to the pooled array.
+            var rented = ArrayPool<T?>.Shared.Rent(count);
+            try
+            {
+                value.CopyTo(rented, 0); // order of Pop(top to bottom)
+                var span = rented.AsSpan(0, count);
+                span.Reverse(); // serialize as the order of Push(bottom to top)
+                writer.WriteSpan(span);
+            }
+            finally
+            {
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+                {
+                    rented.AsSpan(0, count).Clear();
+                }
+                ArrayPool<T?>.Shared.Return(rented);
+            }
         }
 
         [Preserve]
@@ -224,23 +241,52 @@ namespace MemoryPack.Formatters
                 return;
             }
 
+            // Stack has no public API to get the inner array.
+            if (length != 0 && !RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                // read at once to the pooled array.
+                var rented = ArrayPool<T?>.Shared.Rent(length);
+                try
+                {
+                    var span = rented.AsSpan(0, length);
+                    reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+
+                    if (value == null)
+                    {
+                        // constructor pushes in order, it copies ICollection<T> at once.
+                        value = new Stack<T?>(new ArraySegment<T?>(rented, 0, length));
+                    }
+                    else
+                    {
+                        value.Clear();
+#if NET7_0_OR_GREATER
+                        value.EnsureCapacity(length);
+#endif
+                        for (int i = 0; i < span.Length; i++)
+                        {
+                            value.Push(span[i]);
+                        }
+                    }
+                }
+                finally
+                {
+                    ArrayPool<T?>.Shared.Return(rented);
+                }
+                return;
+            }
+
             if (value == null)
             {
                 value = new Stack<T?>(length);
             }
-#if NET7_0_OR_GREATER
-            else if (value.Count != length)
-            {
-                value.Clear();
-            }
-
-            var span = CollectionsMarshalEx.CreateSpan(value, length);
-            reader.ReadSpanWithoutReadLengthHeader(length, ref span);
-#else
             else
             {
                 value.Clear();
+#if NET7_0_OR_GREATER
+                value.EnsureCapacity(length);
+#endif
             }
+
             var formatter = reader.GetFormatter<T?>();
             for (int i = 0; i < length; i++)
             {
@@ -248,7 +294,6 @@ namespace MemoryPack.Formatters
                 formatter.Deserialize(ref reader, ref v);
                 value.Push(v);
             }
-#endif
         }
     }
 

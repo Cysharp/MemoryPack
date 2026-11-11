@@ -1,48 +1,16 @@
 ﻿using MemoryPack.Internal;
+using System.Buffers;
 using System.Collections;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
 [Preserve]
 public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
 {
-    // serialize [m_length, m_array]
+    // serialize [length(bit count), int[]]
 
-    // BitArrayView depends on private field layout of BitArray(int[] m_array, int m_length).
-    // .NET 10 changed it to (byte[] _array, int _bitLength), reinterpreting it reads/writes out of the array.
-    // When layout is not matched, use public API instead of BitArrayView(binary format is same).
-    static readonly bool canUseBitArrayView = CanUseBitArrayView();
-
-    static bool CanUseBitArrayView()
-    {
-        try
-        {
-            const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            if (typeof(BitArray).GetField("m_array", Flags)?.FieldType != typeof(int[])
-             || typeof(BitArray).GetField("m_length", Flags)?.FieldType != typeof(int))
-            {
-                return false;
-            }
-
-            // fields exist but the offsets can be different from BitArrayView(depends on the runtime, for example it has other fields), check it by actual value.
-            var bitArray = new BitArray(37);
-            bitArray[36] = true;
-            ref var view = ref Unsafe.As<BitArray, BitArrayView>(ref bitArray);
-            object? array = view.m_array;
-            return array != null
-                && array.GetType() == typeof(int[])
-                && view.m_array.Length == 2
-                && view.m_array[0] == 0
-                && view.m_array[1] == 16
-                && view.m_length == 37;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    // Private fields of BitArray depend on the runtime(.NET 9 or lower is (int[] m_array, int m_length), .NET 10 or later is (byte[] _array, int _bitLength), Mono has different field offsets),
+    // so only use the public API.
 
     [Preserve]
     public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref BitArray? value)
@@ -53,21 +21,29 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
             return;
         }
 
-        if (!canUseBitArrayView)
+        var length = value.Length;
+        var arrayLength = GetInt32ArrayLength(length);
+
+        var rented = ArrayPool<int>.Shared.Rent(arrayLength);
+        try
         {
-            var length = value.Length;
-            var array = new int[length > 0 ? ((length - 1) >> 5) + 1 : 0]; // same as m_array of BitArray(length)
-            value.CopyTo(array, 0);
+            value.CopyTo(rented, 0);
+            var span = rented.AsSpan(0, arrayLength);
+
+            // unused bits of the last element are not cleared in some runtimes, clear to write the same binary.
+            var extraBits = length & 31;
+            if (extraBits != 0)
+            {
+                span[span.Length - 1] &= (1 << extraBits) - 1;
+            }
 
             writer.WriteUnmanagedWithObjectHeader(2, length);
-            writer.WriteUnmanagedArray(array);
-            return;
+            writer.WriteUnmanagedSpan(span);
         }
-
-        ref var view = ref Unsafe.As<BitArray, BitArrayView>(ref value);
-
-        writer.WriteUnmanagedWithObjectHeader(2, view.m_length);
-        writer.WriteUnmanagedArray(view.m_array);
+        finally
+        {
+            ArrayPool<int>.Shared.Return(rented);
+        }
     }
 
     [Preserve]
@@ -82,29 +58,21 @@ public sealed class BitArrayFormatter : MemoryPackFormatter<BitArray>
         if (count != 2) MemoryPackSerializationException.ThrowInvalidPropertyCount(2, count);
 
         reader.ReadUnmanaged(out int length);
+        var array = reader.ReadUnmanagedArray<int>() ?? Array.Empty<int>();
 
-        if (!canUseBitArrayView)
+        // the array can be longer than required(BitArray does not always shrink the inner array) but must not be shorter.
+        if (length < 0 || array.Length < GetInt32ArrayLength(length))
         {
-            var array = reader.ReadUnmanagedArray<int>();
-            value = new BitArray(array ?? Array.Empty<int>());
-            value.Length = length;
-            return;
+            MemoryPackSerializationException.ThrowMessage($"BitArray length {length} is not matched to array length {array.Length}.");
         }
 
-        var bitArray = new BitArray(length, false); // create internal int[] and set m_length to length
-
-        ref var view = ref Unsafe.As<BitArray, BitArrayView>(ref bitArray);
-        reader.ReadUnmanagedArray(ref view.m_array!);
-
+        var bitArray = new BitArray(array);
+        bitArray.Length = length;
         value = bitArray;
     }
-}
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-[Preserve]
-internal class BitArrayView
-{
-    public int[] m_array;
-    public int m_length;
-    public int _version;
+    static int GetInt32ArrayLength(int bitLength)
+    {
+        return bitLength > 0 ? ((bitLength - 1) >> 5) + 1 : 0;
+    }
 }
