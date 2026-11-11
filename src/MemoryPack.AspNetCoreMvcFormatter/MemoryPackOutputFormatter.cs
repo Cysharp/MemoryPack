@@ -36,7 +36,7 @@ public class MemoryPackOutputFormatter : OutputFormatter
     {
         context.ContentType = MediaTypeHeaderValues.ApplicationMemoryPack.MediaType;
 
-        if (context.Object == null)
+        if (context.Object == null && (context.ObjectType == null || context.ObjectType == typeof(object)))
         {
             var writer = context.HttpContext.Response.BodyWriter;
             var span = writer.GetSpan(1);
@@ -47,7 +47,7 @@ public class MemoryPackOutputFormatter : OutputFormatter
         else
         {
             var objectType = (context.ObjectType == null || context.ObjectType == typeof(object))
-                ? context.Object.GetType()
+                ? context.Object!.GetType()
                 : context.ObjectType;
 
             var writer = context.HttpContext.Response.BodyWriter;
