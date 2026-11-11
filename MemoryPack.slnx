@@ -1,0 +1,55 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="WinBenchmark" />
+  </Configurations>
+  <Folder Name="/sandbox/">
+    <Project Path="sandbox/Benchmark/Benchmark.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="sandbox/ClassLibrary/ClassLibrary.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Debug" />
+    </Project>
+    <Project Path="sandbox/NativeAot/NativeAot.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Debug" />
+    </Project>
+    <Project Path="sandbox/Net6VsNet7/Net6VsNet7.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Debug" />
+    </Project>
+    <Project Path="sandbox/SandboxConsoleApp/SandboxConsoleApp.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="sandbox/SandboxNet6/SandboxNet6.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="sandbox/SandboxWebApp/SandboxWebApp.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MemoryPack.AspNetCoreMvcFormatter/MemoryPack.AspNetCoreMvcFormatter.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="src/MemoryPack.Core/MemoryPack.Core.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="src/MemoryPack.Generator/MemoryPack.Generator.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="src/MemoryPack.Streaming/MemoryPack.Streaming.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+    <Project Path="src/MemoryPack.UnityShims/MemoryPack.UnityShims.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Debug" />
+    </Project>
+    <Project Path="src/MemoryPack/MemoryPack.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MemoryPack.Tests/MemoryPack.Tests.csproj">
+      <BuildType Solution="WinBenchmark|*" Project="Release" />
+    </Project>
+  </Folder>
+</Solution>
