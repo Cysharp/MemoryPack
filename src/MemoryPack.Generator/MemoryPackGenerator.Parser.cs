@@ -228,6 +228,45 @@ public partial class TypeMeta
         return (CollectionKind.None, null);
     }
 
+    // DateTimeOffset, DateTimeOffset?, DateTimeOffset[], List<DateTimeOffset>, (int, DateTimeOffset), unmanaged struct that has DateTimeOffset field, etc.
+    static bool ContainsDateTimeOffset(ITypeSymbol type, ReferenceSymbols reference, int depth)
+    {
+        if (depth > 8) return false;
+
+        if (SymbolEqualityComparer.Default.Equals(type, reference.KnownTypes.System_DateTimeOffset))
+        {
+            return true;
+        }
+
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            return ContainsDateTimeOffset(arrayType.ElementType, reference, depth + 1);
+        }
+
+        if (type is INamedTypeSymbol namedType)
+        {
+            if (namedType.IsGenericType)
+            {
+                foreach (var typeArgument in namedType.TypeArguments)
+                {
+                    if (ContainsDateTimeOffset(typeArgument, reference, depth + 1)) return true;
+                }
+            }
+
+            // unmanaged struct is serialized as memory layout so needs to check fields.
+            // MemoryPackable struct is checked itself(when it is defined in other assembly, it was checked in that assembly).
+            if (namedType.TypeKind == TypeKind.Struct && namedType.SpecialType == SpecialType.None && namedType.IsUnmanagedType && !namedType.ContainsAttribute(reference.MemoryPackableAttribute))
+            {
+                foreach (var member in namedType.GetMembers())
+                {
+                    if (member is IFieldSymbol { IsStatic: false } field && ContainsDateTimeOffset(field.Type, reference, depth + 1)) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public bool Validate(TypeDeclarationSyntax syntax, IGeneratorContext context, bool unionFormatter)
     {
         var noError = true;
@@ -481,6 +520,26 @@ public partial class TypeMeta
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberIsRefStruct, item.GetLocation(syntax), Symbol.Name, item.Name, item.MemberType.FullyQualifiedToString()));
                 noError = false;
+            }
+        }
+
+        // DateTimeOffset is serialized as memory layout but it was changed in .NET 10(short offsetMinutes -> int offsetMinutes), and Unity is also different(field order).
+        // warning only, don't change noError.
+        if (!context.IsNet10OrGreater)
+        {
+            // In Unity, at first recommends UnityDateTimeOffset because Net10DateTimeOffset can not read the existing binary.
+            var (recommend1, recommend2) = context.IsUnityCompilation
+                ? (DiagnosticDescriptors.UseUnityDateTimeOffset, DiagnosticDescriptors.UseNet10DateTimeOffset)
+                : (DiagnosticDescriptors.UseNet10DateTimeOffset, DiagnosticDescriptors.UseUnityDateTimeOffset);
+
+            foreach (var item in Members)
+            {
+                if (item.Symbol == null || item.Kind is MemberKind.NonSerializable or MemberKind.RefLike or MemberKind.Blank or MemberKind.CustomFormatter) continue;
+
+                if (ContainsDateTimeOffset(item.MemberType, reference, 0))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.DateTimeOffsetLayoutDependsOnRuntime, item.GetLocation(syntax), Symbol.Name, item.Name, recommend1, recommend2));
+                }
             }
         }
 

@@ -74,7 +74,8 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref byte GetSpanReference(int sizeHint)
     {
-        if (sizeHint <= bufferLength)
+        // compare as unsigned, negative sizeHint(comes from malformed data) never takes this path and is rejected in GetNextSpan.
+        if ((uint)sizeHint <= (uint)bufferLength)
         {
 #if NET7_0_OR_GREATER
             return ref bufferReference;
@@ -89,6 +90,11 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.NoInlining)]
     ref byte GetNextSpan(int sizeHint)
     {
+        if (sizeHint < 0)
+        {
+            MemoryPackSerializationException.ThrowMessage($"Requested size is {sizeHint}, negative size is invalid.");
+        }
+
         if (rentBuffer != null)
         {
             ArrayPool<byte>.Shared.Return(rentBuffer);
@@ -154,7 +160,9 @@ public ref partial struct MemoryPackReader
         if (count == 0) return;
 
         var rest = bufferLength - count;
-        if (rest < 0)
+
+        // same as `rest < 0` but compare as unsigned, negative count(comes from malformed data) always goes to TryAdvanceSequence and is rejected there.
+        if ((uint)count > (uint)bufferLength)
         {
             if (TryAdvanceSequence(count))
             {
@@ -175,6 +183,11 @@ public ref partial struct MemoryPackReader
     [MethodImpl(MethodImplOptions.NoInlining)]
     bool TryAdvanceSequence(int count)
     {
+        if (count < 0)
+        {
+            MemoryPackSerializationException.ThrowMessage($"Advance count is {count}, negative count is invalid.");
+        }
+
         var rest = bufferSource.Length - count;
         if (rest < 0)
         {
@@ -740,7 +753,7 @@ public ref partial struct MemoryPackReader
 
         if (length == 0) return Array.Empty<T>();
 
-        var byteCount = length * Unsafe.SizeOf<T>();
+        var byteCount = checked(length * Unsafe.SizeOf<T>());
         ref var src = ref GetSpanReference(byteCount);
         var dest = AllocateUninitializedArray<T>(length);
         Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref GetArrayDataReference(dest)), ref src, (uint)byteCount);
@@ -764,7 +777,7 @@ public ref partial struct MemoryPackReader
             return;
         }
 
-        var byteCount = length * Unsafe.SizeOf<T>();
+        var byteCount = checked(length * Unsafe.SizeOf<T>());
         ref var src = ref GetSpanReference(byteCount);
 
         if (value == null || value.Length != length)
@@ -793,7 +806,7 @@ public ref partial struct MemoryPackReader
             return;
         }
 
-        var byteCount = length * Unsafe.SizeOf<T>();
+        var byteCount = checked(length * Unsafe.SizeOf<T>());
         ref var src = ref GetSpanReference(byteCount);
 
         if (value == null || value.Length != length)
@@ -825,7 +838,7 @@ public ref partial struct MemoryPackReader
                 value = AllocateUninitializedArray<T>(length);
             }
 
-            var byteCount = length * Unsafe.SizeOf<T>();
+            var byteCount = checked(length * Unsafe.SizeOf<T>());
             ref var src = ref GetSpanReference(byteCount);
             ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
@@ -868,7 +881,7 @@ public ref partial struct MemoryPackReader
                 value = AllocateUninitializedArray<T>(length);
             }
 
-            var byteCount = length * Unsafe.SizeOf<T>();
+            var byteCount = checked(length * Unsafe.SizeOf<T>());
             ref var src = ref GetSpanReference(byteCount);
             ref var dest = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
@@ -908,7 +921,7 @@ public ref partial struct MemoryPackReader
             return;
         }
 
-        var byteCount = length * Unsafe.SizeOf<T>();
+        var byteCount = checked(length * Unsafe.SizeOf<T>());
         ref var src = ref GetSpanReference(byteCount);
 
         var span = MemoryMarshal.CreateReadOnlySpan(ref src, byteCount);

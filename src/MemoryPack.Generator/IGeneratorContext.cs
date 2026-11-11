@@ -11,6 +11,8 @@ public interface IGeneratorContext
     void AddSource(string hintName, string source);
     LanguageVersion LanguageVersion { get; }
     bool IsNet7OrGreater { get; }
+    bool IsNet10OrGreater { get; }
+    bool IsUnityCompilation { get; } // has UNITY_*** symbol
     bool IsForUnity { get; }
 }
 

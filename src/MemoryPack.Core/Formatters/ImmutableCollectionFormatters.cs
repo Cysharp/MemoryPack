@@ -51,6 +51,7 @@ namespace MemoryPack.Formatters
         [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableArray<T?> value)
         {
+#if NET8_0_OR_GREATER
             var array = reader.ReadArray<T?>();
             if (array == null)
             {
@@ -64,21 +65,43 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-#if NET8_0_OR_GREATER
             value = ImmutableCollectionsMarshal.AsImmutableArray(array);
 #else
-            // create Empty and replace inner T[] field(avoid defensive copy of Create)
-            value = ImmutableArray.Create<T?>();
-            ref var view = ref Unsafe.As<ImmutableArray<T?>, ImmutableArrayView<T?>>(ref value);
-            view.array = array;
+            if (!reader.TryReadCollectionHeader(out var length))
+            {
+                value = default;
+                return;
+            }
+
+            if (length == 0)
+            {
+                value = ImmutableArray<T?>.Empty;
+                return;
+            }
+
+            // .NET 7 or lower has no public API to create ImmutableArray without copy, read to the pooled array and create from it.
+            var isReference = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+            var rented = ArrayPool<T?>.Shared.Rent(length);
+            try
+            {
+                var span = rented.AsSpan(0, length);
+                if (isReference)
+                {
+                    span.Clear(); // pooled array has garbage, don't overwrite to it.
+                }
+                reader.ReadSpanWithoutReadLengthHeader(length, ref span);
+                value = ImmutableArray.Create(rented, 0, length);
+            }
+            finally
+            {
+                if (isReference)
+                {
+                    rented.AsSpan(0, length).Clear();
+                }
+                ArrayPool<T?>.Shared.Return(rented);
+            }
 #endif
         }
-    }
-
-    [Preserve]
-    internal struct ImmutableArrayView<T>
-    {
-        public T[]? array;
     }
 
     [Preserve]

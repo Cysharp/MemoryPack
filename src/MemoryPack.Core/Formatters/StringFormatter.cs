@@ -186,7 +186,7 @@ public sealed class BrotliStringFormatter : MemoryPackFormatter<string>
             return;
         }
 
-        var byteLength = length * 2;
+        var byteLength = checked(length * 2);
 
         // security, require to check length
         if (decompressionSizeLimit < byteLength)
