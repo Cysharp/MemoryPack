@@ -15,7 +15,7 @@ public static partial class MemoryPackSerializer
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-        T>(ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
+    T>(ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         T? value = default;
         Deserialize(buffer, ref value, options);
@@ -26,7 +26,7 @@ public static partial class MemoryPackSerializer
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-        T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
+    T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -62,7 +62,7 @@ public static partial class MemoryPackSerializer
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-        T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
+    T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
         T? value = default;
         Deserialize<T>(buffer, ref value, options);
@@ -73,7 +73,7 @@ public static partial class MemoryPackSerializer
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-        T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
+    T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
         {
@@ -144,7 +144,7 @@ public static partial class MemoryPackSerializer
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-        T>(Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
+    T>(Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
         if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
         {

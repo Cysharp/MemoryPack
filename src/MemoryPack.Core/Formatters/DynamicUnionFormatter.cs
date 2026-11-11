@@ -39,7 +39,7 @@ public sealed class DynamicUnionFormatter<T> : MemoryPackFormatter<T>
             value = default;
             return;
         }
-        
+
         if (tagToType.TryGetValue(tag, out var type))
         {
             object? v = value;

@@ -96,7 +96,9 @@ public partial class MethodCall
 
     [MemoryPackOnSerializing]
     public static void OnSerializing_M1<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref MethodCall? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -107,7 +109,9 @@ public partial class MethodCall
 
     [MemoryPackOnSerializing]
     public void OnSerializing_M2<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref MethodCall? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -118,7 +122,9 @@ public partial class MethodCall
 
     [MemoryPackOnSerialized]
     public static void OnSerialized_M1<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref MethodCall? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -130,7 +136,9 @@ public partial class MethodCall
 
     [MemoryPackOnSerialized]
     public void OnSerialized_M2<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref MethodCall? value)
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>

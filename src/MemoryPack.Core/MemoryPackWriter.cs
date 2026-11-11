@@ -16,7 +16,9 @@ using static MemoryPack.Internal.MemoryMarshalEx;
 
 [StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryPackWriter<TBufferWriter>
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+    where TBufferWriter : IBufferWriter<byte>, allows ref struct
+#elif NET7_0_OR_GREATER
     where TBufferWriter : IBufferWriter<byte>
 #else
     where TBufferWriter : class, IBufferWriter<byte>
@@ -24,7 +26,11 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 {
     const int DepthLimit = 1000;
 
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+    ref byte bufferWriterRef;
+    ref TBufferWriter bufferWriter => ref Unsafe.As<byte, TBufferWriter>(ref bufferWriterRef);
+    ref byte bufferReference;
+#elif NET7_0_OR_GREATER
     ref TBufferWriter bufferWriter;
     ref byte bufferReference;
 #else
@@ -45,7 +51,10 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     public MemoryPackWriter(ref TBufferWriter writer, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        this.bufferWriterRef = ref Unsafe.As<TBufferWriter, byte>(ref writer);
+        this.bufferReference = ref Unsafe.NullRef<byte>();
+#elif NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
         this.bufferReference = ref Unsafe.NullRef<byte>();
 #else
@@ -63,7 +72,10 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     // optimized ctor, avoid first GetSpan call if we can.
     public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        this.bufferWriterRef = ref Unsafe.As<TBufferWriter, byte>(ref writer);
+        this.bufferReference = ref GetArrayDataReference(firstBufferOfWriter);
+#elif NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
         this.bufferReference = ref GetArrayDataReference(firstBufferOfWriter);
 #else
@@ -80,7 +92,10 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        this.bufferWriterRef = ref Unsafe.As<TBufferWriter, byte>(ref writer);
+        this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
+#elif NET7_0_OR_GREATER
         this.bufferWriter = ref writer;
         this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
 #else
