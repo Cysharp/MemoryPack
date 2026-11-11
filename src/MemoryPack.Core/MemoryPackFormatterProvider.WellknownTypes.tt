@@ -42,6 +42,9 @@
             "Vector2",
             "Vector3",
             "Vector4",
+            // MemoryPack
+            "Net10DateTimeOffset",
+            "UnityDateTimeOffset",
         });
 
     var net7UnmanagedTypeNames = new[]

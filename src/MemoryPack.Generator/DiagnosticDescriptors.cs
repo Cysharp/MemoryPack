@@ -340,4 +340,15 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public const string UseNet10DateTimeOffset = "MemoryPack.Net10DateTimeOffset(compatible with the binary that was serialized in .NET)";
+    public const string UseUnityDateTimeOffset = "MemoryPack.UnityDateTimeOffset(compatible with the binary that was serialized in Unity)";
+
+    public static readonly DiagnosticDescriptor DateTimeOffsetLayoutDependsOnRuntime = new(
+        id: "MEMPACK043",
+        title: "DateTimeOffset binary layout depends on runtime",
+        messageFormat: "The MemoryPackable object '{0}' member '{1}' uses DateTimeOffset, its binary layout depends on runtime(.NET 9 or lower, .NET 10 or later and Unity are all different) so the binary can not be deserialized correctly in the other runtime. Use {2} or {3} instead of DateTimeOffset.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
 }
