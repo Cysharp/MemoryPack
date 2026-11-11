@@ -1,5 +1,7 @@
 ﻿using System.Buffers;
 
+using MemoryPack;
+
 // require this unused line for reproduce error?
 var bufferWriter = new ArrayBufferWriter<byte>();
 
@@ -8,6 +10,21 @@ var mc = new MemPackObject();
 var formatter = new MemoryPackableFormatter2<MemPackObject>();
 formatter.Serialize<ArrayBufferWriter<byte>>(ref mc);
 
+
+var arrayPayload = new byte[] { 1, 0, 0, 0, 1, 1, 0, 0, 0, 65, 0 };
+var items = MemoryPackSerializer.Deserialize<Item[]>(arrayPayload);
+Console.WriteLine(items![0].Name);
+
+[MemoryPackable]
+public sealed partial record Item(string Name);
+
+public sealed partial record Item
+{
+    static partial void StaticConstructor()
+    {
+        Console.WriteLine("Item static constructor");
+    }
+}
 
 public interface IMemoryPackable2<T>
 {
