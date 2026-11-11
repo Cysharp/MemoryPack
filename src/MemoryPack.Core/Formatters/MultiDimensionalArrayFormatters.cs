@@ -71,6 +71,12 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
             MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
+        // length is already validated by buffer size, dimensions(not validated) must be matched to it before allocate.
+        if (checked((long)iLength * jLength) != length)
+        {
+            MemoryPackSerializationException.ThrowMessage($"Array dimensions [{iLength}, {jLength}] are not matched to collection length {length}.");
+        }
+
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.Length == length)
         {
             // allow overwrite
@@ -83,7 +89,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
 #if NET7_0_OR_GREATER
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
-            var byteCount = Unsafe.SizeOf<T>() * iLength * jLength;
+            var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength);
             ref var dest = ref MemoryMarshal.GetArrayDataReference(value);
             ref var src = ref reader.GetSpanReference(byteCount);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
@@ -182,6 +188,12 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
             MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
+        // length is already validated by buffer size, dimensions(not validated) must be matched to it before allocate.
+        if (checked((long)iLength * jLength * kLength) != length)
+        {
+            MemoryPackSerializationException.ThrowMessage($"Array dimensions [{iLength}, {jLength}, {kLength}] are not matched to collection length {length}.");
+        }
+
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.GetLength(2) == kLength && value.Length == length)
         {
             // allow overwrite
@@ -194,7 +206,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
 #if NET7_0_OR_GREATER
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
-            var byteCount = Unsafe.SizeOf<T>() * iLength * jLength * kLength;
+            var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength * kLength);
             ref var dest = ref MemoryMarshal.GetArrayDataReference(value);
             ref var src = ref reader.GetSpanReference(byteCount);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
@@ -301,6 +313,12 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
             MemoryPackSerializationException.ThrowInvalidCollection();
         }
 
+        // length is already validated by buffer size, dimensions(not validated) must be matched to it before allocate.
+        if (checked((long)iLength * jLength * kLength * lLength) != length)
+        {
+            MemoryPackSerializationException.ThrowMessage($"Array dimensions [{iLength}, {jLength}, {kLength}, {lLength}] are not matched to collection length {length}.");
+        }
+
         if (value != null && value.GetLength(0) == iLength && value.GetLength(1) == jLength && value.GetLength(2) == kLength && value.GetLength(3) == lLength && value.Length == length)
         {
             // allow overwrite
@@ -313,7 +331,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
 #if NET7_0_OR_GREATER
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
-            var byteCount = Unsafe.SizeOf<T>() * iLength * jLength * kLength * lLength;
+            var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength * kLength * lLength);
             ref var dest = ref MemoryMarshal.GetArrayDataReference(value);
             ref var src = ref reader.GetSpanReference(byteCount);
             Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)byteCount);
