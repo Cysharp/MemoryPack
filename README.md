@@ -90,6 +90,69 @@ These types can be serialized by default:
 * `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`, `BlockingCollection<>`
 * Immutable collections (`ImmutableList<>`, etc.) and interfaces (`IImmutableList<>`, etc.)
 
+### DateTimeOffset, Net10DateTimeOffset and UnityDateTimeOffset
+
+`DateTimeOffset` is serialized as its memory layout, but the layout depends on the runtime.
+
+| Runtime | Layout of `DateTimeOffset` |
+| --- | --- |
+| .NET 9 or lower | `short offsetMinutes`, `long utcTicks` |
+| .NET 10 or later | `int offsetMinutes`, `long utcTicks` |
+| Unity | `long utcTicks`, `short offsetMinutes` |
+
+Therefore, a binary serialized in .NET 9 or lower can not be deserialized correctly in .NET 10 or later (the reverse direction is OK), and a binary of Unity is not compatible with .NET.
+
+To avoid this problem, MemoryPack provides `Net10DateTimeOffset` and `UnityDateTimeOffset`. These are structs that only hold the fields in a fixed layout and can be converted from/to `DateTimeOffset` implicitly. Their binary is the same in all runtimes.
+
+* `Net10DateTimeOffset` - the same layout as `DateTimeOffset` of .NET 10 or later. It can also read a binary that was serialized as `DateTimeOffset` in .NET 9 or lower. Use this if your existing binary was serialized in .NET, or you don't have an existing binary.
+* `UnityDateTimeOffset` - the same layout as `DateTimeOffset` of Unity. Use this if your existing binary was serialized in Unity.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    // DateTimeOffset -> Net10DateTimeOffset
+    public Net10DateTimeOffset Time { get; set; }
+    public Net10DateTimeOffset? NullableTime { get; set; }
+    public Net10DateTimeOffset[]? Times { get; set; }
+}
+
+var sample = new Sample { Time = DateTimeOffset.Now }; // implicit conversion
+DateTimeOffset time = sample.Time; // implicit conversion(or `ToDateTimeOffset()`)
+```
+
+| Serialized by | Deserialize as `DateTimeOffset` in .NET 9 or lower | Deserialize as `DateTimeOffset` in .NET 10 or later | Deserialize as `Net10DateTimeOffset` |
+| --- | --- | --- | --- |
+| `DateTimeOffset` in .NET 9 or lower | OK | **Broken** | OK |
+| `DateTimeOffset` in .NET 10 or later | OK | OK | OK |
+| `Net10DateTimeOffset` | OK | OK | OK |
+
+When the target framework is lower than .NET 10 (including Unity), the source generator reports warning `MEMPACK043` for members that use `DateTimeOffset` (including `DateTimeOffset?`, `DateTimeOffset[]`, `List<DateTimeOffset>`, etc.). If you already use .NET 10 or later and need to read a binary that was serialized in .NET 9 or lower, also use `Net10DateTimeOffset` for that member.
+
+> [!NOTE]
+> `Net10DateTimeOffset` can not read a binary that was serialized as `DateTimeOffset` in Unity, and `UnityDateTimeOffset` can not read a binary that was serialized as `DateTimeOffset` in .NET. Choose the type by the runtime that serialized your existing binary.
+
+### SafeNullable
+
+`Nullable<T>` of an unmanaged type (`int?`, `long?`, etc.) is serialized as its memory layout (`bool hasValue`, padding, `T value`). The padding is not initialized, so the binary of the same value is not always the same (for example, a hash of the binary can be different in each run), and it may include garbage of the memory.
+
+`SafeNullable<T>` is a struct that has no padding (`T hasValue`, `T value`), the binary of the same value is always the same. It can be converted from/to `Nullable<T>` implicitly.
+
+```csharp
+[MemoryPackable]
+public partial class Sample
+{
+    // int? -> SafeNullable<int>
+    public SafeNullable<int> Id { get; set; }
+    public SafeNullable<long>[]? Values { get; set; }
+}
+
+var sample = new Sample { Id = 10 }; // implicit conversion(also `= null`)
+int? id = sample.Id; // implicit conversion(or `ToNullable()`, `HasValue`, `Value`, `GetValueOrDefault()`)
+```
+
+When `T` is a primitive type (`int`, `long`, `double`, `bool`, etc.) or an `enum`, the binary is compatible with `Nullable<T>`, so you can replace `T?` with `SafeNullable<T>` and both can read each other's binary. In other types (`Guid`, `decimal`, user-defined struct, etc.), the size is different from `Nullable<T>` and the binary is **not** compatible.
+
 Define `[MemoryPackable]` `class` / `struct` / `record` / `record struct`
 ---
 `[MemoryPackable]` can annotate to any `class`, `struct`, `record`, `record struct` and `interface`. If a type is `struct` or `record struct` which contains no reference types ([C# Unmanaged types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/unmanaged-types)) any additional annotation (ignore, include, constructor, callbacks) is not used, that serialize/deserialize directly from the memory.
@@ -1382,7 +1445,7 @@ The `MemoryPack.UnityShims` package provides shims for Unity's standard structs 
     - The affected types typically include the following types.
         - `DateTimeOffset`
         - `ValueTuple`
-    - Currently, the simple solution is to not use these types.
+    - Currently, the simple solution is to not use these types. For `DateTimeOffset`, you can use `Net10DateTimeOffset` or `UnityDateTimeOffset` instead, see [DateTimeOffset, Net10DateTimeOffset and UnityDateTimeOffset](#datetimeoffset-net10datetimeoffset-and-unitydatetimeoffset).
 
 
 Native AOT

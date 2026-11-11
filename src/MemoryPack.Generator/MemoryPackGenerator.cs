@@ -64,7 +64,9 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
                 var csOptions = (CSharpParseOptions)parseOptions;
                 var langVersion = csOptions.LanguageVersion;
                 var net7 = csOptions.PreprocessorSymbolNames.Contains("NET7_0_OR_GREATER");
-                return (langVersion, net7);
+                var net10 = csOptions.PreprocessorSymbolNames.Contains("NET10_0_OR_GREATER");
+                var unity = csOptions.PreprocessorSymbolNames.Any(x => x.StartsWith("UNITY_", StringComparison.Ordinal));
+                return (langVersion, net7, net10, unity);
             })
             .WithTrackingName("MemoryPack.MemoryPackable.0_ParseOptionsProvider");
 
@@ -110,9 +112,9 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             {
                 var (typeDeclaration, compilation) = source.Left.Item1;
                 var logPath = source.Left.Item2;
-                var (langVersion, net7) = source.Right;
+                var (langVersion, net7, net10, unity) = source.Right;
 
-                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7, net10, unity));
             });
         }
         {
@@ -127,9 +129,9 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
             {
                 var (typeDeclaration, compilation) = source.Left.Item1;
                 var logPath = source.Left.Item2;
-                var (langVersion, net7) = source.Right;
+                var (langVersion, net7, net10, unity) = source.Right;
 
-                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
+                Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7, net10, unity));
             });
         }
     }
@@ -299,11 +301,13 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
     {
         SourceProductionContext context;
 
-        public GeneratorContext(SourceProductionContext context, LanguageVersion languageVersion, bool isNet70OrGreater)
+        public GeneratorContext(SourceProductionContext context, LanguageVersion languageVersion, bool isNet70OrGreater, bool isNet100OrGreater, bool isUnityCompilation)
         {
             this.context = context;
             this.LanguageVersion = languageVersion;
             this.IsNet7OrGreater = isNet70OrGreater;
+            this.IsNet10OrGreater = isNet100OrGreater;
+            this.IsUnityCompilation = isUnityCompilation;
         }
 
         public CancellationToken CancellationToken => context.CancellationToken;
@@ -311,6 +315,10 @@ public partial class MemoryPackGenerator : IIncrementalGenerator
         public Microsoft.CodeAnalysis.CSharp.LanguageVersion LanguageVersion { get; }
 
         public bool IsNet7OrGreater { get; }
+
+        public bool IsNet10OrGreater { get; }
+
+        public bool IsUnityCompilation { get; }
 
         public bool IsForUnity => false;
 

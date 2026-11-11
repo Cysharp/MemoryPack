@@ -706,9 +706,9 @@ public partial struct Tester
     }
 
     [Fact]
-    public void MEMPACK044_UnionOnStructMustBeCSharpUnion()
+    public void MEMPACK045_UnionOnStructMustBeCSharpUnion()
     {
-        Compile(44, """
+        Compile(45, """
 using MemoryPack;
 
 [MemoryPackable]
