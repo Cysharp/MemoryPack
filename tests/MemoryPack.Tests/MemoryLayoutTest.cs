@@ -81,6 +81,48 @@ public class MemoryLayoutTest
         data.Should().Equal(new byte[] { 28, 2, 0, 0, 0, 0, 0, 0, 0, 180, 89, 22, 69, 135, 207, 8 });
     }
 
+    // The generated TypeScript runtime's writeDateTimeOffset/readDateTimeOffset (see
+    // TypeScriptRuntime.cs) rely on this layout: 8 bytes of offsetMinutes + padding, then the UTC
+    // ticks with the top 2 DateTimeKind bits masked off (8 bytes). offsetMinutes is a short on
+    // .NET 8/9 and an int on .NET 10, so the padding bytes after the low 2 bytes differ by runtime
+    // (zero vs sign-extension) and are intentionally not asserted here.
+    [Theory]
+    [MemberData(nameof(DateTimeOffsetSamples))]
+    public void DateTimeOffsetWireFormatMatchesTypeScriptRuntimeAlgorithm(DateTimeOffset value)
+    {
+        const ulong dateTimeMask = 0b00111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111UL;
+
+        var actual = MemoryPackSerializer.Serialize(value);
+        actual.Length.Should().Be(16);
+
+        // offsetMinutes low 16 bits and masked UTC ticks match what the TS runtime reads/writes
+        BitConverter.ToInt16(actual, 0).Should().Be((short)value.Offset.TotalMinutes);
+        BitConverter.ToUInt64(actual, 8).Should().Be((ulong)value.UtcTicks & dateTimeMask);
+
+        // readDateTimeOffset: skip offsetMinutes+padding (8 bytes), read ticks & mask as UTC instant
+        var utcTicks = (long)(BitConverter.ToUInt64(actual, 8) & dateTimeMask);
+        new DateTime(utcTicks, DateTimeKind.Utc).Should().Be(value.UtcDateTime);
+
+        // writeDateTimeOffset: sign-extended int32 offsetMinutes + 4 zero bytes + masked UTC ticks
+        // must deserialize back to the same value on every runtime layout.
+        var written = new byte[16];
+        BitConverter.GetBytes((int)value.Offset.TotalMinutes).CopyTo(written, 0);
+        BitConverter.GetBytes((ulong)value.UtcTicks & dateTimeMask).CopyTo(written, 8);
+        var roundTripped = MemoryPackSerializer.Deserialize<DateTimeOffset>(written);
+        roundTripped.Should().Be(value);
+        roundTripped.Offset.Should().Be(value.Offset);
+    }
+
+    public static TheoryData<DateTimeOffset> DateTimeOffsetSamples => new()
+    {
+        new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+        new DateTimeOffset(2024, 1, 1, 12, 30, 0, TimeSpan.FromHours(5.5)),
+        new DateTimeOffset(2024, 6, 15, 9, 0, 0, TimeSpan.FromHours(-8)),
+        DateTimeOffset.UnixEpoch,
+        DateTimeOffset.MinValue,
+        DateTimeOffset.MaxValue,
+    };
+
     // can not use Marshal.OffsetOf because has AutoLayout field
 
     static unsafe (int, int, int) GetOffsets()

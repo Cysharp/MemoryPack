@@ -236,6 +236,16 @@ public class TypeScriptMember
             };
         }
 
+        if (SymbolEqualityComparer.Default.Equals(namedType, reference.KnownTypes.System_DateTimeOffset))
+        {
+            return new TypeScriptTypeCore
+            {
+                TypeName = "Date",
+                DefaultValue = "new Date(0)",
+                BinaryOperationMethod = "DateTimeOffset"
+            };
+        }
+
         throw new NotSupportedTypeException(typeSymbol);
     }
 
