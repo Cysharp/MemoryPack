@@ -42,12 +42,12 @@ public static partial class MemoryPackFormatterProvider
         RegisterInitialFormatters();
     }
 
-    public static bool IsRegistered<T>() => Check<T>.registered;
+    public static bool IsRegistered<T>() => Volatile.Read(ref Check<T>.registered);
 
     public static void Register<T>(MemoryPackFormatter<T> formatter)
     {
-        Check<T>.registered = true; // avoid to call Cache() constructor called.
         formatters[typeof(T)] = formatter;
+        Volatile.Write(ref Check<T>.registered, true); // avoid to call Cache() constructor called.
         Cache<T>.formatter = formatter;
     }
 
@@ -134,7 +134,15 @@ public static partial class MemoryPackFormatterProvider
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static MemoryPackFormatter<T> GetFormatter<T>()
     {
-        return Cache<T>.formatter;
+        var formatter = Cache<T>.formatter;
+        if (formatter != null) return formatter;
+
+        if (Volatile.Read(ref Check<T>.registered) && formatters.TryGetValue(typeof(T), out var registeredFormatter))
+        {
+            return (MemoryPackFormatter<T>)registeredFormatter;
+        }
+
+        return formatter!;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -207,7 +215,7 @@ public static partial class MemoryPackFormatterProvider
 
         static Cache()
         {
-            if (Check<T>.registered) return;
+            if (Volatile.Read(ref Check<T>.registered)) return;
 
             try
             {
@@ -235,7 +243,7 @@ public static partial class MemoryPackFormatterProvider
 
         END:
             formatters[typeof(T)] = formatter;
-            Check<T>.registered = true;
+            Volatile.Write(ref Check<T>.registered, true);
         }
     }
 
