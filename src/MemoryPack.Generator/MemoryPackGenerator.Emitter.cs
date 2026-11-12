@@ -333,7 +333,7 @@ public partial class TypeMeta
         scopedRef = (context.IsCSharp11OrGreater())
             ? "scoped ref"
             : "ref";
-        if (!context.IsNet7OrGreater)
+        if (!context.IsNet8OrGreater)
         {
             staticRegisterFormatterMethod = "public static void ";
             staticMemoryPackableMethod = "public static void ";
@@ -428,7 +428,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{
 }
 """);
 
-        if (!context.IsNet7OrGreater)
+        if (!context.IsNet8OrGreater)
         {
             // add formatter(can not use MemoryPackableFormatter)
 
@@ -603,7 +603,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             .Where(x => x.Item2 != null)
             .Where(x =>
             {
-                if (!context.IsNet7OrGreater)
+                if (!context.IsNet8OrGreater)
                 {
                     if (x.Item2!.StartsWith("global::MemoryPack.Formatters.InterfaceReadOnlySetFormatter"))
                     {
@@ -978,10 +978,10 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     {
         var classOrInterfaceOrRecord = IsRecord ? "record" : (Symbol.TypeKind == TypeKind.Interface) ? "interface" : "class";
 
-        var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
+        var staticRegisterFormatterMethod = (context.IsNet8OrGreater)
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
-        var register = (context.IsNet7OrGreater)
+        var register = (context.IsNet8OrGreater)
             ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
             : "RegisterFormatter();";
         var scopedRef = context.IsCSharp11OrGreater()
@@ -1238,10 +1238,10 @@ public static class {{initializerName}}
 
         var typeArgs = string.Join(", ", collectionSymbol!.TypeArguments.Select(x => x.FullyQualifiedToString()));
 
-        var staticRegisterFormatterMethod = (context.IsNet7OrGreater)
+        var staticRegisterFormatterMethod = (context.IsNet8OrGreater)
             ? $"static void IMemoryPackFormatterRegister."
             : "public static void ";
-        var register = (context.IsNet7OrGreater)
+        var register = (context.IsNet8OrGreater)
             ? $"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();"
             : "RegisterFormatter();";
 

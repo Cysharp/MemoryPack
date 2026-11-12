@@ -10,8 +10,9 @@ public interface IGeneratorContext
     void ReportDiagnostic(Diagnostic diagnostic);
     void AddSource(string hintName, string source);
     LanguageVersion LanguageVersion { get; }
-    bool IsNet7OrGreater { get; }
-    bool IsNet10OrGreater { get; }
+    bool IsNet7OrGreater { get; } // for the struct layout of the runtime(MEMPACK034), not for the build of MemoryPack
+    bool IsNet8OrGreater { get; } // uses the net* build of MemoryPack(net8.0 is the lowest net* target), otherwise the netstandard2.1 build
+    bool IsNet10OrGreater { get; } // for the DateTimeOffset layout of the runtime(MEMPACK043)
     bool IsUnityCompilation { get; } // has UNITY_*** symbol
     bool IsForUnity { get; }
 }

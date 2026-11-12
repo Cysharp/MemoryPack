@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <NoWarn>$(NoWarn);CS1591;CA2255</NoWarn>
@@ -13,7 +13,8 @@
         <Description>Additional streaming support for MemoryPack.</Description>
     </PropertyGroup>
 
-    <ItemGroup>
+    <!-- System.IO.Pipelines is part of the shared framework in .NET 9 or later. -->
+    <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
         <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
     </ItemGroup>
 
