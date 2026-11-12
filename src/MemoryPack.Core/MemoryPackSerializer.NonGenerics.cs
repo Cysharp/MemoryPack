@@ -32,7 +32,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static unsafe void Serialize<TBufferWriter>(Type type, in TBufferWriter bufferWriter, object? value, MemoryPackSerializerOptions? options = default)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -58,7 +58,7 @@ public static partial class MemoryPackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Serialize<TBufferWriter>(Type type, ref MemoryPackWriter<TBufferWriter> writer, object? value)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>

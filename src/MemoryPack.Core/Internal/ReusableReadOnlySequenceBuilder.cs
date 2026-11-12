@@ -70,7 +70,7 @@ internal sealed class ReusableReadOnlySequenceBuilder
         }
 
         long running = 0;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         var span = CollectionsMarshal.AsSpan(list);
         for (int i = 0; i < span.Length; i++)
         {
@@ -96,7 +96,7 @@ internal sealed class ReusableReadOnlySequenceBuilder
 
     public void Reset()
     {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         var span = CollectionsMarshal.AsSpan(list);
 #else
         var span = list;

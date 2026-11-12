@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace MemoryPack.Formatters;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
 [Preserve]
 public sealed class MemoryPackableFormatter<T> : MemoryPackFormatter<T>

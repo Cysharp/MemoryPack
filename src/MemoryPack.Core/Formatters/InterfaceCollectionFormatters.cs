@@ -26,7 +26,7 @@ namespace MemoryPack
             { typeof(ILookup<,>), typeof(InterfaceLookupFormatter<,>) },
             { typeof(IGrouping<,>), typeof(InterfaceGroupingFormatter<,>) },
             { typeof(ISet<>), typeof(InterfaceSetFormatter<>) },
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             { typeof(IReadOnlySet<>), typeof(InterfaceReadOnlySetFormatter<>) },
 #endif
         };
@@ -42,7 +42,7 @@ namespace MemoryPack.Formatters
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TrySerializeOptimized<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, [NotNullWhen(false)] scoped ref TCollection? value)
             where TCollection : IEnumerable<TElement>
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -62,7 +62,7 @@ namespace MemoryPack.Formatters
                 return true;
             }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             if (value is List<TElement?> list)
             {
                 writer.WriteSpan(CollectionsMarshal.AsSpan(list));
@@ -75,7 +75,7 @@ namespace MemoryPack.Formatters
 
         public static void SerializeCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TCollection? value)
             where TCollection : ICollection<TElement>
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -94,7 +94,7 @@ namespace MemoryPack.Formatters
 
         public static void SerializeReadOnlyCollection<TBufferWriter, TCollection, TElement>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TCollection? value)
             where TCollection : IReadOnlyCollection<TElement>
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -572,7 +572,7 @@ namespace MemoryPack.Formatters
         }
     }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     [Preserve]
     public sealed class InterfaceReadOnlySetFormatter<T> : MemoryPackFormatter<IReadOnlySet<T?>>

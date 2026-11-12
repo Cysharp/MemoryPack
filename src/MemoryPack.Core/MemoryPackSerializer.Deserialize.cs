@@ -12,7 +12,7 @@ public static partial class MemoryPackSerializer
     static MemoryPackReaderOptionalState? threadStaticReaderOptionalState;
 
     public static T? Deserialize<
-#if NET5_0_OR_GREATER
+#if !NETSTANDARD
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
         T>(ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
@@ -23,7 +23,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static int Deserialize<
-#if NET5_0_OR_GREATER
+#if !NETSTANDARD
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
         T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
@@ -59,7 +59,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static T? Deserialize<
-#if NET5_0_OR_GREATER
+#if !NETSTANDARD
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
         T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
@@ -70,7 +70,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static int Deserialize<
-#if NET5_0_OR_GREATER
+#if !NETSTANDARD
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
         T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
@@ -141,7 +141,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static async ValueTask<T?> DeserializeAsync<
-#if NET5_0_OR_GREATER
+#if !NETSTANDARD
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
         T>(Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)

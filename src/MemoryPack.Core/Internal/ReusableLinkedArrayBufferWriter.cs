@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack.Internal;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using static GC;
 using static MemoryMarshal;
 #else
@@ -142,7 +142,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
 #else
             foreach (var item in buffers)
@@ -165,7 +165,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     }
 
     public void WriteToAndReset<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -182,7 +182,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
 
         if (buffers.Count > 0)
         {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
 #else
             foreach (var item in buffers)
@@ -253,7 +253,7 @@ public sealed class ReusableLinkedArrayBufferWriter : IBufferWriter<byte>
     public void Reset()
     {
         if (totalWritten == 0) return;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         foreach (ref var item in CollectionsMarshal.AsSpan(buffers))
 #else
         foreach (var item in buffers)

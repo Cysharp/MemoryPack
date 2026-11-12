@@ -27,7 +27,7 @@ namespace MemoryPack
             { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
             { typeof(HashSet<>), typeof(HashSetFormatter<>) },
             { typeof(SortedSet<>), typeof(SortedSetFormatter<>) },
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             { typeof(PriorityQueue<,>), typeof(PriorityQueueFormatter<,>) },
 #endif
             { typeof(ObservableCollection<>), typeof(ObservableCollectionFormatter<>) },
@@ -55,7 +55,7 @@ namespace MemoryPack.Formatters
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SerializePackable<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, List<T?>? value)
             where T : IMemoryPackable<T>
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             where TBufferWriter : IBufferWriter<byte>
 #else
             where TBufferWriter : class, IBufferWriter<byte>
@@ -67,7 +67,7 @@ namespace MemoryPack.Formatters
                 return;
             }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             writer.WritePackableSpan(CollectionsMarshal.AsSpan(value));
 #else
             var formatter = writer.GetFormatter<T?>();
@@ -105,7 +105,7 @@ namespace MemoryPack.Formatters
             {
                 value = new List<T?>(length);
             }
-#if NET8_0_OR_GREATER
+#if !NETSTANDARD
             else if (value.Count == length)
             {
                 value.Clear();
@@ -142,7 +142,7 @@ namespace MemoryPack.Formatters
                 writer.WriteNullCollectionHeader();
                 return;
             }
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             writer.WriteSpan(CollectionsMarshal.AsSpan(value));
 #else
             var formatter = writer.GetFormatter<T?>();
@@ -168,7 +168,7 @@ namespace MemoryPack.Formatters
             {
                 value = new List<T?>(length);
             }
-#if NET8_0_OR_GREATER
+#if !NETSTANDARD
             else if (value.Count == length)
             {
                 value.Clear();
@@ -259,7 +259,7 @@ namespace MemoryPack.Formatters
                     else
                     {
                         value.Clear();
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
                         value.EnsureCapacity(length);
 #endif
                         for (int i = 0; i < span.Length; i++)
@@ -282,7 +282,7 @@ namespace MemoryPack.Formatters
             else
             {
                 value.Clear();
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
                 value.EnsureCapacity(length);
 #endif
             }
@@ -336,7 +336,7 @@ namespace MemoryPack.Formatters
             else
             {
                 value.Clear();
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
                 value.EnsureCapacity(length);
 #endif
             }
@@ -522,7 +522,7 @@ namespace MemoryPack.Formatters
         }
     }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     [Preserve]
     public sealed class PriorityQueueFormatter<TElement, TPriority> : MemoryPackFormatter<PriorityQueue<TElement?, TPriority?>>

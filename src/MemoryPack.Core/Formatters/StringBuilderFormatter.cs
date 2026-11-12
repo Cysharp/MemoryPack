@@ -17,7 +17,7 @@ public sealed class StringBuilderFormatter : MemoryPackFormatter<StringBuilder>
             return;
         }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
         // for performance reason, currently StringBuilder encode as Utf16, however try to write Utf8?
         // if (writer.Options.StringEncoding == StringEncoding.Utf16)

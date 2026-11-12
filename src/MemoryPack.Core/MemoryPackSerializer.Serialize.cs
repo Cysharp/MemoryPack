@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace MemoryPack;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using static MemoryMarshal;
 using static GC;
 #else
@@ -27,7 +27,7 @@ public static partial class MemoryPackSerializer
             Unsafe.WriteUnaligned(ref GetArrayDataReference(array), value);
             return array;
         }
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         var typeKind = TypeHelpers.TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out var elementSize);
         if (typeKind == TypeHelpers.TypeKind.None)
         {
@@ -86,7 +86,7 @@ public static partial class MemoryPackSerializer
     }
 
     public static unsafe void Serialize<T, TBufferWriter>(in TBufferWriter bufferWriter, in T? value, MemoryPackSerializerOptions? options = default)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>
@@ -100,7 +100,7 @@ public static partial class MemoryPackSerializer
             bufferWriterRef.Advance(Unsafe.SizeOf<T>());
             return;
         }
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         var typeKind = TypeHelpers.TryGetUnmanagedSZArrayElementSizeOrMemoryPackableFixedSize<T>(out var elementSize);
         if (typeKind == TypeHelpers.TypeKind.UnmanagedSZArray)
         {
@@ -154,7 +154,7 @@ public static partial class MemoryPackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Serialize<T, TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, in T? value)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>

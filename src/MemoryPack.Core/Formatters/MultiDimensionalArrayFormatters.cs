@@ -25,7 +25,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
         var j = value.GetLength(1);
         writer.WriteUnmanaged(i, j);
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = Unsafe.SizeOf<T>() * i * j;
@@ -86,7 +86,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,]>
             value = new T[iLength, jLength];
         }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength);
@@ -143,7 +143,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
         var k = value.GetLength(2);
         writer.WriteUnmanaged(i, j, k);
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = Unsafe.SizeOf<T>() * i * j * k;
@@ -203,7 +203,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,
             value = new T[iLength, jLength, kLength];
         }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength * kLength);
@@ -268,7 +268,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
         var l = value.GetLength(3);
         writer.WriteUnmanaged(i, j, k, l);
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = Unsafe.SizeOf<T>() * i * j * k * l;
@@ -328,7 +328,7 @@ public sealed class FourDimensionalArrayFormatter<T> : MemoryPackFormatter<T?[,,
             value = new T[iLength, jLength, kLength, lLength];
         }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (!RuntimeHelpers.IsReferenceOrContainsReferences<T?>())
         {
             var byteCount = checked(Unsafe.SizeOf<T>() * iLength * jLength * kLength * lLength);

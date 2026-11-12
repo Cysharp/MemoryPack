@@ -97,7 +97,7 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedFormatter<UnityDateTimeOffset>());
         Register(new UnmanagedArrayFormatter<UnityDateTimeOffset>());
         Register(new NullableFormatter<UnityDateTimeOffset>());
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         Register(new UnmanagedFormatter<Rune>());
         Register(new UnmanagedArrayFormatter<Rune>());
         Register(new NullableFormatter<Rune>());

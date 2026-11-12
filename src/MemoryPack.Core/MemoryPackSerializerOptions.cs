@@ -19,7 +19,7 @@
     }
 }
 
-#if !NET5_0_OR_GREATER
+#if NETSTANDARD
 
 namespace System.Runtime.CompilerServices
 {
