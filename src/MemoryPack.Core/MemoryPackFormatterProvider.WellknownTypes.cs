@@ -91,6 +91,12 @@ public static partial class MemoryPackFormatterProvider
         Register(new UnmanagedFormatter<Vector4>());
         Register(new UnmanagedArrayFormatter<Vector4>());
         Register(new NullableFormatter<Vector4>());
+        Register(new UnmanagedFormatter<Net10DateTimeOffset>());
+        Register(new UnmanagedArrayFormatter<Net10DateTimeOffset>());
+        Register(new NullableFormatter<Net10DateTimeOffset>());
+        Register(new UnmanagedFormatter<UnityDateTimeOffset>());
+        Register(new UnmanagedArrayFormatter<UnityDateTimeOffset>());
+        Register(new NullableFormatter<UnityDateTimeOffset>());
 #if NET7_0_OR_GREATER
         Register(new UnmanagedFormatter<Rune>());
         Register(new UnmanagedArrayFormatter<Rune>());

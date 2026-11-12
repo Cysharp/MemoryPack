@@ -33,13 +33,17 @@ public static class PackageExporter
 
             assets = netStandardsAsset.Concat(assets).ToArray();
 
+            UnityEngine.Debug.Log("Export below files" + Environment.NewLine + string.Join(Environment.NewLine, assets));
+
             AssetDatabase.ExportPackage(
                 assets,
                 exportPath,
                 ExportPackageOptions.Default);
 
-            UnityEngine.Debug.Log("Export complete: " + Path.GetFullPath(exportPath) + Environment.NewLine + string.Join(Environment.NewLine, assets));
+            UnityEngine.Debug.Log("Export complete: " + Path.GetFullPath(exportPath));
         }
+
+        UnityEngine.Debug.Log("Build succeeded! All export complete!");
     }
 
     static string GetVersion(string root)
