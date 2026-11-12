@@ -701,4 +701,31 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             }
         }
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteArrayWithoutLengthHeader<T>(T?[]? value)
+    {
+        if (value == null) return;
+
+        if (value.Length == 0) return;
+
+        if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            var srcLength = Unsafe.SizeOf<T>() * value.Length;
+            ref var dest = ref GetSpanReference(srcLength);
+            ref var src = ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(value)!);
+
+            Unsafe.CopyBlockUnaligned(ref dest, ref src, (uint)srcLength);
+
+            Advance(srcLength);
+            return;
+        }
+        else
+        {
+            var formatter = GetFormatter<T>();
+            for (int i = 0; i < value.Length; i++)
+            {
+                formatter.Serialize(ref this, ref Unsafe.AsRef(in value[i]));
+            }
+        }
+    }
 }
