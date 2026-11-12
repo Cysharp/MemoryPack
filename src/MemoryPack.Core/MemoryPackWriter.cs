@@ -2,13 +2,13 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using System.Text.Unicode;
 #endif
 
 namespace MemoryPack;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using static MemoryMarshal;
 #else
 using static MemoryPack.Internal.MemoryMarshalEx;
@@ -16,7 +16,7 @@ using static MemoryPack.Internal.MemoryMarshalEx;
 
 [StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryPackWriter<TBufferWriter>
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
     where TBufferWriter : IBufferWriter<byte>
 #else
     where TBufferWriter : class, IBufferWriter<byte>
@@ -24,7 +24,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 {
     const int DepthLimit = 1000;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
     ref TBufferWriter bufferWriter;
     ref byte bufferReference;
 #else
@@ -45,7 +45,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     public MemoryPackWriter(ref TBufferWriter writer, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         this.bufferWriter = ref writer;
         this.bufferReference = ref Unsafe.NullRef<byte>();
 #else
@@ -63,7 +63,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     // optimized ctor, avoid first GetSpan call if we can.
     public MemoryPackWriter(ref TBufferWriter writer, byte[] firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         this.bufferWriter = ref writer;
         this.bufferReference = ref GetArrayDataReference(firstBufferOfWriter);
 #else
@@ -80,7 +80,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
 
     public MemoryPackWriter(ref TBufferWriter writer, Span<byte> firstBufferOfWriter, MemoryPackWriterOptionalState optionalState)
     {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         this.bufferWriter = ref writer;
         this.bufferReference = ref MemoryMarshal.GetReference(firstBufferOfWriter);
 #else
@@ -103,7 +103,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             RequestNewBuffer(sizeHint);
         }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         return ref bufferReference;
 #else
         return ref MemoryMarshal.GetReference(bufferReference);
@@ -119,7 +119,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             advancedCount = 0;
         }
         var span = bufferWriter.GetSpan(sizeHint);
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         bufferReference = ref MemoryMarshal.GetReference(span);
 #else
         bufferReference = span;
@@ -139,7 +139,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         }
 
         bufferLength = rest;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
 #else
         bufferReference = bufferReference.Slice(count);
@@ -156,7 +156,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
             bufferWriter.Advance(advancedCount);
             advancedCount = 0;
         }
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         bufferReference = ref Unsafe.NullRef<byte>();
 #else
         bufferReference = default;
@@ -305,7 +305,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         ref var dest = ref GetSpanReference(copyByteCount + 4);
         Unsafe.WriteUnaligned(ref dest, value.Length);
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         ref var src = ref Unsafe.As<char, byte>(ref Unsafe.AsRef(in value.GetPinnableReference()));
         Unsafe.CopyBlockUnaligned(ref Unsafe.Add(ref dest, 4), ref src, (uint)copyByteCount);
 #else
@@ -360,7 +360,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref destPointer, 4), source.Length);
 
         var dest = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref destPointer, 8), maxByteCount);
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         var status = Utf8.FromUtf16(source, dest, out var _, out var bytesWritten, replaceInvalidSequences: false);
         if (status != OperationStatus.Done)
         {
@@ -397,7 +397,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
         Advance(utf8Value.Length + 8);
     }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackable<T>(scoped in T? value)
@@ -511,7 +511,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WritePackableArray<T>(T?[]? value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         WriteArray(value);
         return;
 #else
@@ -540,7 +540,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WritePackableSpan<T>(scoped Span<T?> value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         WriteSpan(value);
         return;
 #else
@@ -562,7 +562,7 @@ public ref partial struct MemoryPackWriter<TBufferWriter>
     public void WritePackableSpan<T>(scoped ReadOnlySpan<T?> value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         WriteSpan(value);
         return;
 #else

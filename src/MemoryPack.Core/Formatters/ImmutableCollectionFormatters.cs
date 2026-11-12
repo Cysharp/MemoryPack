@@ -51,7 +51,7 @@ namespace MemoryPack.Formatters
         [Preserve]
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ImmutableArray<T?> value)
         {
-#if NET8_0_OR_GREATER
+#if !NETSTANDARD
             var array = reader.ReadArray<T?>();
             if (array == null)
             {

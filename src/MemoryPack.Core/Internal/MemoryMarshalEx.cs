@@ -1,4 +1,4 @@
-﻿#if !NET7_0_OR_GREATER
+﻿#if NETSTANDARD
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;

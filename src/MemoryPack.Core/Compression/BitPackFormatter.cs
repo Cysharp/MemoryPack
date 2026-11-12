@@ -1,7 +1,7 @@
 ﻿using MemoryPack.Internal;
 using System.Runtime.CompilerServices;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 #endif
@@ -28,14 +28,14 @@ public sealed class BitPackFormatter : MemoryPackFormatter<bool[]>
         }
 
         var data = 0;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         ref var item = ref MemoryMarshal.GetArrayDataReference(value);
 #else
         ref var item = ref value[0];
 #endif
         ref var end = ref Unsafe.Add(ref item, value.Length);
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         if (value.Length >= 32)
         {
             ref var loopEnd = ref Unsafe.Subtract(ref end, 32);

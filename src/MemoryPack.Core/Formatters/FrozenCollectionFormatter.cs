@@ -1,4 +1,4 @@
-﻿#if NET8_0_OR_GREATER
+﻿#if !NETSTANDARD
 using MemoryPack.Formatters;
 using MemoryPack.Internal;
 using System.Collections.Frozen;

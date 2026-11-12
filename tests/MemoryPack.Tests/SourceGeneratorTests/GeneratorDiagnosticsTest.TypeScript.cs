@@ -21,7 +21,8 @@ public partial class GeneratorDiagnosticsTest
 {
     void Compile2(int id, string code, bool allowMultipleError = false)
     {
-        var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code, options: new TypeScriptOptionProvider());
+        using var optionProvider = new TypeScriptOptionProvider();
+        var (_, diagnostics) = CSharpGeneratorRunner.RunGenerator(code, options: optionProvider);
         if (!allowMultipleError)
         {
             diagnostics.Length.Should().Be(1);
@@ -35,15 +36,13 @@ public partial class GeneratorDiagnosticsTest
 
     string CompileAndRead(string code, string fileName, bool enableNullableTypes = true)
     {
-        var outputDir = Path.GetTempPath();
-        var optionProvider = new TypeScriptOptionProvider();
+        using var optionProvider = new TypeScriptOptionProvider();
 
-        optionProvider["build_property.MemoryPackGenerator_TypeScriptOutputDirectory"] = outputDir;
         optionProvider["build_property.MemoryPackGenerator_TypeScriptEnableNullableTypes"] = enableNullableTypes ? "true" : "false";
 
         CSharpGeneratorRunner.RunGenerator(code, options: optionProvider);
 
-        var outputFilePath = Path.Combine(outputDir, fileName);
+        var outputFilePath = Path.Combine(optionProvider.OutputDirectory, fileName);
 
         return File.ReadAllText(outputFilePath);
     }
@@ -221,9 +220,18 @@ public partial class Hoge
     }
 
 
-    class TypeScriptOptionProvider : AnalyzerConfigOptionsProvider
+    // Each instance uses its own output directory, because the tests of each target framework run in parallel
+    // and the generator writes the same file names (such as MemoryPackWriter.ts) into the output directory.
+    class TypeScriptOptionProvider : AnalyzerConfigOptionsProvider, IDisposable
     {
         readonly Dictionary<string, string> _values = new();
+
+        public TypeScriptOptionProvider()
+        {
+            OutputDirectory = Directory.CreateTempSubdirectory("MemoryPack.Tests.").FullName;
+        }
+
+        public string OutputDirectory { get; }
 
         public string this[string key]
         {
@@ -231,25 +239,32 @@ public partial class Hoge
             set => _values[key] = value;
         }
 
-        public override AnalyzerConfigOptions GlobalOptions => new SimpleOptions(_values);
+        public override AnalyzerConfigOptions GlobalOptions => new SimpleOptions(_values, OutputDirectory);
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
         {
-            return new SimpleOptions(_values);
+            return new SimpleOptions(_values, OutputDirectory);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
         {
-            return new SimpleOptions(_values);
+            return new SimpleOptions(_values, OutputDirectory);
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(OutputDirectory, recursive: true);
         }
 
         public class SimpleOptions : AnalyzerConfigOptions
         {
             readonly Dictionary<string, string> _configValues;
+            readonly string _outputDirectory;
 
-            public SimpleOptions(Dictionary<string, string> configValues)
+            public SimpleOptions(Dictionary<string, string> configValues, string outputDirectory)
             {
                 _configValues = configValues;
+                _outputDirectory = outputDirectory;
             }
 
             /// <inheritdoc />
@@ -266,7 +281,7 @@ public partial class Hoge
 
                 if (key == "build_property.MemoryPackGenerator_TypeScriptOutputDirectory")
                 {
-                    value = Path.GetTempPath();
+                    value = _outputDirectory;
                     return true;
                 }
 

@@ -34,7 +34,7 @@ Other than performance, MemoryPack has these features.
 
 Installation
 ---
-This library is distributed via NuGet. For best performance, recommend to use `.NET 7`. Minimum requirement is `.NET Standard 2.1`.
+This library is distributed via NuGet. For best performance, recommend to use `.NET 10`. Minimum requirement is `.NET Standard 2.1`.
 
 > PM> Install-Package [MemoryPack](https://www.nuget.org/packages/MemoryPack)
 
@@ -1379,16 +1379,16 @@ using (var state = MemoryPackReaderOptionalStatePool.Rent(MemoryPackSerializerOp
 
 Target framework dependency
 ---
-MemoryPack provides `netstandard2.1` and `net7.0` but both are not compatible. For example, MemoryPackable types under `netstandard2.1` project and use it from `net7.0` project, throws runtime exception like this
+MemoryPack provides `netstandard2.1`, `net8.0` and `net10.0`, but the `netstandard2.1` build is not compatible with the `net8.0` and `net10.0` builds. For example, MemoryPackable types under `netstandard2.1` project and use it from `net8.0` project, throws runtime exception like this
 
 > Unhandled exception. System.TypeLoadException: Virtual static method '*' is not implemented on type '*' from assembly '*'.
 
-Since net7.0 uses static abstract members (`Virtual static method`), that does not support netstandard2.1, this behavior is a specification.
+Since net8.0 and net10.0 use static abstract members (`Virtual static method`), that does not support netstandard2.1, this behavior is a specification. Applications on .NET 7 or lower use the netstandard2.1 build.
 
-.NET 7 project shouldn't use the netstandard 2.1 dll. In other words, if the Application is a .NET 7 Project, all the dependencies that use MemoryPack must support .NET 7. So if a library developer has a dependency on MemoryPack, you need to configure dual target framework.
+.NET 8 or later project shouldn't use the netstandard 2.1 dll. In other words, if the Application is a .NET 8 or later Project, all the dependencies that use MemoryPack must support .NET 8 or later. So if a library developer has a dependency on MemoryPack, you need to configure dual target framework.
 
 ```xml
-<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+<TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
 ```
 
 RPC
@@ -1447,11 +1447,6 @@ The `MemoryPack.UnityShims` package provides shims for Unity's standard structs 
         - `ValueTuple`
     - Currently, the simple solution is to not use these types. For `DateTimeOffset`, you can use `Net10DateTimeOffset` or `UnityDateTimeOffset` instead, see [DateTimeOffset, Net10DateTimeOffset and UnityDateTimeOffset](#datetimeoffset-net10datetimeoffset-and-unitydatetimeoffset).
 
-
-Native AOT
----
-Unfortunately, .NET 7 Native AOT causes crash (`Generic virtual method pointer lookup failure`) when use MemoryPack due to a runtime bug. It 
-is going to be fixed in .NET 8. Using ``Microsoft.DotNet.ILCompiler` preview version, will fix it in .NET 7. Please see [issue's comment](https://github.com/Cysharp/MemoryPack/issues/75#issuecomment-1386884611) how setup it.
 
 Binary wire format specification
 ---

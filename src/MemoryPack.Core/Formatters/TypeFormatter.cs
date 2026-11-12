@@ -10,7 +10,7 @@ public sealed partial class TypeFormatter : MemoryPackFormatter<Type>
     // Result will be "TypeName, Assembly"
     // see:http://msdn.microsoft.com/en-us/library/w3f99sx1.aspx
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     [GeneratedRegex(@", Version=\d+.\d+.\d+.\d+, Culture=[\w-]+, PublicKeyToken=(?:null|[a-f0-9]{16})")]
     private static partial Regex ShortTypeNameRegex();

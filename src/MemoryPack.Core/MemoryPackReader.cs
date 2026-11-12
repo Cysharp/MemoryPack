@@ -2,13 +2,13 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using System.Text.Unicode;
 #endif
 
 namespace MemoryPack;
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 using static GC;
 using static MemoryMarshal;
 #else
@@ -20,7 +20,7 @@ public ref partial struct MemoryPackReader
 {
     ReadOnlySequence<byte> bufferSource;
     readonly long totalLength;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
     ref byte bufferReference;
 #else
     ReadOnlySpan<byte> bufferReference;
@@ -40,7 +40,7 @@ public ref partial struct MemoryPackReader
     {
         this.bufferSource = sequence.IsSingleSegment ? ReadOnlySequence<byte>.Empty : sequence;
         var span = sequence.FirstSpan;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         this.bufferReference = ref MemoryMarshal.GetReference(span);
 #else
         this.bufferReference = span;
@@ -56,7 +56,7 @@ public ref partial struct MemoryPackReader
     public MemoryPackReader(ReadOnlySpan<byte> buffer, MemoryPackReaderOptionalState optionalState)
     {
         this.bufferSource = ReadOnlySequence<byte>.Empty;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         this.bufferReference = ref MemoryMarshal.GetReference(buffer);
 #else
         this.bufferReference = buffer;
@@ -77,7 +77,7 @@ public ref partial struct MemoryPackReader
         // compare as unsigned, negative sizeHint(comes from malformed data) never takes this path and is rejected in GetNextSpan.
         if ((uint)sizeHint <= (uint)bufferLength)
         {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             return ref bufferReference;
 #else
             return ref MemoryMarshal.GetReference(bufferReference);
@@ -121,7 +121,7 @@ public ref partial struct MemoryPackReader
         {
             if (sizeHint <= bufferSource.FirstSpan.Length)
             {
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
                 bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
                 bufferLength = bufferSource.FirstSpan.Length;
                 return ref bufferReference;
@@ -135,7 +135,7 @@ public ref partial struct MemoryPackReader
             rentBuffer = ArrayPool<byte>.Shared.Rent(sizeHint);
             bufferSource.Slice(0, sizeHint).CopyTo(rentBuffer);
             var span = rentBuffer.AsSpan(0, sizeHint);
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             bufferReference = ref MemoryMarshal.GetReference(span);
             bufferLength = span.Length;
             return ref bufferReference;
@@ -147,7 +147,7 @@ public ref partial struct MemoryPackReader
         }
 
         MemoryPackSerializationException.ThrowSequenceReachedEnd();
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         return ref bufferReference; // dummy.
 #else
         return ref MemoryMarshal.GetReference(bufferReference);
@@ -171,7 +171,7 @@ public ref partial struct MemoryPackReader
         }
 
         bufferLength = rest;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         bufferReference = ref Unsafe.Add(ref bufferReference, count);
 #else
         bufferReference = bufferReference.Slice(count);
@@ -195,7 +195,7 @@ public ref partial struct MemoryPackReader
         }
 
         bufferSource = bufferSource.Slice(advancedCount + count);
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         bufferReference = ref MemoryMarshal.GetReference(bufferSource.FirstSpan);
 #else
         bufferReference = bufferSource.FirstSpan;
@@ -211,7 +211,7 @@ public ref partial struct MemoryPackReader
         if (bufferSource.IsEmpty)
         {
             remainingSource = ReadOnlySequence<byte>.Empty;
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             singleSource = MemoryMarshal.CreateReadOnlySpan(ref bufferReference, bufferLength);
 #else
             singleSource = bufferReference;
@@ -433,7 +433,7 @@ public ref partial struct MemoryPackReader
             }
 
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
             // regular path, know decoded UTF16 length will gets faster decode result
             unsafe
             {
@@ -473,7 +473,7 @@ public ref partial struct MemoryPackReader
         return value1;
     }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReadPackable<T>(scoped ref T? value)
@@ -644,7 +644,7 @@ public ref partial struct MemoryPackReader
     public void ReadPackableArray<T>(scoped ref T?[]? value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         ReadArray(ref value);
         return;
 #else
@@ -683,7 +683,7 @@ public ref partial struct MemoryPackReader
     public void ReadPackableSpan<T>(scoped ref Span<T?> value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         ReadSpan(ref value);
         return;
 #else
@@ -864,7 +864,7 @@ public ref partial struct MemoryPackReader
     public void ReadPackableSpanWithoutReadLengthHeader<T>(int length, scoped ref Span<T?> value)
         where T : IMemoryPackable<T>
     {
-#if !NET7_0_OR_GREATER
+#if NETSTANDARD
         ReadSpanWithoutReadLengthHeader(length, ref value);
         return;
 #else

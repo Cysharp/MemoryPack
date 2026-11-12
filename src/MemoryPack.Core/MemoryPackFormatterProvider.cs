@@ -51,7 +51,7 @@ public static partial class MemoryPackFormatterProvider
         Cache<T>.formatter = formatter;
     }
 
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
 
     public static void Register<T>()
         where T : IMemoryPackFormatterRegister
@@ -301,7 +301,7 @@ public static partial class MemoryPackFormatterProvider
         if (formatterType != null) goto CREATE;
 #endif
 
-#if NET8_0_OR_GREATER
+#if !NETSTANDARD
         formatterType = TryCreateGenericFormatterType(type, FrozenCollectionFormatters);
         if (formatterType != null) goto CREATE;
 #endif
@@ -372,7 +372,7 @@ internal sealed class ErrorMemoryPackFormatter : IMemoryPackFormatter
     }
 
     public void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref object? value)
-#if NET7_0_OR_GREATER
+#if !NETSTANDARD
         where TBufferWriter : IBufferWriter<byte>
 #else
         where TBufferWriter : class, IBufferWriter<byte>

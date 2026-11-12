@@ -49,7 +49,7 @@ global using MemoryPack;
     {
         if (preprocessorSymbols == null)
         {
-            preprocessorSymbols = new[] { "NET7_0_OR_GREATER" };
+            preprocessorSymbols = new[] { "NET7_0_OR_GREATER", "NET8_0_OR_GREATER" };
         }
         var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
 
