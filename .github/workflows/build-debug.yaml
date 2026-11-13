@@ -18,14 +18,6 @@ jobs:
     steps:
       - uses: Cysharp/Actions/.github/actions/checkout@main
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            6.0.x
-            7.0.x
-            8.0.x
-            9.0.x
-            10.0.x
-            11.0.x
       - run: dotnet build -c Release
       - run: dotnet test -c Release --no-build
       - run: dotnet pack -c Release --no-build -p:IncludeSymbols=true -o $GITHUB_WORKSPACE/artifacts
@@ -56,14 +48,6 @@ jobs:
 
       # Run SourceGenerater to generate serialization code
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            6.0.x
-            7.0.x
-            8.0.x
-            9.0.x
-            10.0.x
-            11.0.x
       - run: dotnet build -c Debug # require build before run
       - name: Make sure generated files are exists.
         run: ls -lR "src/MemoryPack/bin/Debug/netstandard2.1"
