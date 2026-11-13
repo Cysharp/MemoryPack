@@ -704,6 +704,21 @@ public partial struct Tester
                     }
                     """);
     }
+
+    [Fact]
+    public void MEMPACK045_UnionOnStructMustBeCSharpUnion()
+    {
+        Compile(45, """
+using MemoryPack;
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(int))]
+public partial struct Tester
+{
+    public int I1 { get; set; }
+}
+""");
+    }
 }
 
 #endif

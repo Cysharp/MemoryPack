@@ -241,6 +241,12 @@ internal static class Extensions
         return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
+    public static bool IsCSharpUnion(this INamedTypeSymbol symbol)
+    {
+        // match by keyword as UnionDeclarationSyntax is newer than the referenced Roslyn
+        return symbol.DeclaringSyntaxReferences.Any(x => x.GetSyntax() is TypeDeclarationSyntax { Keyword.ValueText: "union" });
+    }
+
     public static bool EqualsUnconstructedGenericType(this INamedTypeSymbol left, INamedTypeSymbol right)
     {
         var l = left.IsGenericType ? left.ConstructUnboundGenericType() : left;

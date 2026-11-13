@@ -57,6 +57,8 @@ public partial class TypeMeta
     public bool IsUnmanagedType { get; }
     public bool IsUnion { get; }
     public bool IsRecord { get; }
+    /// <summary>C# union declaration</summary>
+    public bool IsCSharpUnion { get; }
     public bool IsInterfaceOrAbstract { get; }
     public IMethodSymbol? Constructor { get; }
     public MethodMeta[] OnSerializing { get; }
@@ -76,7 +78,9 @@ public partial class TypeMeta
         this.SerializeLayout = serializeLayout;
 
         this.TypeName = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-        this.Constructor = ChooseConstructor(symbol, reference);
+        this.IsCSharpUnion = symbol.IsCSharpUnion();
+        // unions are always created through their case constructors
+        this.Constructor = IsCSharpUnion ? null : ChooseConstructor(symbol, reference);
 
         this.Members = symbol.GetAllMembers() // iterate includes parent type
             .Where(x => x is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false, CanBeReferencedByName: true })
@@ -111,14 +115,19 @@ public partial class TypeMeta
         this.IsValueType = symbol.IsValueType;
         this.IsUnmanagedType = symbol.IsUnmanagedType;
         this.IsInterfaceOrAbstract = symbol.IsAbstract;
-        this.IsUnion = symbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
+        if (IsCSharpUnion)
+        {
+            // only Value is serialized
+            this.Members = Array.Empty<MemberMeta>();
+        }
+        this.IsUnion = !IsCSharpUnion && symbol.ContainsAttribute(reference.MemoryPackUnionAttribute);
         this.IsRecord = symbol.IsRecord;
         this.OnSerializing = CollectMethod(reference.MemoryPackOnSerializingAttribute, IsValueType, isReader: false);
         this.OnSerialized = CollectMethod(reference.MemoryPackOnSerializedAttribute, IsValueType, isReader: false);
         this.OnDeserializing = CollectMethod(reference.MemoryPackOnDeserializingAttribute, IsValueType, isReader: true);
         this.OnDeserialized = CollectMethod(reference.MemoryPackOnDeserializedAttribute, IsValueType, isReader: true);
 
-        if (IsUnion)
+        if (IsUnion || IsCSharpUnion)
         {
             this.UnionTags = symbol.GetAttributes()
                 .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, reference.MemoryPackUnionAttribute))
@@ -592,6 +601,12 @@ public partial class TypeMeta
     UNION_VALIDATIONS:
         if (IsUnion)
         {
+            if (Symbol.IsValueType)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionOnStructMustBeCSharpUnion, syntax.Identifier.GetLocation(), Symbol.Name));
+                return false;
+            }
+
             if (Symbol.IsSealed)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SealedTypeCantBeUnion, syntax.Identifier.GetLocation(), Symbol.Name));
@@ -657,6 +672,23 @@ public partial class TypeMeta
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionMemberMustBeMemoryPackable, syntax.Identifier.GetLocation(), Symbol.Name, item.Type.Name));
                     noError = false;
                 }
+            }
+        }
+
+        // explicit tags must cover every case once
+        if (IsCSharpUnion && UnionTags.Length != 0)
+        {
+            if (UnionTags.Select(x => x.Tag).HasDuplicate())
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnionTagDuplicate, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
+            }
+
+            var caseTypes = GetCSharpUnionCaseTypes();
+            if (UnionTags.Length != caseTypes.Length || !caseTypes.All(x => UnionTags.Count(y => SymbolEqualityComparer.Default.Equals(y.Type, x)) == 1))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CSharpUnionTagsMustMatchCases, syntax.Identifier.GetLocation(), Symbol.Name));
+                noError = false;
             }
         }
 

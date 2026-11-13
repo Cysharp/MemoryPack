@@ -52,7 +52,7 @@ public enum SerializeLayout
     Explicit
 }
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
 public sealed class MemoryPackUnionAttribute : Attribute
 {
     public ushort Tag { get; }
