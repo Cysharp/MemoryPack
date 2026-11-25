@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +33,30 @@ public partial class DeserializeTest
         result = await MemoryPackSerializer.DeserializeAsync<int[]>(stream);
         result.Should().Equal(expected);
     }
+
+#if NET5_0_OR_GREATER
+    [Fact]
+    public void GenericDeserialize_DynamicallyAccessedMembers_AvoidsArrayDynamicCodeWarnings()
+    {
+        var genericDeserializeMethods = typeof(MemoryPackSerializer)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.IsGenericMethodDefinition && (m.Name == nameof(MemoryPackSerializer.Deserialize) || m.Name == nameof(MemoryPackSerializer.DeserializeAsync)))
+            .ToArray();
+
+        genericDeserializeMethods.Should().HaveCount(5);
+
+        foreach (var method in genericDeserializeMethods)
+        {
+            var typeParam = method.GetGenericArguments()[0];
+            var attr = typeParam.GetCustomAttribute<DynamicallyAccessedMembersAttribute>();
+            attr.Should().NotBeNull();
+            attr!.MemberTypes.Should().NotBe(DynamicallyAccessedMemberTypes.All);
+            (attr.MemberTypes & DynamicallyAccessedMemberTypes.PublicMethods).Should().Be(DynamicallyAccessedMemberTypes.None);
+            (attr.MemberTypes & DynamicallyAccessedMemberTypes.NonPublicMethods).Should().Be(DynamicallyAccessedMemberTypes.NonPublicMethods);
+            (attr.MemberTypes & DynamicallyAccessedMemberTypes.Interfaces).Should().Be(DynamicallyAccessedMemberTypes.Interfaces);
+        }
+    }
+#endif
 
     [Fact]
     public void GenericValueStructTest()

@@ -8,12 +8,24 @@ namespace MemoryPack;
 
 public static partial class MemoryPackSerializer
 {
+#if NET5_0_OR_GREATER
+    private const DynamicallyAccessedMemberTypes DeserializeDynamicallyAccessedMemberTypes =
+        DynamicallyAccessedMemberTypes.PublicConstructors |
+        DynamicallyAccessedMemberTypes.NonPublicConstructors |
+        DynamicallyAccessedMemberTypes.NonPublicMethods |
+        DynamicallyAccessedMemberTypes.PublicFields |
+        DynamicallyAccessedMemberTypes.NonPublicFields |
+        DynamicallyAccessedMemberTypes.PublicProperties |
+        DynamicallyAccessedMemberTypes.NonPublicProperties |
+        DynamicallyAccessedMemberTypes.Interfaces;
+#endif
+
     [ThreadStatic]
     static MemoryPackReaderOptionalState? threadStaticReaderOptionalState;
 
     public static T? Deserialize<
 #if NET5_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        [DynamicallyAccessedMembers(DeserializeDynamicallyAccessedMemberTypes)]
 #endif
         T>(ReadOnlySpan<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
@@ -24,7 +36,7 @@ public static partial class MemoryPackSerializer
 
     public static int Deserialize<
 #if NET5_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        [DynamicallyAccessedMembers(DeserializeDynamicallyAccessedMemberTypes)]
 #endif
         T>(ReadOnlySpan<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
@@ -60,7 +72,7 @@ public static partial class MemoryPackSerializer
 
     public static T? Deserialize<
 #if NET5_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        [DynamicallyAccessedMembers(DeserializeDynamicallyAccessedMemberTypes)]
 #endif
         T>(in ReadOnlySequence<byte> buffer, MemoryPackSerializerOptions? options = default)
     {
@@ -71,7 +83,7 @@ public static partial class MemoryPackSerializer
 
     public static int Deserialize<
 #if NET5_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        [DynamicallyAccessedMembers(DeserializeDynamicallyAccessedMemberTypes)]
 #endif
         T>(in ReadOnlySequence<byte> buffer, ref T? value, MemoryPackSerializerOptions? options = default)
     {
@@ -142,7 +154,7 @@ public static partial class MemoryPackSerializer
 
     public static async ValueTask<T?> DeserializeAsync<
 #if NET5_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        [DynamicallyAccessedMembers(DeserializeDynamicallyAccessedMemberTypes)]
 #endif
         T>(Stream stream, MemoryPackSerializerOptions? options = default, CancellationToken cancellationToken = default)
     {
