@@ -31,6 +31,30 @@ public partial class GeneratorDiagnosticsTest
     }
 
     [Fact]
+    public void ReaderAndWriterNamesInModelNamespaceDoNotShadowRuntimeTypes()
+    {
+        var (Compilation, DiagnosticsList) = CSharpGeneratorRunner.RunGenerator("""
+namespace App;
+
+public class MemoryPackReader { }
+public class MemoryPackWriter<T> { }
+
+[MemoryPackable]
+[MemoryPackUnion(0, typeof(Message))]
+public partial interface IMessage { }
+
+[MemoryPackable(GenerateType.VersionTolerant)]
+public partial class Message : IMessage
+{
+    [MemoryPackOrder(0)] public List<int> Values { get; set; }
+}
+""");
+
+        DiagnosticsList.Should().BeEmpty();
+        Compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    [Fact]
     public void MEMPACK001_MuestBePartial()
     {
         Compile(1, """

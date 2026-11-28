@@ -371,8 +371,8 @@ public partial class TypeMeta
             }
         }
         var serializeMethodSignarture = context.IsForUnity
-            ? "Serialize(ref MemoryPackWriter"
-            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
+            ? "Serialize(ref global::MemoryPack.MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref global::MemoryPack.MemoryPackWriter<TBufferWriter>";
 
         foreach (var declaration in containingTypeDeclarations)
         {
@@ -417,7 +417,7 @@ partial {{classOrStructOrRecord}} {{TypeName}} : IMemoryPackable<{{TypeName}}>{{
     }
 
     [global::MemoryPack.Internal.Preserve]
-    {{staticMemoryPackableMethod}}Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}{{nullable}} value)
+    {{staticMemoryPackableMethod}}Deserialize(ref global::MemoryPack.MemoryPackReader reader, {{scopedRef}} {{TypeName}}{{nullable}} value)
     {
 {{OnDeserializing.Select(x => "        " + x.Emit()).NewLine()}}
 {{deserializeBody}}
@@ -445,7 +445,7 @@ partial {{classOrStructOrRecord}} {{TypeName}}
         }
 
         [global::MemoryPack.Internal.Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}} value)
+        public override void Deserialize(ref global::MemoryPack.MemoryPackReader reader, {{scopedRef}} {{TypeName}} value)
         {
             {{TypeName}}.Deserialize(ref reader, ref value);
         }
@@ -674,8 +674,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
     string EmitVersionTorelantSerializeBody(bool isForUnity)
     {
         var newTempWriter = isForUnity
-            ? "new MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
-            : "new MemoryPackWriter<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
+            ? "new global::MemoryPack.MemoryPackWriter(ref System.Runtime.CompilerServices.Unsafe.As<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter, System.Buffers.IBufferWriter<byte>>(ref tempBuffer), writer.OptionalState)"
+            : "new global::MemoryPack.MemoryPackWriter<global::MemoryPack.Internal.ReusableLinkedArrayBufferWriter>(ref tempBuffer, writer.OptionalState)";
 
         var checkCircularReference = "";
         if (GenerateType == GenerateType.CircularReference)
@@ -988,8 +988,8 @@ partial {{classOrStructOrRecord}} {{TypeName}}
             ? "scoped ref"
             : "ref";
         string serializeMethodSignarture = context.IsForUnity
-            ? "Serialize(ref MemoryPackWriter"
-            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
+            ? "Serialize(ref global::MemoryPack.MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref global::MemoryPack.MemoryPackWriter<TBufferWriter>";
 
         var code = $$"""
 
@@ -1030,7 +1030,7 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
         }
 
         [global::MemoryPack.Internal.Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{TypeName}}? value)
+        public override void Deserialize(ref global::MemoryPack.MemoryPackReader reader, {{scopedRef}} {{TypeName}}? value)
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}
@@ -1049,8 +1049,8 @@ partial {{classOrInterfaceOrRecord}} {{TypeName}} : IMemoryPackFormatterRegister
             ? "scoped ref"
             : "ref";
         string serializeMethodSignarture = context.IsForUnity
-            ? "Serialize(ref MemoryPackWriter"
-            : "Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter>";
+            ? "Serialize(ref global::MemoryPack.MemoryPackWriter"
+            : "Serialize<TBufferWriter>(ref global::MemoryPack.MemoryPackWriter<TBufferWriter>";
 
         string registerFormatterCode;
         if (!Symbol.IsGenericType || !Symbol.IsUnboundGenericType)
@@ -1087,7 +1087,7 @@ partial class {{TypeName}} : MemoryPackFormatter<{{symbolFullQualified}}>
         }
 
         [global::MemoryPack.Internal.Preserve]
-        public override void Deserialize(ref MemoryPackReader reader, {{scopedRef}} {{symbolFullQualified}}? value)
+        public override void Deserialize(ref global::MemoryPack.MemoryPackReader reader, {{scopedRef}} {{symbolFullQualified}}? value)
         {
 {{OnDeserializing.Select(x => "            " + x.Emit()).NewLine()}}
 {{EmitUnionDeserializeBody()}}
